@@ -1,0 +1,276 @@
+"""
+Campus Ride-Share Platform - AI Assistant (Chatbot).
+
+Professional, secure AI assistant using OpenAI's GPT API.
+Security-first design: Never sends personal data (names, phones, emails) to OpenAI.
+Only sanitized ride data (IDs, routes, dates, times, prices) is included in prompts.
+"""
+
+import logging
+from typing import Optional, List, Dict, Any
+
+from backend.config import config
+from backend.database import db
+from ai.prompts import SYSTEM_PROMPT_TEMPLATE
+from ai.context import get_current_date, build_rides_context
+
+
+class RideShareChatbot:
+    """
+    Secure AI Assistant for the Campus Ride-Share platform.
+
+    Security Features:
+    - NEVER sends driver names to OpenAI
+    - NEVER sends phone numbers to OpenAI
+    - NEVER sends email addresses to OpenAI
+    - NEVER sends license plates to OpenAI
+    - Only sends: Ride IDs, routes, dates, times, prices, seat counts
+    """
+
+    def __init__(self):
+        """Initialize the chatbot with OpenAI client if configured."""
+        self.enabled = config.is_openai_enabled()
+        if self.enabled:
+            try:
+                from openai import OpenAI
+                self.client = OpenAI(api_key=config.OPENAI_API_KEY)
+            except Exception as e:
+                logging.getLogger(__name__).warning('OpenAI client init failed: %s', e)
+                self.client = None
+                self.enabled = False
+        else:
+            self.client = None
+        self.model = config.OPENAI_MODEL
+        self.max_tokens = config.OPENAI_MAX_TOKENS
+        self.rate_limit = config.CHATBOT_RATE_LIMIT
+
+    def _build_system_prompt(self) -> str:
+        """
+        Build the system prompt with SANITIZED real-time data.
+
+        SECURITY: No personal information is included in this prompt.
+        """
+        current_date = get_current_date()
+        ctx = build_rides_context()
+        stats = ctx['stats']
+
+        return SYSTEM_PROMPT_TEMPLATE.format(
+            current_date=current_date,
+            active_ride_count=len(ctx['active_rides']),
+            total_users=stats['total_users'],
+            average_price=int(stats['average_price']),
+            origins=ctx['origins'],
+            destinations=ctx['destinations'],
+            rides_section=ctx['rides_section'],
+        )
+
+    def _build_messages(
+        self,
+        user_message: str,
+        conversation_history: List[Dict[str, str]],
+    ) -> List[Dict[str, str]]:
+        """Build the messages array for the OpenAI API call."""
+        messages = [
+            {"role": "system", "content": self._build_system_prompt()}
+        ]
+
+        for msg in conversation_history[-10:]:
+            messages.append({
+                "role": msg.get("role", "user"),
+                "content": msg.get("content", ""),
+            })
+
+        messages.append({"role": "user", "content": user_message})
+        return messages
+
+    def check_rate_limit(self, user_id: int) -> tuple:
+        """Check if the user has exceeded the rate limit."""
+        request_count = db.get_user_chat_count_last_minute(user_id)
+        if request_count >= self.rate_limit:
+            return False, "Rate limit reached. Please wait before sending another message."
+        return True, ""
+
+    def get_response(
+        self,
+        user_id: int,
+        user_message: str,
+        conversation_history: Optional[List[Dict[str, str]]] = None,
+    ) -> Dict[str, Any]:
+        """
+        Get a response from the AI Assistant.
+
+        SECURITY: Personal data (names, phones, emails) is NEVER sent to OpenAI.
+        """
+        if not self.enabled or self.client is None:
+            fallback = self._get_fallback_response()
+            logging.getLogger(__name__).info('OpenAI unavailable, returning fallback response')
+            return {
+                "success": True,
+                "response": fallback,
+                "tokens_used": 0,
+                "note": "fallback",
+            }
+
+        is_allowed, rate_limit_error = self.check_rate_limit(user_id)
+        if not is_allowed:
+            return {"success": False, "error": rate_limit_error, "response": rate_limit_error}
+
+        if not user_message or not user_message.strip():
+            return {"success": False, "error": "Please enter a message.", "response": "Please enter a message."}
+
+        if len(user_message) > 1000:
+            return {
+                "success": False,
+                "error": "Message too long.",
+                "response": "Message exceeds 1000 character limit. Please shorten your query.",
+            }
+
+        conversation_history = conversation_history or []
+
+        try:
+            messages = self._build_messages(user_message, conversation_history)
+
+            response = self.client.chat.completions.create(
+                model=self.model,
+                messages=messages,
+                max_tokens=self.max_tokens,
+                temperature=0.3,
+                presence_penalty=0.1,
+                frequency_penalty=0.1,
+            )
+
+            bot_response = response.choices[0].message.content.strip()
+            tokens_used = response.usage.total_tokens if response.usage else None
+
+            db.log_chat_interaction(
+                user_id=user_id,
+                user_message=user_message,
+                bot_response=bot_response,
+                tokens_used=tokens_used,
+            )
+
+            return {"success": True, "response": bot_response, "tokens_used": tokens_used}
+
+        except Exception as e:
+            error_message = str(e)
+            fallback_response = self._get_fallback_response()
+
+            try:
+                db.log_chat_interaction(
+                    user_id=user_id,
+                    user_message=user_message,
+                    bot_response=f"[ERROR] {fallback_response}",
+                    tokens_used=0,
+                )
+            except Exception:
+                pass
+
+            logging.getLogger(__name__).warning('Chatbot error: %s', error_message)
+
+            return {
+                "success": True,
+                "response": fallback_response,
+                "tokens_used": 0,
+                "note": "fallback",
+                "error": error_message,
+            }
+
+    def _get_fallback_response(self) -> str:
+        """Get a professional fallback response when the API fails."""
+        try:
+            active_rides = db.get_all_active_rides()
+            ride_count = len(active_rides)
+
+            if ride_count > 0:
+                destinations = list(set([r['destination'] for r in active_rides[:5]]))
+                dest_list = ", ".join(destinations[:3])
+                return (
+                    f"Experiencing technical difficulties. {ride_count} rides are currently "
+                    f"available to destinations including {dest_list}. Please use the Search "
+                    f"page to find and book rides."
+                )
+            else:
+                return (
+                    "Experiencing technical difficulties. Please use the Search page to "
+                    "browse available rides, or try again in a moment."
+                )
+        except Exception:
+            return "Experiencing technical difficulties. Please use the Search page or try again in a moment."
+
+    def get_quick_suggestions(self) -> List[str]:
+        """Get professional quick action buttons based on current data."""
+        suggestions = []
+
+        try:
+            active_rides = db.get_all_active_rides()
+
+            if active_rides:
+                destinations = {}
+                for ride in active_rides:
+                    dest = ride['destination']
+                    destinations[dest] = destinations.get(dest, 0) + 1
+
+                sorted_dests = sorted(destinations.items(), key=lambda x: x[1], reverse=True)
+
+                if sorted_dests:
+                    suggestions.append(f"Search {sorted_dests[0][0]} rides")
+
+                suggestions.append("Check weekend availability")
+                suggestions.append("View pricing guide")
+            else:
+                suggestions.append("How to post a ride")
+
+            suggestions.append("Platform help")
+
+        except Exception:
+            suggestions = ["Search available rides", "How booking works", "Platform help"]
+
+        return suggestions[:4]
+
+    def get_initial_greeting(self) -> str:
+        """Get the professional initial greeting for the chat interface."""
+        try:
+            active_rides = db.get_all_active_rides()
+            ride_count = len(active_rides)
+
+            if ride_count > 0:
+                destinations = list(set([r['destination'] for r in active_rides]))[:3]
+                dest_text = ", ".join(destinations)
+                return (
+                    f"I can help you find rides, check availability, or answer questions about "
+                    f"the platform. Currently {ride_count} rides available to destinations "
+                    f"including {dest_text}. What would you like to know?"
+                )
+            else:
+                return (
+                    "I can help you find rides, check availability, or answer questions about "
+                    "the platform. What would you like to know?"
+                )
+        except Exception:
+            return (
+                "I can help you find rides, check availability, or answer questions about "
+                "the platform. What would you like to know?"
+            )
+
+
+# Global chatbot instance
+chatbot = RideShareChatbot()
+
+
+def get_chat_response(
+    user_id: int,
+    message: str,
+    history: Optional[List[Dict[str, str]]] = None,
+) -> Dict[str, Any]:
+    """Convenience function to get a chatbot response."""
+    return chatbot.get_response(user_id, message, history)
+
+
+def get_quick_suggestions() -> List[str]:
+    """Convenience function to get quick suggestions."""
+    return chatbot.get_quick_suggestions()
+
+
+def get_initial_greeting() -> str:
+    """Convenience function to get the initial greeting."""
+    return chatbot.get_initial_greeting()
