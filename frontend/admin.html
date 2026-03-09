@@ -1,0 +1,759 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Admin Panel — CampusRide</title>
+    <link rel="stylesheet" href="css/base.css" />
+    <link rel="stylesheet" href="css/components.css" />
+    <link rel="stylesheet" href="css/pages.css" />
+  </head>
+  <body>
+    <!-- NAVBAR -->
+    <nav class="navbar solid" id="navbar">
+      <div class="container nav-inner">
+        <a href="index.html" class="nav-logo">
+          <div class="nav-logo-icon">🚗</div>
+          CampusRide
+        </a>
+        <div class="nav-links" id="navLinks">
+          <a href="dashboard.html" class="nav-link">Dashboard</a>
+          <a href="find-ride.html" class="nav-link">Find a Ride</a>
+          <a href="admin.html" class="nav-link active">Admin</a>
+        </div>
+        <div class="nav-actions">
+          <span class="badge badge-danger" style="margin-right: var(--space-2)"
+            >Admin</span
+          >
+          <a href="profile.html" class="nav-avatar">MJ</a>
+          <button class="nav-toggle" id="navToggle">
+            <span></span><span></span><span></span>
+          </button>
+        </div>
+      </div>
+    </nav>
+
+    <div
+      style="
+        padding-top: var(--nav-h);
+        background: var(--gray-50);
+        min-height: 100vh;
+        padding-bottom: 80px;
+      "
+    >
+      <!-- Admin Header -->
+      <div class="admin-header">
+        <div class="container">
+          <p class="section-eyebrow" style="color: var(--gold-light)">
+            Control Panel
+          </p>
+          <h1 style="color: var(--white); margin-bottom: var(--space-2)">
+            Admin Dashboard
+          </h1>
+          <p style="color: rgba(255, 255, 255, 0.6); font-size: var(--text-sm)">
+            Monitor platform activity, manage users and oversee all rides.
+          </p>
+        </div>
+      </div>
+
+      <div class="container" style="padding-top: var(--space-6)">
+        <!-- Admin Stats -->
+        <div class="admin-stats">
+          <div class="stat-card animate-fade-up">
+            <div class="stat-card-icon gold">👥</div>
+            <div>
+              <div class="stat-number">1,284</div>
+              <div class="stat-label">Total Users</div>
+              <div
+                style="
+                  font-size: var(--text-xs);
+                  color: var(--success);
+                  margin-top: 4px;
+                "
+              >
+                ↑ +24 this week
+              </div>
+            </div>
+          </div>
+          <div class="stat-card animate-fade-up delay-1">
+            <div class="stat-card-icon navy">🚗</div>
+            <div>
+              <div class="stat-number">342</div>
+              <div class="stat-label">Active Rides</div>
+              <div
+                style="
+                  font-size: var(--text-xs);
+                  color: var(--success);
+                  margin-top: 4px;
+                "
+              >
+                ↑ +12 today
+              </div>
+            </div>
+          </div>
+          <div class="stat-card animate-fade-up delay-2">
+            <div class="stat-card-icon green">✅</div>
+            <div>
+              <div class="stat-number">8,921</div>
+              <div class="stat-label">Completed Rides</div>
+              <div
+                style="
+                  font-size: var(--text-xs);
+                  color: var(--success);
+                  margin-top: 4px;
+                "
+              >
+                ↑ +156 this month
+              </div>
+            </div>
+          </div>
+          <div class="stat-card animate-fade-up delay-3">
+            <div class="stat-card-icon blue">⚠️</div>
+            <div>
+              <div class="stat-number">7</div>
+              <div class="stat-label">Pending Reports</div>
+              <div
+                style="
+                  font-size: var(--text-xs);
+                  color: var(--danger);
+                  margin-top: 4px;
+                "
+              >
+                ↑ Needs attention
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tabs -->
+        <div class="tabs" style="margin-bottom: var(--space-6)">
+          <button class="tab-btn active" id="tabUsers">👥 Users</button>
+          <button class="tab-btn" id="tabRides">🚗 Rides</button>
+          <button class="tab-btn" id="tabReports">⚠️ Reports</button>
+          <button class="tab-btn" id="tabVerifications">
+            🪪 Verifications
+          </button>
+        </div>
+
+        <!-- USERS TABLE -->
+        <div id="panelUsers">
+          <div class="card animate-fade-up">
+            <div class="card-header">
+              <h3 style="font-size: var(--text-base); color: var(--navy)">
+                All Users
+              </h3>
+              <div style="display: flex; gap: var(--space-3)">
+                <div class="input-wrapper">
+                  <span class="input-icon">🔍</span>
+                  <input
+                    type="text"
+                    class="form-input form-input"
+                    placeholder="Search users..."
+                    style="padding-left: 2.5rem; width: 220px"
+                  />
+                </div>
+                <select class="form-select" style="width: auto">
+                  <option>All roles</option>
+                  <option>Passengers</option>
+                  <option>Drivers</option>
+                  <option>Admins</option>
+                </select>
+              </div>
+            </div>
+            <div style="overflow-x: auto">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>User</th>
+                    <th>Email</th>
+                    <th>Role</th>
+                    <th>Rides</th>
+                    <th>Rating</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td>
+                      <div
+                        style="
+                          display: flex;
+                          align-items: center;
+                          gap: var(--space-3);
+                        "
+                      >
+                        <div class="avatar avatar-sm">JK</div>
+                        <span style="font-weight: 600">John Kamau</span>
+                      </div>
+                    </td>
+                    <td>john.k@university.ac.ke</td>
+                    <td><span class="badge badge-navy">Driver</span></td>
+                    <td>47</td>
+                    <td>
+                      <span class="stars" style="font-size: 11px">★★★★★</span>
+                      4.9
+                    </td>
+                    <td><span class="badge badge-success">Active</span></td>
+                    <td>
+                      <div class="table-actions">
+                        <button
+                          class="btn btn-sm"
+                          style="border: 1px solid var(--gray-200)"
+                        >
+                          View
+                        </button>
+                        <button class="btn btn-sm btn-danger">Ban</button>
+                      </div>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td>
+                      <div
+                        style="
+                          display: flex;
+                          align-items: center;
+                          gap: var(--space-3);
+                        "
+                      >
+                        <div class="avatar avatar-sm">AW</div>
+                        <span style="font-weight: 600">Amina Wanjiru</span>
+                      </div>
+                    </td>
+                    <td>amina.w@university.ac.ke</td>
+                    <td><span class="badge badge-navy">Driver</span></td>
+                    <td>32</td>
+                    <td>
+                      <span class="stars" style="font-size: 11px">★★★★★</span>
+                      4.8
+                    </td>
+                    <td><span class="badge badge-success">Active</span></td>
+                    <td>
+                      <div class="table-actions">
+                        <button
+                          class="btn btn-sm"
+                          style="border: 1px solid var(--gray-200)"
+                        >
+                          View
+                        </button>
+                        <button class="btn btn-sm btn-danger">Ban</button>
+                      </div>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td>
+                      <div
+                        style="
+                          display: flex;
+                          align-items: center;
+                          gap: var(--space-3);
+                        "
+                      >
+                        <div class="avatar avatar-sm">MJ</div>
+                        <span style="font-weight: 600">Merrinette James</span>
+                      </div>
+                    </td>
+                    <td>merrinette@university.ac.ke</td>
+                    <td><span class="badge badge-gold">Passenger</span></td>
+                    <td>8</td>
+                    <td>
+                      <span class="stars" style="font-size: 11px">★★★★★</span>
+                      4.9
+                    </td>
+                    <td><span class="badge badge-success">Active</span></td>
+                    <td>
+                      <div class="table-actions">
+                        <button
+                          class="btn btn-sm"
+                          style="border: 1px solid var(--gray-200)"
+                        >
+                          View
+                        </button>
+                        <button class="btn btn-sm btn-danger">Ban</button>
+                      </div>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td>
+                      <div
+                        style="
+                          display: flex;
+                          align-items: center;
+                          gap: var(--space-3);
+                        "
+                      >
+                        <div class="avatar avatar-sm">DM</div>
+                        <span style="font-weight: 600">David Mwangi</span>
+                      </div>
+                    </td>
+                    <td>david.m@university.ac.ke</td>
+                    <td><span class="badge badge-navy">Driver</span></td>
+                    <td>58</td>
+                    <td>
+                      <span class="stars" style="font-size: 11px">★★★★☆</span>
+                      4.7
+                    </td>
+                    <td>
+                      <span
+                        class="badge badge-warning"
+                        style="
+                          background: var(--warning-bg);
+                          color: var(--warning);
+                        "
+                        >Suspended</span
+                      >
+                    </td>
+                    <td>
+                      <div class="table-actions">
+                        <button
+                          class="btn btn-sm"
+                          style="border: 1px solid var(--gray-200)"
+                        >
+                          View
+                        </button>
+                        <button class="btn btn-sm btn-primary">Restore</button>
+                      </div>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td>
+                      <div
+                        style="
+                          display: flex;
+                          align-items: center;
+                          gap: var(--space-3);
+                        "
+                      >
+                        <div class="avatar avatar-sm">SK</div>
+                        <span style="font-weight: 600">Sarah Kiprotich</span>
+                      </div>
+                    </td>
+                    <td>sarah.k@university.ac.ke</td>
+                    <td><span class="badge badge-navy">Driver</span></td>
+                    <td>21</td>
+                    <td>
+                      <span class="stars" style="font-size: 11px">★★★★★</span>
+                      5.0
+                    </td>
+                    <td><span class="badge badge-success">Active</span></td>
+                    <td>
+                      <div class="table-actions">
+                        <button
+                          class="btn btn-sm"
+                          style="border: 1px solid var(--gray-200)"
+                        >
+                          View
+                        </button>
+                        <button class="btn btn-sm btn-danger">Ban</button>
+                      </div>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <div
+              class="card-footer"
+              style="
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+              "
+            >
+              <span style="font-size: var(--text-sm); color: var(--gray-500)"
+                >Showing 5 of 1,284 users</span
+              >
+              <div style="display: flex; gap: var(--space-2)">
+                <button
+                  class="btn btn-sm"
+                  style="border: 1px solid var(--gray-200)"
+                >
+                  ← Prev
+                </button>
+                <button class="btn btn-sm btn-primary">Next →</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- RIDES TABLE -->
+        <div id="panelRides" style="display: none">
+          <div class="card animate-fade-up">
+            <div class="card-header">
+              <h3 style="font-size: var(--text-base); color: var(--navy)">
+                All Rides
+              </h3>
+              <select class="form-select" style="width: auto">
+                <option>All statuses</option>
+                <option>Active</option>
+                <option>Completed</option>
+                <option>Cancelled</option>
+              </select>
+            </div>
+            <div style="overflow-x: auto">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>Route</th>
+                    <th>Driver</th>
+                    <th>Date & Time</th>
+                    <th>Seats</th>
+                    <th>Price</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td><strong>Campus → CBD</strong></td>
+                    <td>John Kamau</td>
+                    <td>Dec 15 · 2:30 PM</td>
+                    <td>3/4 booked</td>
+                    <td>KSh 350</td>
+                    <td><span class="badge badge-success">Active</span></td>
+                    <td>
+                      <div class="table-actions">
+                        <button
+                          class="btn btn-sm"
+                          style="border: 1px solid var(--gray-200)"
+                        >
+                          View
+                        </button>
+                        <button class="btn btn-sm btn-danger">Cancel</button>
+                      </div>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td><strong>Campus → Westlands</strong></td>
+                    <td>Amina Wanjiru</td>
+                    <td>Dec 15 · 4:00 PM</td>
+                    <td>2/2 booked</td>
+                    <td>KSh 400</td>
+                    <td><span class="badge badge-success">Active</span></td>
+                    <td>
+                      <div class="table-actions">
+                        <button
+                          class="btn btn-sm"
+                          style="border: 1px solid var(--gray-200)"
+                        >
+                          View
+                        </button>
+                        <button class="btn btn-sm btn-danger">Cancel</button>
+                      </div>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td><strong>Campus → Karen</strong></td>
+                    <td>David Mwangi</td>
+                    <td>Dec 14 · 10:00 AM</td>
+                    <td>4/4 booked</td>
+                    <td>KSh 500</td>
+                    <td><span class="badge badge-gray">Completed</span></td>
+                    <td>
+                      <div class="table-actions">
+                        <button
+                          class="btn btn-sm"
+                          style="border: 1px solid var(--gray-200)"
+                        >
+                          View
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td><strong>Campus → Kilimani</strong></td>
+                    <td>Sarah Kiprotich</td>
+                    <td>Dec 13 · 1:00 PM</td>
+                    <td>1/4 booked</td>
+                    <td>KSh 300</td>
+                    <td><span class="badge badge-danger">Cancelled</span></td>
+                    <td>
+                      <div class="table-actions">
+                        <button
+                          class="btn btn-sm"
+                          style="border: 1px solid var(--gray-200)"
+                        >
+                          View
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <div
+              class="card-footer"
+              style="
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+              "
+            >
+              <span style="font-size: var(--text-sm); color: var(--gray-500)"
+                >Showing 4 of 342 rides</span
+              >
+              <div style="display: flex; gap: var(--space-2)">
+                <button
+                  class="btn btn-sm"
+                  style="border: 1px solid var(--gray-200)"
+                >
+                  ← Prev
+                </button>
+                <button class="btn btn-sm btn-primary">Next →</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- REPORTS TABLE -->
+        <div id="panelReports" style="display: none">
+          <div class="card animate-fade-up">
+            <div class="card-header">
+              <h3 style="font-size: var(--text-base); color: var(--navy)">
+                User Reports
+              </h3>
+              <span class="badge badge-danger">7 Pending</span>
+            </div>
+            <div style="overflow-x: auto">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>Reported User</th>
+                    <th>Reported By</th>
+                    <th>Reason</th>
+                    <th>Date</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td><strong>David Mwangi</strong></td>
+                    <td>Amina W.</td>
+                    <td>Late pickup — 30 mins</td>
+                    <td>Dec 14, 2024</td>
+                    <td>
+                      <span
+                        class="badge badge-warning"
+                        style="
+                          background: var(--warning-bg);
+                          color: var(--warning);
+                        "
+                        >Pending</span
+                      >
+                    </td>
+                    <td>
+                      <div class="table-actions">
+                        <button class="btn btn-sm btn-primary">Review</button>
+                        <button
+                          class="btn btn-sm"
+                          style="border: 1px solid var(--gray-200)"
+                        >
+                          Dismiss
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td><strong>Unknown Driver</strong></td>
+                    <td>Sarah K.</td>
+                    <td>No show — cancelled last minute</td>
+                    <td>Dec 12, 2024</td>
+                    <td>
+                      <span
+                        class="badge badge-warning"
+                        style="
+                          background: var(--warning-bg);
+                          color: var(--warning);
+                        "
+                        >Pending</span
+                      >
+                    </td>
+                    <td>
+                      <div class="table-actions">
+                        <button class="btn btn-sm btn-primary">Review</button>
+                        <button
+                          class="btn btn-sm"
+                          style="border: 1px solid var(--gray-200)"
+                        >
+                          Dismiss
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td><strong>Brian Otieno</strong></td>
+                    <td>Merrinette J.</td>
+                    <td>Inappropriate behaviour</td>
+                    <td>Dec 10, 2024</td>
+                    <td><span class="badge badge-success">Resolved</span></td>
+                    <td>
+                      <div class="table-actions">
+                        <button
+                          class="btn btn-sm"
+                          style="border: 1px solid var(--gray-200)"
+                        >
+                          View
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- VERIFICATIONS TABLE -->
+        <div id="panelVerifications" style="display: none">
+          <div class="card animate-fade-up">
+            <div class="card-header">
+              <h3 style="font-size: var(--text-base); color: var(--navy)">
+                Driver Verifications
+              </h3>
+              <span class="badge badge-gold">3 Pending</span>
+            </div>
+            <div style="overflow-x: auto">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>Driver</th>
+                    <th>License No.</th>
+                    <th>Vehicle</th>
+                    <th>Submitted</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td>
+                      <div
+                        style="
+                          display: flex;
+                          align-items: center;
+                          gap: var(--space-3);
+                        "
+                      >
+                        <div class="avatar avatar-sm">FN</div>
+                        <span style="font-weight: 600">Faith Njeri</span>
+                      </div>
+                    </td>
+                    <td>DL-2024-8821</td>
+                    <td>Toyota Axio · White</td>
+                    <td>Dec 14, 2024</td>
+                    <td>
+                      <span
+                        class="badge badge-warning"
+                        style="
+                          background: var(--warning-bg);
+                          color: var(--warning);
+                        "
+                        >Pending</span
+                      >
+                    </td>
+                    <td>
+                      <div class="table-actions">
+                        <button class="btn btn-sm btn-primary">Approve</button>
+                        <button class="btn btn-sm btn-danger">Reject</button>
+                      </div>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td>
+                      <div
+                        style="
+                          display: flex;
+                          align-items: center;
+                          gap: var(--space-3);
+                        "
+                      >
+                        <div class="avatar avatar-sm">BO</div>
+                        <span style="font-weight: 600">Brian Otieno</span>
+                      </div>
+                    </td>
+                    <td>DL-2023-4412</td>
+                    <td>Subaru Forester · Silver</td>
+                    <td>Dec 13, 2024</td>
+                    <td>
+                      <span
+                        class="badge badge-warning"
+                        style="
+                          background: var(--warning-bg);
+                          color: var(--warning);
+                        "
+                        >Pending</span
+                      >
+                    </td>
+                    <td>
+                      <div class="table-actions">
+                        <button class="btn btn-sm btn-primary">Approve</button>
+                        <button class="btn btn-sm btn-danger">Reject</button>
+                      </div>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td>
+                      <div
+                        style="
+                          display: flex;
+                          align-items: center;
+                          gap: var(--space-3);
+                        "
+                      >
+                        <div class="avatar avatar-sm">JK</div>
+                        <span style="font-weight: 600">John Kamau</span>
+                      </div>
+                    </td>
+                    <td>DL-2022-1103</td>
+                    <td>Toyota Vitz · White</td>
+                    <td>Dec 01, 2024</td>
+                    <td><span class="badge badge-success">Approved</span></td>
+                    <td>
+                      <div class="table-actions">
+                        <button
+                          class="btn btn-sm"
+                          style="border: 1px solid var(--gray-200)"
+                        >
+                          View
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      // Mobile nav
+      document.getElementById("navToggle").addEventListener("click", () => {
+        document.getElementById("navLinks").classList.toggle("open");
+      });
+
+      // Tab switching
+      const adminTabs = [
+        { btn: "tabUsers", panel: "panelUsers" },
+        { btn: "tabRides", panel: "panelRides" },
+        { btn: "tabReports", panel: "panelReports" },
+        { btn: "tabVerifications", panel: "panelVerifications" },
+      ];
+
+      adminTabs.forEach(({ btn, panel }) => {
+        document.getElementById(btn).addEventListener("click", () => {
+          adminTabs.forEach((t) => {
+            document.getElementById(t.btn).classList.remove("active");
+            document.getElementById(t.panel).style.display = "none";
+          });
+          document.getElementById(btn).classList.add("active");
+          document.getElementById(panel).style.display = "block";
+        });
+      });
+
+      // Member 1 handles real admin data and actions
+      console.log("admin.js will load real platform data here");
+    </script>
+  </body>
+</html>
