@@ -1,0 +1,687 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>My Profile — CampusRide</title>
+    <link rel="stylesheet" href="css/base.css" />
+    <link rel="stylesheet" href="css/components.css" />
+    <link rel="stylesheet" href="css/pages.css" />
+  </head>
+  <body>
+    <!-- NAVBAR -->
+    <nav class="navbar solid" id="navbar">
+      <div class="container nav-inner">
+        <a href="index.html" class="nav-logo">
+          <div class="nav-logo-icon">🚗</div>
+          CampusRide
+        </a>
+        <div class="nav-links" id="navLinks">
+          <a href="dashboard.html" class="nav-link">Dashboard</a>
+          <a href="find-ride.html" class="nav-link">Find a Ride</a>
+          <a href="create-ride.html" class="nav-link">Post a Ride</a>
+          <a href="ai-assistant.html" class="nav-link">AI Assistant</a>
+        </div>
+        <div class="nav-actions">
+          <a href="profile.html" class="nav-avatar">MJ</a>
+          <button class="nav-toggle" id="navToggle">
+            <span></span><span></span><span></span>
+          </button>
+        </div>
+      </div>
+    </nav>
+
+    <div
+      style="
+        padding-top: var(--nav-h);
+        background: var(--gray-50);
+        min-height: 100vh;
+        padding-bottom: 80px;
+      "
+    >
+      <div class="container" style="padding-top: var(--space-8)">
+        <!-- Profile Header Card -->
+        <div class="profile-header-card animate-fade-up">
+          <div style="position: relative; z-index: 1; flex-shrink: 0">
+            <div class="avatar avatar-xl">MJ</div>
+            <div
+              style="
+                position: absolute;
+                bottom: 0;
+                right: 0;
+                width: 24px;
+                height: 24px;
+                background: var(--success);
+                border-radius: 50%;
+                border: 2px solid var(--white);
+              "
+            ></div>
+          </div>
+          <div class="profile-info">
+            <div class="profile-name">Merrinette James</div>
+            <div class="profile-meta">
+              🎓 University of Nairobi &nbsp;·&nbsp; 📧
+              merrinette@university.ac.ke &nbsp;·&nbsp; 🗓️ Member since Jan 2024
+            </div>
+            <div class="profile-stats-bar">
+              <div>
+                <div class="profile-stat-num">8</div>
+                <div class="profile-stat-label">Total Rides</div>
+              </div>
+              <div>
+                <div class="profile-stat-num">4.9</div>
+                <div class="profile-stat-label">Rating</div>
+              </div>
+              <div>
+                <div class="profile-stat-num">KSh 4,200</div>
+                <div class="profile-stat-label">Saved</div>
+              </div>
+              <div>
+                <div class="profile-stat-num">24kg</div>
+                <div class="profile-stat-label">CO₂ Saved</div>
+              </div>
+            </div>
+          </div>
+          <button
+            class="btn btn-ghost btn-sm"
+            id="editProfileBtn"
+            style="position: relative; z-index: 1; align-self: flex-start"
+          >
+            ✏️ Edit Profile
+          </button>
+        </div>
+
+        <!-- Profile Layout -->
+        <div class="profile-layout" style="margin-top: var(--space-6)">
+          <!-- LEFT COLUMN -->
+          <div>
+            <!-- Personal Info -->
+            <div
+              class="card animate-fade-up"
+              style="margin-bottom: var(--space-6)"
+            >
+              <div class="card-header">
+                <h3 style="font-size: var(--text-base); color: var(--navy)">
+                  Personal Information
+                </h3>
+                <button
+                  class="btn btn-sm"
+                  id="saveInfoBtn"
+                  style="
+                    display: none;
+                    background: var(--gold);
+                    color: var(--navy);
+                    border: none;
+                  "
+                >
+                  Save
+                </button>
+              </div>
+              <div class="card-body">
+                <div class="form-row">
+                  <div class="form-group">
+                    <label class="form-label">First Name</label>
+                    <input
+                      type="text"
+                      class="form-input"
+                      value="Merrinette"
+                      id="firstName"
+                      disabled
+                    />
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label">Last Name</label>
+                    <input
+                      type="text"
+                      class="form-input"
+                      value="James"
+                      id="lastName"
+                      disabled
+                    />
+                  </div>
+                </div>
+                <div class="form-group">
+                  <label class="form-label">University Email</label>
+                  <div class="input-wrapper">
+                    <span class="input-icon">📧</span>
+                    <input
+                      type="email"
+                      class="form-input"
+                      value="merrinette@university.ac.ke"
+                      disabled
+                    />
+                  </div>
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Phone Number</label>
+                  <div class="input-wrapper">
+                    <span class="input-icon">📱</span>
+                    <input
+                      type="tel"
+                      class="form-input"
+                      value="+254 712 345 678"
+                      id="phone"
+                      disabled
+                    />
+                  </div>
+                </div>
+                <div class="form-group" style="margin-bottom: 0">
+                  <label class="form-label">Emergency Contact</label>
+                  <div class="input-wrapper">
+                    <span class="input-icon">🆘</span>
+                    <input
+                      type="tel"
+                      class="form-input"
+                      value="+254 798 765 432"
+                      id="emergency"
+                      disabled
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Ride History Tabs -->
+            <div class="card animate-fade-up">
+              <div class="card-body" style="padding-bottom: 0">
+                <div class="tabs">
+                  <button class="tab-btn active" id="tabPassenger">
+                    As Passenger
+                  </button>
+                  <button class="tab-btn" id="tabDriver">As Driver</button>
+                  <button class="tab-btn" id="tabSaved">Saved Rides</button>
+                </div>
+              </div>
+
+              <!-- Passenger Tab -->
+              <div id="panelPassenger" class="card-body" style="padding-top: 0">
+                <div
+                  style="
+                    display: flex;
+                    flex-direction: column;
+                    gap: var(--space-3);
+                  "
+                >
+                  <div
+                    style="
+                      display: flex;
+                      align-items: center;
+                      gap: var(--space-4);
+                      padding: var(--space-4);
+                      background: var(--gray-50);
+                      border-radius: var(--radius);
+                      border: 1px solid var(--gray-200);
+                    "
+                  >
+                    <div
+                      style="
+                        width: 44px;
+                        height: 44px;
+                        background: linear-gradient(
+                          135deg,
+                          var(--navy),
+                          var(--navy-light)
+                        );
+                        border-radius: var(--radius-sm);
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        font-size: 1.2rem;
+                      "
+                    >
+                      🚗
+                    </div>
+                    <div style="flex: 1">
+                      <div
+                        style="
+                          font-weight: 600;
+                          font-size: var(--text-sm);
+                          color: var(--navy);
+                        "
+                      >
+                        Campus → CBD Nairobi
+                      </div>
+                      <div
+                        style="
+                          font-size: var(--text-xs);
+                          color: var(--gray-400);
+                        "
+                      >
+                        Dec 10, 2024 · John K. · KSh 350
+                      </div>
+                    </div>
+                    <div class="stars" style="font-size: 11px">★★★★★</div>
+                  </div>
+                  <div
+                    style="
+                      display: flex;
+                      align-items: center;
+                      gap: var(--space-4);
+                      padding: var(--space-4);
+                      background: var(--gray-50);
+                      border-radius: var(--radius);
+                      border: 1px solid var(--gray-200);
+                    "
+                  >
+                    <div
+                      style="
+                        width: 44px;
+                        height: 44px;
+                        background: linear-gradient(
+                          135deg,
+                          var(--navy),
+                          var(--navy-light)
+                        );
+                        border-radius: var(--radius-sm);
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        font-size: 1.2rem;
+                      "
+                    >
+                      🚗
+                    </div>
+                    <div style="flex: 1">
+                      <div
+                        style="
+                          font-weight: 600;
+                          font-size: var(--text-sm);
+                          color: var(--navy);
+                        "
+                      >
+                        Campus → Westlands
+                      </div>
+                      <div
+                        style="
+                          font-size: var(--text-xs);
+                          color: var(--gray-400);
+                        "
+                      >
+                        Dec 5, 2024 · Amina W. · KSh 400
+                      </div>
+                    </div>
+                    <div class="stars" style="font-size: 11px">★★★★★</div>
+                  </div>
+                  <div
+                    style="
+                      display: flex;
+                      align-items: center;
+                      gap: var(--space-4);
+                      padding: var(--space-4);
+                      background: var(--gray-50);
+                      border-radius: var(--radius);
+                      border: 1px solid var(--gray-200);
+                    "
+                  >
+                    <div
+                      style="
+                        width: 44px;
+                        height: 44px;
+                        background: linear-gradient(
+                          135deg,
+                          var(--navy),
+                          var(--navy-light)
+                        );
+                        border-radius: var(--radius-sm);
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        font-size: 1.2rem;
+                      "
+                    >
+                      🚗
+                    </div>
+                    <div style="flex: 1">
+                      <div
+                        style="
+                          font-weight: 600;
+                          font-size: var(--text-sm);
+                          color: var(--navy);
+                        "
+                      >
+                        Campus → Karen
+                      </div>
+                      <div
+                        style="
+                          font-size: var(--text-xs);
+                          color: var(--gray-400);
+                        "
+                      >
+                        Nov 28, 2024 · David M. · KSh 500
+                      </div>
+                    </div>
+                    <div class="stars" style="font-size: 11px">★★★★☆</div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Driver Tab -->
+              <div
+                id="panelDriver"
+                class="card-body"
+                style="display: none; padding-top: 0"
+              >
+                <div class="empty-state">
+                  <div class="empty-state-icon">🚗</div>
+                  <h3>No drives yet</h3>
+                  <p>You haven't posted any rides as a driver yet.</p>
+                  <a
+                    href="create-ride.html"
+                    class="btn btn-primary"
+                    style="margin-top: var(--space-4)"
+                    >Post Your First Ride</a
+                  >
+                </div>
+              </div>
+
+              <!-- Saved Tab -->
+              <div
+                id="panelSaved"
+                class="card-body"
+                style="display: none; padding-top: 0"
+              >
+                <div class="empty-state">
+                  <div class="empty-state-icon">🔖</div>
+                  <h3>No saved rides</h3>
+                  <p>Rides you save will appear here for quick booking.</p>
+                  <a
+                    href="find-ride.html"
+                    class="btn btn-primary"
+                    style="margin-top: var(--space-4)"
+                    >Browse Rides</a
+                  >
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- RIGHT COLUMN -->
+          <div
+            style="display: flex; flex-direction: column; gap: var(--space-6)"
+          >
+            <!-- Verification Status -->
+            <div class="card animate-fade-up">
+              <div class="card-header">
+                <h3 style="font-size: var(--text-base); color: var(--navy)">
+                  Verification Status
+                </h3>
+              </div>
+              <div class="card-body">
+                <div class="verification-item verified">
+                  <div
+                    style="
+                      display: flex;
+                      align-items: center;
+                      gap: var(--space-3);
+                    "
+                  >
+                    <span>📧</span>
+                    <div>
+                      <div style="font-size: var(--text-sm); font-weight: 600">
+                        University Email
+                      </div>
+                      <div
+                        style="
+                          font-size: var(--text-xs);
+                          color: var(--gray-400);
+                        "
+                      >
+                        Verified student
+                      </div>
+                    </div>
+                  </div>
+                  <span class="badge badge-success">✓ Done</span>
+                </div>
+                <div class="verification-item verified">
+                  <div
+                    style="
+                      display: flex;
+                      align-items: center;
+                      gap: var(--space-3);
+                    "
+                  >
+                    <span>📱</span>
+                    <div>
+                      <div style="font-size: var(--text-sm); font-weight: 600">
+                        Phone Number
+                      </div>
+                      <div
+                        style="
+                          font-size: var(--text-xs);
+                          color: var(--gray-400);
+                        "
+                      >
+                        +254 712 345 678
+                      </div>
+                    </div>
+                  </div>
+                  <span class="badge badge-success">✓ Done</span>
+                </div>
+                <div class="verification-item">
+                  <div
+                    style="
+                      display: flex;
+                      align-items: center;
+                      gap: var(--space-3);
+                    "
+                  >
+                    <span>🪪</span>
+                    <div>
+                      <div style="font-size: var(--text-sm); font-weight: 600">
+                        Driver's License
+                      </div>
+                      <div
+                        style="
+                          font-size: var(--text-xs);
+                          color: var(--gray-400);
+                        "
+                      >
+                        Required to post rides
+                      </div>
+                    </div>
+                  </div>
+                  <button class="btn btn-sm btn-primary">Verify</button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Badges -->
+            <div class="card animate-fade-up">
+              <div class="card-header">
+                <h3 style="font-size: var(--text-base); color: var(--navy)">
+                  Badges Earned
+                </h3>
+              </div>
+              <div class="card-body">
+                <div
+                  style="
+                    display: flex;
+                    flex-direction: column;
+                    gap: var(--space-3);
+                  "
+                >
+                  <div
+                    style="
+                      display: flex;
+                      align-items: center;
+                      gap: var(--space-3);
+                      padding: var(--space-3);
+                      background: rgba(201, 151, 58, 0.08);
+                      border-radius: var(--radius-sm);
+                      border: 1px solid rgba(201, 151, 58, 0.2);
+                    "
+                  >
+                    <span style="font-size: 1.5rem">🌱</span>
+                    <div>
+                      <div
+                        style="
+                          font-size: var(--text-sm);
+                          font-weight: 700;
+                          color: var(--navy);
+                        "
+                      >
+                        Eco Traveller
+                      </div>
+                      <div
+                        style="
+                          font-size: var(--text-xs);
+                          color: var(--gray-400);
+                        "
+                      >
+                        Saved 20kg+ CO₂
+                      </div>
+                    </div>
+                  </div>
+                  <div
+                    style="
+                      display: flex;
+                      align-items: center;
+                      gap: var(--space-3);
+                      padding: var(--space-3);
+                      background: rgba(201, 151, 58, 0.08);
+                      border-radius: var(--radius-sm);
+                      border: 1px solid rgba(201, 151, 58, 0.2);
+                    "
+                  >
+                    <span style="font-size: 1.5rem">⭐</span>
+                    <div>
+                      <div
+                        style="
+                          font-size: var(--text-sm);
+                          font-weight: 700;
+                          color: var(--navy);
+                        "
+                      >
+                        5 Star Rider
+                      </div>
+                      <div
+                        style="
+                          font-size: var(--text-xs);
+                          color: var(--gray-400);
+                        "
+                      >
+                        Maintained 4.9 rating
+                      </div>
+                    </div>
+                  </div>
+                  <div
+                    style="
+                      display: flex;
+                      align-items: center;
+                      gap: var(--space-3);
+                      padding: var(--space-3);
+                      background: var(--gray-50);
+                      border-radius: var(--radius-sm);
+                      border: 1px solid var(--gray-200);
+                      opacity: 0.5;
+                    "
+                  >
+                    <span style="font-size: 1.5rem">🔒</span>
+                    <div>
+                      <div
+                        style="
+                          font-size: var(--text-sm);
+                          font-weight: 700;
+                          color: var(--gray-500);
+                        "
+                      >
+                        Frequent Rider
+                      </div>
+                      <div
+                        style="
+                          font-size: var(--text-xs);
+                          color: var(--gray-400);
+                        "
+                      >
+                        Complete 15 rides to unlock
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Safety Settings -->
+            <div class="card animate-fade-up">
+              <div class="card-header">
+                <h3 style="font-size: var(--text-base); color: var(--navy)">
+                  Safety Settings
+                </h3>
+              </div>
+              <div class="card-body">
+                <div
+                  style="
+                    display: flex;
+                    flex-direction: column;
+                    gap: var(--space-4);
+                  "
+                >
+                  <label class="form-check">
+                    <input type="checkbox" checked />
+                    <span class="form-check-label"
+                      >Share trip with emergency contact</span
+                    >
+                  </label>
+                  <label class="form-check">
+                    <input type="checkbox" checked />
+                    <span class="form-check-label"
+                      >Enable live trip tracking</span
+                    >
+                  </label>
+                  <label class="form-check">
+                    <input type="checkbox" />
+                    <span class="form-check-label"
+                      >Show profile to non-matched riders</span
+                    >
+                  </label>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      // Mobile nav
+      document.getElementById("navToggle").addEventListener("click", () => {
+        document.getElementById("navLinks").classList.toggle("open");
+      });
+
+      // Edit profile toggle
+      document
+        .getElementById("editProfileBtn")
+        .addEventListener("click", function () {
+          const inputs = document.querySelectorAll(
+            "#firstName, #lastName, #phone, #emergency",
+          );
+          const saveBtn = document.getElementById("saveInfoBtn");
+          const isEditing = this.textContent.includes("Edit");
+          inputs.forEach((input) => (input.disabled = !isEditing));
+          saveBtn.style.display = isEditing ? "block" : "none";
+          this.textContent = isEditing ? "✕ Cancel" : "✏️ Edit Profile";
+        });
+
+      // Tabs
+      const tabs = [
+        { btn: "tabPassenger", panel: "panelPassenger" },
+        { btn: "tabDriver", panel: "panelDriver" },
+        { btn: "tabSaved", panel: "panelSaved" },
+      ];
+
+      tabs.forEach(({ btn, panel }) => {
+        document.getElementById(btn).addEventListener("click", () => {
+          tabs.forEach((t) => {
+            document.getElementById(t.btn).classList.remove("active");
+            document.getElementById(t.panel).style.display = "none";
+          });
+          document.getElementById(btn).classList.add("active");
+          document.getElementById(panel).style.display = "block";
+        });
+      });
+
+      // Member 3 handles real profile data
+      console.log("profile.js will load real user data here");
+    </script>
+  </body>
+</html>
