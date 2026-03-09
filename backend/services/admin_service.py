@@ -5,7 +5,6 @@ Admin dashboard data and actions.
 """
 
 from backend.database.database import execute_query
-from backend.models.user import get_all_users
 
 def get_dashboard_stats():
     """Return key platform stats for admin overview."""

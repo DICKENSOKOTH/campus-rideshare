@@ -100,4 +100,3 @@ def api_chat_history():
     user_id = get_jwt_identity()
     history = get_chat_history_for_user(user_id, limit=limit)
     return jsonify({'success': True, 'history': history})
-    return jsonify({'success': True, 'history': history})

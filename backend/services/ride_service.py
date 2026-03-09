@@ -4,9 +4,8 @@ backend/services/ride_service.py
 Business logic for rides: create, search, manage.
 """
 
-from backend.models.ride import create_ride, get_ride_by_id, search_rides, update_ride_status
-from backend.models.booking import (create_booking, check_existing_booking,
-                                     get_ride_passengers, cancel_booking)
+from backend.models.ride import create_ride, get_ride_by_id, update_ride_status
+from backend.models.booking import create_booking, check_existing_booking
 
 def create_new_ride(driver_id: str, data: dict):
     """Create a ride and return it."""

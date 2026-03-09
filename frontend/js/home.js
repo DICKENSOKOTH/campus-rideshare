@@ -105,36 +105,31 @@ function buildHeroCards() {
     const rideEl = document.getElementById('heroPreviewRide');
     if (rideEl) {
         rideEl.innerHTML = `
-            <div class="hero-card-row">
-                <div class="avatar avatar-sm">JK</div>
-                <div>
-                    <div class="route-label">John K.</div>
-                    <div class="hero-card-meta stars"><svg class="icon icon-sm"><use href="assets/icons.svg#icon-star-filled"></use></svg> 4.9</div>
-                </div>
-                <span class="badge badge-gold" style="margin-left:auto">3 seats</span>
+            <div class="hero-card-label">
+                <svg class="icon icon-sm"><use href="assets/icons.svg#icon-map-pin"></use></svg> Smart Ride Matching
             </div>
             <div class="hero-card-route">
-                <span class="route-label">Campus</span>
+                <span class="route-label">Origin</span>
                 <span class="route-line"></span>
-                <span class="route-label">CBD Nairobi</span>
+                <span class="route-label">Destination</span>
             </div>
-            <div class="hero-card-meta">Friday &middot; 2:30 PM &middot; KSh 350/seat</div>`;
+            <div class="hero-card-meta">Find verified drivers heading your way</div>`;
     }
     const aiEl = document.getElementById('heroPreviewAI');
     if (aiEl) {
         aiEl.innerHTML = `
             <div class="hero-card-label"><svg class="icon icon-sm"><use href="assets/icons.svg#icon-sparkle"></use></svg> AI Assistant</div>
-            <div class="hero-card-bubble">"I need a cheap ride to Westlands Friday afternoon"</div>
-            <div class="hero-card-result">Found 4 matching rides for you!</div>`;
+            <div class="hero-card-bubble">Tell the AI where you're going and it finds the best match</div>
+            <div class="hero-card-result">Powered by smart route matching</div>`;
     }
     const statsEl = document.getElementById('heroPreviewStats');
     if (statsEl) {
         statsEl.innerHTML = `
-            <div class="hero-card-label"><svg class="icon icon-sm"><use href="assets/icons.svg#icon-bar-chart"></use></svg> This Month</div>
+            <div class="hero-card-label"><svg class="icon icon-sm"><use href="assets/icons.svg#icon-bar-chart"></use></svg> Track Your Impact</div>
             <div class="hero-card-stats">
-                <div class="hero-card-stat"><div class="hero-card-stat-num">KSh 4,200</div><div class="hero-card-stat-lbl">Saved</div></div>
-                <div class="hero-card-stat"><div class="hero-card-stat-num">8</div><div class="hero-card-stat-lbl">Trips</div></div>
-                <div class="hero-card-stat"><div class="hero-card-stat-num">24 kg</div><div class="hero-card-stat-lbl">CO&#8322; Saved</div></div>
+                <div class="hero-card-stat"><div class="hero-card-stat-lbl">Money Saved</div></div>
+                <div class="hero-card-stat"><div class="hero-card-stat-lbl">Trips Shared</div></div>
+                <div class="hero-card-stat"><div class="hero-card-stat-lbl">CO&#8322; Reduced</div></div>
             </div>`;
     }
 }
