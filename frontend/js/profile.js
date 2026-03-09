@@ -1,4 +1,4 @@
-// Profile Logic - User profile management
+// Profile Logic — User profile management
 
 class ProfileManager {
     constructor() {
@@ -8,361 +8,376 @@ class ProfileManager {
     }
 
     async init() {
-        // Require authentication
-        if (!authManager.requireAuth()) {
-            return;
-        }
-
+        if (!authManager.requireAuth()) return;
+        this.setupTabs();
+        this.setupEditToggle();
         await this.loadProfile();
-        await this.loadRatings();
-        this.setupForm();
+        await this.loadRideHistory();
     }
 
-    async loadProfile() {
-        this.showLoading();
+    /* ── Data Loading ── */
 
+    async loadProfile() {
         try {
             const response = await UserAPI.getProfile();
-            
             if (response.success && response.data) {
                 this.profile = response.data;
-                this.renderProfile();
-            } else {
-                this.showError('Failed to load profile');
+                this.ratings = this.profile.ratings || [];
+                this.populateHeader();
+                this.populateForm();
+                this.renderVerification();
+                this.renderBadges();
+                this.renderReviews();
             }
         } catch (error) {
             console.error('Failed to load profile:', error);
-            this.showError(error.message || ERROR_MESSAGES.SERVER);
-        } finally {
-            this.hideLoading();
         }
     }
 
-    async loadRatings() {
+    async loadRideHistory() {
         try {
-            if (authManager.currentUser) {
-                const response = await UserAPI.getRatings(authManager.currentUser.id);
-                
-                if (response.success && response.data) {
-                    this.ratings = response.data;
-                    this.renderRatings();
-                }
+            const [bookingsRes, ridesRes] = await Promise.all([
+                UserAPI.getMyBookings(),
+                UserAPI.getMyRides()
+            ]);
+            if (bookingsRes.success && bookingsRes.data) {
+                this.renderPassengerRides(bookingsRes.data);
+            }
+            if (ridesRes.success && ridesRes.data) {
+                this.renderDriverRides(ridesRes.data);
             }
         } catch (error) {
-            console.error('Failed to load ratings:', error);
+            console.error('Failed to load ride history:', error);
         }
     }
 
-    renderProfile() {
-        const container = document.getElementById('profileContainer');
-        if (!container) return;
+    /* ── Header Population ── */
 
-        const avgRating = this.profile.rating || 0;
-        const totalRides = this.profile.rides_as_driver || 0;
-        const totalBookings = this.profile.rides_as_passenger || 0;
+    populateHeader() {
+        const p = this.profile;
+        const initials = this.getInitials(p.full_name);
 
-        container.innerHTML = `
-            <div class="profile-header">
-                <div class="profile-avatar">
-                    ${this.profile.name.charAt(0).toUpperCase()}
-                </div>
-                <div class="profile-info">
-                    <h1>${this.profile.name}</h1>
-                    <p>${this.profile.email}</p>
-                    ${avgRating > 0 ? `
-                        <div class="rating">
-                            <i class="icon-star"></i>
-                            ${avgRating.toFixed(1)} (${totalRides + totalBookings} rides)
-                        </div>
-                    ` : ''}
-                </div>
-                <button class="btn btn-secondary" onclick="profileManager.toggleEditMode()">
-                    <i class="icon-edit"></i> Edit Profile
-                </button>
-            </div>
+        const avatar = document.getElementById('profileAvatar');
+        if (avatar) avatar.textContent = initials;
 
-            <div class="profile-stats">
-                <div class="stat-card">
-                    <div class="stat-value">${totalRides}</div>
-                    <div class="stat-label">Rides Offered</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-value">${totalBookings}</div>
-                    <div class="stat-label">Rides Taken</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-value">${avgRating.toFixed(1)}</div>
-                    <div class="stat-label">Average Rating</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-value">${this.profile.member_since ? this.getMemberDuration() : 'New'}</div>
-                    <div class="stat-label">Member Since</div>
-                </div>
-            </div>
+        const name = document.getElementById('profileName');
+        if (name) name.textContent = p.full_name || '';
 
-            <div id="profileEditForm" style="display: none;">
-                <form id="updateProfileForm">
-                    <div class="form-section">
-                        <h3>Personal Information</h3>
-                        
-                        <div class="form-group">
-                            <label for="name">Full Name*</label>
-                            <input type="text" id="name" name="name" value="${this.profile.name}" required>
-                        </div>
-
-                        <div class="form-group">
-                            <label for="email">Email*</label>
-                            <input type="email" id="email" name="email" value="${this.profile.email}" required>
-                        </div>
-
-                        <div class="form-group">
-                            <label for="phone">Phone Number</label>
-                            <input type="tel" id="phone" name="phone" value="${this.profile.phone || ''}">
-                        </div>
-
-                        <div class="form-group">
-                            <label for="studentId">Student ID</label>
-                            <input type="text" id="studentId" name="studentId" value="${this.profile.student_id || ''}">
-                        </div>
-                    </div>
-
-                    <div class="form-section">
-                        <h3>About</h3>
-                        
-                        <div class="form-group">
-                            <label for="bio">Bio</label>
-                            <textarea id="bio" name="bio" rows="4">${this.profile.bio || ''}</textarea>
-                        </div>
-                    </div>
-
-                    <div class="form-section">
-                        <h3>Vehicle Information (Optional)</h3>
-                        
-                        <div class="form-group">
-                            <label for="vehicleMake">Make</label>
-                            <input type="text" id="vehicleMake" name="vehicleMake" value="${this.profile.vehicle_make || ''}">
-                        </div>
-
-                        <div class="form-group">
-                            <label for="vehicleModel">Model</label>
-                            <input type="text" id="vehicleModel" name="vehicleModel" value="${this.profile.vehicle_model || ''}">
-                        </div>
-
-                        <div class="form-group">
-                            <label for="vehicleColor">Color</label>
-                            <input type="text" id="vehicleColor" name="vehicleColor" value="${this.profile.vehicle_color || ''}">
-                        </div>
-
-                        <div class="form-group">
-                            <label for="vehiclePlate">License Plate</label>
-                            <input type="text" id="vehiclePlate" name="vehiclePlate" value="${this.profile.vehicle_plate || ''}">
-                        </div>
-                    </div>
-
-                    <div class="form-actions">
-                        <button type="submit" class="btn btn-primary">Save Changes</button>
-                        <button type="button" class="btn btn-secondary" onclick="profileManager.toggleEditMode()">
-                            Cancel
-                        </button>
-                    </div>
-
-                    <div id="updateError" class="error-message"></div>
-                </form>
-            </div>
-
-            <div class="profile-details">
-                <div class="detail-item">
-                    <strong>Phone:</strong>
-                    <span>${this.profile.phone || 'Not provided'}</span>
-                </div>
-                <div class="detail-item">
-                    <strong>Student ID:</strong>
-                    <span>${this.profile.student_id || 'Not provided'}</span>
-                </div>
-                ${this.profile.bio ? `
-                    <div class="detail-item">
-                        <strong>Bio:</strong>
-                        <p>${this.profile.bio}</p>
-                    </div>
-                ` : ''}
-                ${this.profile.vehicle_make ? `
-                    <div class="detail-item">
-                        <strong>Vehicle:</strong>
-                        <span>${this.profile.vehicle_make} ${this.profile.vehicle_model || ''} ${this.profile.vehicle_color || ''}</span>
-                    </div>
-                ` : ''}
-            </div>
-        `;
-    }
-
-    renderRatings() {
-        const container = document.getElementById('ratingsContainer');
-        if (!container) return;
-
-        if (this.ratings.length === 0) {
-            container.innerHTML = `
-                <div class="info-section">
-                    <h3>Reviews</h3>
-                    <p class="empty-state">No reviews yet</p>
-                </div>
-            `;
-            return;
+        const meta = document.getElementById('profileMeta');
+        if (meta) {
+            const parts = [];
+            if (p.email) parts.push(p.email);
+            if (p.created_at) parts.push('Member since ' + this.formatShortDate(p.created_at));
+            meta.textContent = parts.join('  ·  ');
         }
 
-        container.innerHTML = `
-            <div class="info-section">
-                <h3>Reviews (${this.ratings.length})</h3>
-                <div class="ratings-list">
-                    ${this.ratings.map(rating => `
-                        <div class="rating-item">
-                            <div class="rating-header">
-                                <div class="rating-stars">
-                                    ${this.renderStars(rating.rating)}
-                                </div>
-                                <span class="rating-date">${this.formatDate(rating.created_at)}</span>
-                            </div>
-                            <p class="rating-comment">${rating.comment || ''}</p>
-                            <div class="rating-ride">
-                                <small>${rating.ride_origin} → ${rating.ride_destination}</small>
-                            </div>
-                        </div>
-                    `).join('')}
-                </div>
-            </div>
-        `;
+        const statRides = document.getElementById('statRides');
+        if (statRides) statRides.textContent = p.total_rides || '0';
+
+        const statRating = document.getElementById('statRating');
+        if (statRating) statRating.textContent = p.rating ? Number(p.rating).toFixed(1) : '–';
+
+        const statSaved = document.getElementById('statSaved');
+        if (statSaved) statSaved.textContent = p.savings ? 'KSh ' + Number(p.savings).toLocaleString() : '–';
+
+        const statCO2 = document.getElementById('statCO2');
+        if (statCO2) statCO2.textContent = p.co2_saved ? p.co2_saved + 'kg' : '–';
     }
 
-    setupForm() {
-        const form = document.getElementById('updateProfileForm');
-        if (!form) return;
+    /* ── Form Population ── */
 
-        form.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            await this.handleUpdateProfile();
+    populateForm() {
+        const p = this.profile;
+        const nameParts = (p.full_name || '').split(' ');
+        this.setVal('firstName', nameParts[0] || '');
+        this.setVal('lastName', nameParts.slice(1).join(' ') || '');
+        this.setVal('email', p.email || '');
+        this.setVal('phone', p.phone || '');
+        this.setVal('emergency', p.emergency_contact || '');
+    }
+
+    setVal(id, value) {
+        const el = document.getElementById(id);
+        if (el) el.value = value;
+    }
+
+    /* ── Tabs ── */
+
+    setupTabs() {
+        const tabs = [
+            { btn: 'tabPassenger', panel: 'panelPassenger' },
+            { btn: 'tabDriver',    panel: 'panelDriver' },
+            { btn: 'tabSaved',     panel: 'panelSaved' },
+        ];
+
+        tabs.forEach(({ btn, panel }) => {
+            const btnEl = document.getElementById(btn);
+            if (!btnEl) return;
+            btnEl.addEventListener('click', () => {
+                tabs.forEach(t => {
+                    const b = document.getElementById(t.btn);
+                    const p = document.getElementById(t.panel);
+                    if (b) b.classList.remove('active');
+                    if (p) p.classList.add('hidden');
+                });
+                btnEl.classList.add('active');
+                const panelEl = document.getElementById(panel);
+                if (panelEl) panelEl.classList.remove('hidden');
+            });
         });
+    }
+
+    /* ── Edit Mode ── */
+
+    setupEditToggle() {
+        const editBtn = document.getElementById('editProfileBtn');
+        const saveBtn = document.getElementById('saveInfoBtn');
+        const form = document.getElementById('profileForm');
+
+        if (editBtn) {
+            editBtn.addEventListener('click', () => this.toggleEditMode());
+        }
+        if (saveBtn) {
+            saveBtn.addEventListener('click', () => this.handleSave());
+        }
+        if (form) {
+            form.addEventListener('submit', e => {
+                e.preventDefault();
+                this.handleSave();
+            });
+        }
     }
 
     toggleEditMode() {
         this.isEditMode = !this.isEditMode;
-        const editForm = document.getElementById('profileEditForm');
-        const profileDetails = document.querySelector('.profile-details');
-        
-        if (editForm) {
-            editForm.style.display = this.isEditMode ? 'block' : 'none';
+        const fields = ['firstName', 'lastName', 'phone', 'emergency'];
+        fields.forEach(id => {
+            const el = document.getElementById(id);
+            if (el) el.disabled = !this.isEditMode;
+        });
+
+        const saveBtn = document.getElementById('saveInfoBtn');
+        if (saveBtn) saveBtn.classList.toggle('hidden', !this.isEditMode);
+
+        const editBtn = document.getElementById('editProfileBtn');
+        if (editBtn) {
+            editBtn.innerHTML = this.isEditMode
+                ? '<svg class="icon icon-sm"><use href="assets/icons.svg#icon-x"></use></svg> Cancel'
+                : '<svg class="icon icon-sm"><use href="assets/icons.svg#icon-edit"></use></svg> Edit Profile';
         }
-        if (profileDetails) {
-            profileDetails.style.display = this.isEditMode ? 'none' : 'block';
-        }
+
+        const errorEl = document.getElementById('profileError');
+        if (errorEl) errorEl.classList.add('hidden');
     }
 
-    async handleUpdateProfile() {
-        const form = document.getElementById('updateProfileForm');
-        const errorMessage = document.getElementById('updateError');
-        
-        if (errorMessage) errorMessage.textContent = '';
+    async handleSave() {
+        const errorEl = document.getElementById('profileError');
+        if (errorEl) { errorEl.classList.add('hidden'); errorEl.textContent = ''; }
 
-        const formData = new FormData(form);
-        const profileData = {
-            name: formData.get('name').trim(),
-            email: formData.get('email').trim(),
-            phone: formData.get('phone').trim(),
-            student_id: formData.get('studentId').trim(),
-            bio: formData.get('bio').trim(),
-            vehicle_make: formData.get('vehicleMake').trim(),
-            vehicle_model: formData.get('vehicleModel').trim(),
-            vehicle_color: formData.get('vehicleColor').trim(),
-            vehicle_plate: formData.get('vehiclePlate').trim(),
-        };
+        const firstName = document.getElementById('firstName')?.value.trim();
+        const lastName = document.getElementById('lastName')?.value.trim();
+        const phone = document.getElementById('phone')?.value.trim();
+
+        if (!firstName) {
+            if (errorEl) { errorEl.textContent = 'First name is required.'; errorEl.classList.remove('hidden'); }
+            return;
+        }
+
+        const fullName = [firstName, lastName].filter(Boolean).join(' ');
 
         try {
-            const response = await UserAPI.updateProfile(profileData);
-            
+            const response = await UserAPI.updateProfile({
+                full_name: fullName,
+                phone: phone || null
+            });
+
             if (response.success) {
                 showNotification(SUCCESS_MESSAGES.PROFILE_UPDATED, 'success');
-                
-                // Update stored user data
                 if (response.data) {
                     authManager.saveAuthData(localStorage.getItem(STORAGE_KEYS.TOKEN), response.data);
                 }
-                
                 await this.loadProfile();
-                this.toggleEditMode();
+                if (this.isEditMode) this.toggleEditMode();
             } else {
-                if (errorMessage) errorMessage.textContent = response.message || 'Failed to update profile';
+                if (errorEl) { errorEl.textContent = response.message || 'Failed to update profile'; errorEl.classList.remove('hidden'); }
             }
         } catch (error) {
             console.error('Failed to update profile:', error);
-            if (errorMessage) errorMessage.textContent = error.message || ERROR_MESSAGES.SERVER;
+            if (errorEl) { errorEl.textContent = error.message || ERROR_MESSAGES.SERVER; errorEl.classList.remove('hidden'); }
         }
     }
 
-    renderStars(rating) {
-        const fullStars = Math.floor(rating);
-        const hasHalfStar = rating % 1 >= 0.5;
-        let stars = '';
-        
-        for (let i = 0; i < 5; i++) {
-            if (i < fullStars) {
-                stars += '<i class="icon-star-full"></i>';
-            } else if (i === fullStars && hasHalfStar) {
-                stars += '<i class="icon-star-half"></i>';
-            } else {
-                stars += '<i class="icon-star-empty"></i>';
+    /* ── Passenger Rides ── */
+
+    renderPassengerRides(bookings) {
+        const container = document.getElementById('passengerRides');
+        if (!container) return;
+
+        if (!bookings.length) return; // keep empty state
+
+        container.innerHTML = bookings.map(b => `
+            <div class="ride-item">
+                <div class="ride-item-icon">
+                    <svg class="icon icon-md"><use href="assets/icons.svg#icon-car"></use></svg>
+                </div>
+                <div class="flex-1">
+                    <div class="ride-item-route">${this.escapeHtml(b.origin)} → ${this.escapeHtml(b.destination)}</div>
+                    <div class="ride-item-meta">${this.formatShortDate(b.departure_time)} · ${this.escapeHtml(b.driver_name)} · KSh ${Number(b.price_per_seat).toLocaleString()}</div>
+                </div>
+                <div class="stars">${this.renderStars(b.rating || 0)}</div>
+            </div>
+        `).join('');
+    }
+
+    /* ── Driver Rides ── */
+
+    renderDriverRides(rides) {
+        const container = document.getElementById('driverRides');
+        if (!container) return;
+
+        if (!rides.length) return; // keep empty state
+
+        container.innerHTML = rides.map(r => `
+            <div class="ride-item">
+                <div class="ride-item-icon">
+                    <svg class="icon icon-md"><use href="assets/icons.svg#icon-car"></use></svg>
+                </div>
+                <div class="flex-1">
+                    <div class="ride-item-route">${this.escapeHtml(r.origin)} → ${this.escapeHtml(r.destination)}</div>
+                    <div class="ride-item-meta">${this.formatShortDate(r.departure_time)} · ${r.seats_total - (r.seats_left || r.seats_remaining || 0)} passengers · KSh ${Number(r.price_per_seat).toLocaleString()}</div>
+                </div>
+                <span class="badge badge-${r.status === 'scheduled' ? 'gold' : r.status === 'completed' ? 'success' : 'danger'}">${r.status}</span>
+            </div>
+        `).join('');
+    }
+
+    /* ── Verification ── */
+
+    renderVerification() {
+        const container = document.getElementById('verificationContainer');
+        if (!container) return;
+
+        const p = this.profile;
+        const items = [
+            {
+                icon: 'icon-mail',
+                title: 'University Email',
+                desc: p.is_verified ? 'Verified student' : 'Pending verification',
+                verified: !!p.is_verified
+            },
+            {
+                icon: 'icon-phone',
+                title: 'Phone Number',
+                desc: p.phone || 'Not provided',
+                verified: !!p.phone
+            },
+            {
+                icon: 'icon-file-text',
+                title: "Driver's License",
+                desc: 'Required to post rides',
+                verified: false,
+                action: true
             }
+        ];
+
+        container.innerHTML = items.map(item => `
+            <div class="verification-item${item.verified ? ' verified' : ''}">
+                <div class="verification-item-left">
+                    <svg class="icon icon-md"><use href="assets/icons.svg#${item.icon}"></use></svg>
+                    <div>
+                        <div class="verification-item-title">${item.title}</div>
+                        <div class="verification-item-desc">${this.escapeHtml(item.desc)}</div>
+                    </div>
+                </div>
+                ${item.verified
+                    ? '<span class="badge badge-success">Verified</span>'
+                    : item.action
+                        ? '<button class="btn btn-sm btn-primary">Verify</button>'
+                        : '<span class="badge badge-gold">Pending</span>'
+                }
+            </div>
+        `).join('');
+    }
+
+    /* ── Badges ── */
+
+    renderBadges() {
+        const container = document.getElementById('badgesContainer');
+        if (!container) return;
+
+        const p = this.profile;
+        const totalRides = p.total_rides || 0;
+        const rating = p.rating || 0;
+        const co2 = p.co2_saved || 0;
+
+        const badges = [
+            { icon: 'icon-leaf',   name: 'Eco Traveller',   desc: 'Saved 20kg+ CO₂',          earned: co2 >= 20 },
+            { icon: 'icon-star',   name: '5 Star Rider',    desc: 'Maintained 4.5+ rating',    earned: rating >= 4.5 },
+            { icon: 'icon-award',  name: 'Frequent Rider',  desc: 'Complete 15 rides to unlock', earned: totalRides >= 15 },
+        ];
+
+        container.innerHTML = '<div class="badge-list">' + badges.map(b => `
+            <div class="badge-item ${b.earned ? 'earned' : 'locked'}">
+                <svg class="icon icon-lg"><use href="assets/icons.svg#${b.earned ? b.icon : 'icon-lock'}"></use></svg>
+                <div>
+                    <div class="badge-item-name">${b.name}</div>
+                    <div class="badge-item-desc">${b.desc}</div>
+                </div>
+            </div>
+        `).join('') + '</div>';
+    }
+
+    /* ── Reviews ── */
+
+    renderReviews() {
+        // Reviews could be shown in a separate section if needed
+        // For now the ratings data is available in this.ratings
+    }
+
+    /* ── Helpers ── */
+
+    renderStars(rating) {
+        const full = Math.floor(rating);
+        const half = rating % 1 >= 0.5;
+        let out = '';
+        for (let i = 0; i < 5; i++) {
+            if (i < full) out += '<svg class="icon icon-sm"><use href="assets/icons.svg#icon-star-filled"></use></svg>';
+            else if (i === full && half) out += '<svg class="icon icon-sm"><use href="assets/icons.svg#icon-star"></use></svg>';
+            else out += '<svg class="icon icon-sm text-muted"><use href="assets/icons.svg#icon-star"></use></svg>';
         }
-        
-        return stars;
+        return out;
+    }
+
+    getInitials(name) {
+        if (!name) return '?';
+        return name.split(' ').map(p => p[0]).join('').substring(0, 2).toUpperCase();
+    }
+
+    escapeHtml(str) {
+        if (!str) return '';
+        const d = document.createElement('div');
+        d.textContent = str;
+        return d.innerHTML;
+    }
+
+    formatShortDate(dateStr) {
+        if (!dateStr) return '';
+        const d = new Date(dateStr);
+        return d.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
     }
 
     getMemberDuration() {
-        if (!this.profile.member_since) return 'New';
-        
-        const memberDate = new Date(this.profile.member_since);
-        const now = new Date();
-        const months = Math.floor((now - memberDate) / (1000 * 60 * 60 * 24 * 30));
-        
+        if (!this.profile.created_at) return 'New';
+        const months = Math.floor((Date.now() - new Date(this.profile.created_at)) / (1000 * 60 * 60 * 24 * 30));
         if (months < 1) return 'New';
         if (months < 12) return `${months} month${months > 1 ? 's' : ''}`;
-        
         const years = Math.floor(months / 12);
         return `${years} year${years > 1 ? 's' : ''}`;
     }
-
-    formatDate(dateStr) {
-        const date = new Date(dateStr);
-        const options = { year: 'numeric', month: 'short', day: 'numeric' };
-        return date.toLocaleDateString('en-US', options);
-    }
-
-    showLoading() {
-        const loadingEl = document.getElementById('loadingIndicator');
-        if (loadingEl) loadingEl.style.display = 'block';
-    }
-
-    hideLoading() {
-        const loadingEl = document.getElementById('loadingIndicator');
-        if (loadingEl) loadingEl.style.display = 'none';
-    }
-
-    showError(message) {
-        const container = document.getElementById('profileContainer');
-        if (container) {
-            container.innerHTML = `
-                <div class="error-state">
-                    <i class="icon-alert"></i>
-                    <h3>Error</h3>
-                    <p>${message}</p>
-                    <button class="btn" onclick="profileManager.loadProfile()">Retry</button>
-                </div>
-            `;
-        }
-        this.hideLoading();
-    }
 }
 
-// Initialize when page loads
+// Initialize
 let profileManager;
-
 if (window.location.pathname.includes('profile.html')) {
     document.addEventListener('DOMContentLoaded', () => {
         profileManager = new ProfileManager();

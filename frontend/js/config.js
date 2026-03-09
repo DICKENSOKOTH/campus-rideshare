@@ -5,50 +5,42 @@ const API_CONFIG = {
     TIMEOUT: 30000, // 30 seconds
 };
 
-// API Endpoints
+// API Endpoints — must match Flask backend routes exactly
 const API_ENDPOINTS = {
     // Auth
     LOGIN: '/auth/login',
     REGISTER: '/auth/register',
-    LOGOUT: '/auth/logout',
-    VERIFY_TOKEN: '/auth/verify',
-    
+    REFRESH: '/auth/refresh',
+    ME: '/auth/me',
+
     // User
     GET_PROFILE: '/users/profile',
     UPDATE_PROFILE: '/users/profile',
-    UPDATE_LOCATION: '/users/location',
-    GET_USER_RIDES: '/users/rides',
-    GET_USER_BOOKINGS: '/users/bookings',
-    
+    GET_PUBLIC_PROFILE: '/users/:id',
+    RATE_USER: '/users/rate/:id',
+
     // Rides
     CREATE_RIDE: '/rides',
     GET_RIDES: '/rides',
     GET_RIDE: '/rides/:id',
-    UPDATE_RIDE: '/rides/:id',
     DELETE_RIDE: '/rides/:id',
-    SEARCH_RIDES: '/rides/search',
-    
+    GET_MY_RIDES: '/rides/my',
+    GET_MY_BOOKINGS: '/rides/bookings',
+
     // Bookings
-    CREATE_BOOKING: '/rides/:id/book',
-    UPDATE_BOOKING: '/bookings/:id',
-    CANCEL_BOOKING: '/bookings/:id/cancel',
-    ACCEPT_BOOKING: '/bookings/:id/accept',
-    REJECT_BOOKING: '/bookings/:id/reject',
-    
-    // Ratings
-    CREATE_RATING: '/rides/:id/rate',
-    GET_RATINGS: '/users/:id/ratings',
-    
+    BOOK_RIDE: '/rides/:id/book',
+    CANCEL_BOOKING: '/rides/booking/:id',
+
     // AI Assistant
     AI_CHAT: '/ai/chat',
-    AI_SUGGESTIONS: '/ai/suggestions',
-    
+    AI_SUGGESTIONS: '/ai/chat/suggestions',
+
     // Admin
-    GET_ALL_USERS: '/admin/users',
-    GET_ALL_RIDES: '/admin/rides',
-    GET_STATS: '/admin/stats',
-    MODERATE_USER: '/admin/users/:id',
-    MODERATE_RIDE: '/admin/rides/:id',
+    ADMIN_STATS: '/admin/stats',
+    ADMIN_USERS: '/admin/users',
+    ADMIN_TOGGLE_USER: '/admin/users/:id/toggle',
+    ADMIN_ACTIVITY: '/admin/activity',
+    ADMIN_RIDES: '/admin/rides',
 };
 
 // Local Storage Keys
@@ -91,15 +83,15 @@ const ERROR_MESSAGES = {
 
 // Success Messages
 const SUCCESS_MESSAGES = {
-    LOGIN: 'Login successful!',
-    REGISTER: 'Registration successful! Please login.',
-    RIDE_CREATED: 'Ride created successfully!',
-    RIDE_UPDATED: 'Ride updated successfully!',
-    RIDE_DELETED: 'Ride deleted successfully!',
-    BOOKING_CREATED: 'Booking request sent!',
+    LOGIN: 'Login successful! Redirecting…',
+    REGISTER: 'Account created successfully! Please log in.',
+    PROFILE_UPDATED: 'Profile updated successfully.',
+    RIDE_CREATED: 'Ride posted successfully!',
+    RIDE_UPDATED: 'Ride updated successfully.',
+    RIDE_DELETED: 'Ride deleted.',
+    BOOKING_CREATED: 'Ride booked successfully!',
     BOOKING_ACCEPTED: 'Booking accepted!',
-    BOOKING_REJECTED: 'Booking rejected!',
-    BOOKING_CANCELLED: 'Booking cancelled!',
-    PROFILE_UPDATED: 'Profile updated successfully!',
+    BOOKING_REJECTED: 'Booking rejected.',
+    BOOKING_CANCELLED: 'Booking cancelled.',
     RATING_SUBMITTED: 'Rating submitted successfully!',
 };

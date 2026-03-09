@@ -9,11 +9,12 @@
     <link rel="stylesheet" href="css/pages.css" />
   </head>
   <body>
-    <!-- NAVBAR -->
     <nav class="navbar solid" id="navbar">
       <div class="container nav-inner">
         <a href="index.html" class="nav-logo">
-          <div class="nav-logo-icon">🚗</div>
+          <div class="nav-logo-icon">
+            <svg class="icon icon-md"><use href="assets/icons.svg#icon-car"></use></svg>
+          </div>
           CampusRide
         </a>
         <div class="nav-links" id="navLinks">
@@ -23,7 +24,7 @@
           <a href="ai-assistant.html" class="nav-link">AI Assistant</a>
         </div>
         <div class="nav-actions">
-          <a href="profile.html" class="nav-avatar" title="My Profile">MJ</a>
+          <a href="profile.html" class="nav-avatar" id="navAvatar"></a>
           <button class="nav-toggle" id="navToggle">
             <span></span><span></span><span></span>
           </button>
@@ -31,618 +32,166 @@
       </div>
     </nav>
 
-    <!-- DASHBOARD LAYOUT -->
-    <div style="padding-top: var(--nav-h)">
+    <div class="page-body">
       <div class="dashboard-layout">
-        <!-- SIDEBAR -->
         <aside class="sidebar">
           <div class="sidebar-section">
-            <!-- User info -->
-            <div
-              style="
-                display: flex;
-                align-items: center;
-                gap: var(--space-3);
-                padding: var(--space-3);
-                margin-bottom: var(--space-4);
-              "
-            >
-              <div class="avatar avatar-md">MJ</div>
+            <div class="sidebar-user">
+              <div class="avatar avatar-md" id="sidebarAvatar"></div>
               <div>
-                <div
-                  style="
-                    font-weight: 700;
-                    font-size: var(--text-sm);
-                    color: var(--navy);
-                  "
-                >
-                  Merrinette M.
-                </div>
-                <div style="font-size: var(--text-xs); color: var(--gray-400)">
-                  Student · Passenger
-                </div>
+                <div class="sidebar-user-name" id="sidebarName"></div>
+                <div class="sidebar-user-role" id="sidebarRole"></div>
               </div>
             </div>
 
             <p class="sidebar-label">Main Menu</p>
             <a href="dashboard.html" class="sidebar-link active">
-              <span class="sidebar-icon">🏠</span> Dashboard
+              <span class="sidebar-icon"><svg class="icon icon-sm"><use href="assets/icons.svg#icon-home"></use></svg></span> Dashboard
             </a>
             <a href="find-ride.html" class="sidebar-link">
-              <span class="sidebar-icon">🔍</span> Find a Ride
+              <span class="sidebar-icon"><svg class="icon icon-sm"><use href="assets/icons.svg#icon-search"></use></svg></span> Find a Ride
             </a>
             <a href="create-ride.html" class="sidebar-link">
-              <span class="sidebar-icon">➕</span> Post a Ride
+              <span class="sidebar-icon"><svg class="icon icon-sm"><use href="assets/icons.svg#icon-plus"></use></svg></span> Post a Ride
             </a>
             <a href="ai-assistant.html" class="sidebar-link">
-              <span class="sidebar-icon">🤖</span> AI Assistant
+              <span class="sidebar-icon"><svg class="icon icon-sm"><use href="assets/icons.svg#icon-sparkle"></use></svg></span> AI Assistant
               <span class="sidebar-badge">New</span>
             </a>
           </div>
 
-          <div class="sidebar-section" style="margin-top: var(--space-4)">
+          <div class="sidebar-section mt-4">
             <p class="sidebar-label">Account</p>
             <a href="profile.html" class="sidebar-link">
-              <span class="sidebar-icon">👤</span> My Profile
+              <span class="sidebar-icon"><svg class="icon icon-sm"><use href="assets/icons.svg#icon-user"></use></svg></span> My Profile
             </a>
             <a href="ride-details.html" class="sidebar-link">
-              <span class="sidebar-icon">🗺️</span> My Rides
-              <span class="sidebar-badge">3</span>
+              <span class="sidebar-icon"><svg class="icon icon-sm"><use href="assets/icons.svg#icon-map"></use></svg></span> My Rides
             </a>
             <a href="#" class="sidebar-link">
-              <span class="sidebar-icon">⚙️</span> Settings
+              <span class="sidebar-icon"><svg class="icon icon-sm"><use href="assets/icons.svg#icon-settings"></use></svg></span> Settings
             </a>
-            <a
-              href="login.html"
-              class="sidebar-link"
-              style="color: var(--danger)"
-            >
-              <span class="sidebar-icon">🚪</span> Sign Out
+            <a href="#" class="sidebar-link" data-action="logout">
+              <span class="sidebar-icon"><svg class="icon icon-sm"><use href="assets/icons.svg#icon-logout"></use></svg></span> Sign Out
             </a>
           </div>
         </aside>
 
-        <!-- MAIN CONTENT -->
         <main class="main-content">
-          <!-- Page Header -->
           <div class="page-header">
-            <h1 class="page-title">Good morning, Merrinette 👋</h1>
-            <p class="page-subtitle">
-              Here's what's happening with your rides today.
-            </p>
+            <h1 class="page-title" id="pageGreeting">Good morning</h1>
+            <p class="page-subtitle">Here's what's happening with your rides today.</p>
           </div>
 
-          <!-- Stats Row -->
-          <div class="stats-row">
+          <div class="stats-row" id="statsRow">
             <div class="stat-card animate-fade-up">
-              <div class="stat-card-icon gold">🚗</div>
+              <div class="stat-card-icon gold">
+                <svg class="icon icon-lg"><use href="assets/icons.svg#icon-car"></use></svg>
+              </div>
               <div>
-                <div class="stat-number">8</div>
+                <div class="stat-number" id="statRides">--</div>
                 <div class="stat-label">Total Rides</div>
               </div>
             </div>
             <div class="stat-card animate-fade-up delay-1">
-              <div class="stat-card-icon green">💰</div>
+              <div class="stat-card-icon green">
+                <svg class="icon icon-lg"><use href="assets/icons.svg#icon-dollar"></use></svg>
+              </div>
               <div>
-                <div class="stat-number">KSh 4,200</div>
+                <div class="stat-number" id="statSaved">--</div>
                 <div class="stat-label">Total Saved</div>
               </div>
             </div>
             <div class="stat-card animate-fade-up delay-2">
-              <div class="stat-card-icon navy">⭐</div>
+              <div class="stat-card-icon navy">
+                <svg class="icon icon-lg"><use href="assets/icons.svg#icon-star"></use></svg>
+              </div>
               <div>
-                <div class="stat-number">4.9</div>
+                <div class="stat-number" id="statRating">--</div>
                 <div class="stat-label">Your Rating</div>
               </div>
             </div>
             <div class="stat-card animate-fade-up delay-3">
-              <div class="stat-card-icon blue">🌱</div>
+              <div class="stat-card-icon blue">
+                <svg class="icon icon-lg"><use href="assets/icons.svg#icon-leaf"></use></svg>
+              </div>
               <div>
-                <div class="stat-number">24 kg</div>
-                <div class="stat-label">CO₂ Saved</div>
+                <div class="stat-number" id="statCO2">--</div>
+                <div class="stat-label">CO2 Saved</div>
               </div>
             </div>
           </div>
 
-          <!-- Quick Actions -->
           <div class="quick-actions">
             <a href="find-ride.html" class="quick-action-btn animate-fade-up">
-              <span class="quick-action-icon">🔍</span>
+              <span class="quick-action-icon">
+                <svg class="icon icon-xl"><use href="assets/icons.svg#icon-search"></use></svg>
+              </span>
               Find a Ride
             </a>
-            <a
-              href="create-ride.html"
-              class="quick-action-btn animate-fade-up delay-1"
-            >
-              <span class="quick-action-icon">➕</span>
+            <a href="create-ride.html" class="quick-action-btn animate-fade-up delay-1">
+              <span class="quick-action-icon">
+                <svg class="icon icon-xl"><use href="assets/icons.svg#icon-plus"></use></svg>
+              </span>
               Post a Ride
             </a>
-            <a
-              href="ai-assistant.html"
-              class="quick-action-btn animate-fade-up delay-2"
-            >
-              <span class="quick-action-icon">🤖</span>
+            <a href="ai-assistant.html" class="quick-action-btn animate-fade-up delay-2">
+              <span class="quick-action-icon">
+                <svg class="icon icon-xl"><use href="assets/icons.svg#icon-sparkle"></use></svg>
+              </span>
               Ask AI Assistant
             </a>
           </div>
 
-          <!-- Two column layout -->
-          <div class="grid-2" style="gap: var(--space-6)">
-            <!-- Upcoming Rides -->
+          <div class="grid-2 mb-6">
             <div class="card animate-fade-up">
               <div class="card-header">
-                <h3 style="font-size: var(--text-base); color: var(--navy)">
-                  Upcoming Rides
-                </h3>
-                <a href="find-ride.html" class="btn btn-primary btn-sm"
-                  >+ Book New</a
-                >
+                <h3 class="card-title">Upcoming Rides</h3>
+                <a href="find-ride.html" class="btn btn-primary btn-sm">+ Book New</a>
               </div>
-              <div class="card-body" style="padding: 0">
-                <!-- Ride item -->
-                <div
-                  style="
-                    padding: var(--space-4) var(--space-6);
-                    border-bottom: 1px solid var(--gray-100);
-                    display: flex;
-                    align-items: center;
-                    gap: var(--space-4);
-                  "
-                >
-                  <div
-                    style="
-                      width: 44px;
-                      height: 44px;
-                      background: linear-gradient(
-                        135deg,
-                        var(--navy),
-                        var(--navy-light)
-                      );
-                      border-radius: var(--radius-sm);
-                      display: flex;
-                      align-items: center;
-                      justify-content: center;
-                      font-size: 1.2rem;
-                      flex-shrink: 0;
-                    "
-                  >
-                    🚗
+              <div class="card-body" id="upcomingRides">
+                <div class="empty-state">
+                  <div class="empty-state-icon">
+                    <svg class="icon icon-2xl"><use href="assets/icons.svg#icon-car"></use></svg>
                   </div>
-                  <div style="flex: 1">
-                    <div
-                      style="
-                        font-weight: 600;
-                        font-size: var(--text-sm);
-                        color: var(--navy);
-                      "
-                    >
-                      Campus → CBD Nairobi
-                    </div>
-                    <div
-                      style="
-                        font-size: var(--text-xs);
-                        color: var(--gray-400);
-                        margin-top: 2px;
-                      "
-                    >
-                      Friday, Dec 15 · 2:30 MJ
-                    </div>
-                  </div>
-                  <span class="badge badge-success">Confirmed</span>
-                </div>
-
-                <!-- Ride item -->
-                <div
-                  style="
-                    padding: var(--space-4) var(--space-6);
-                    border-bottom: 1px solid var(--gray-100);
-                    display: flex;
-                    align-items: center;
-                    gap: var(--space-4);
-                  "
-                >
-                  <div
-                    style="
-                      width: 44px;
-                      height: 44px;
-                      background: linear-gradient(
-                        135deg,
-                        var(--navy),
-                        var(--navy-light)
-                      );
-                      border-radius: var(--radius-sm);
-                      display: flex;
-                      align-items: center;
-                      justify-content: center;
-                      font-size: 1.2rem;
-                      flex-shrink: 0;
-                    "
-                  >
-                    🚗
-                  </div>
-                  <div style="flex: 1">
-                    <div
-                      style="
-                        font-weight: 600;
-                        font-size: var(--text-sm);
-                        color: var(--navy);
-                      "
-                    >
-                      Campus → Westlands
-                    </div>
-                    <div
-                      style="
-                        font-size: var(--text-xs);
-                        color: var(--gray-400);
-                        margin-top: 2px;
-                      "
-                    >
-                      Saturday, Dec 16 · 10:00 AM
-                    </div>
-                  </div>
-                  <span class="badge badge-gold">Pending</span>
-                </div>
-
-                <!-- Ride item -->
-                <div
-                  style="
-                    padding: var(--space-4) var(--space-6);
-                    display: flex;
-                    align-items: center;
-                    gap: var(--space-4);
-                  "
-                >
-                  <div
-                    style="
-                      width: 44px;
-                      height: 44px;
-                      background: linear-gradient(
-                        135deg,
-                        var(--navy),
-                        var(--navy-light)
-                      );
-                      border-radius: var(--radius-sm);
-                      display: flex;
-                      align-items: center;
-                      justify-content: center;
-                      font-size: 1.2rem;
-                      flex-shrink: 0;
-                    "
-                  >
-                    🚗
-                  </div>
-                  <div style="flex: 1">
-                    <div
-                      style="
-                        font-weight: 600;
-                        font-size: var(--text-sm);
-                        color: var(--navy);
-                      "
-                    >
-                      Campus → Karen
-                    </div>
-                    <div
-                      style="
-                        font-size: var(--text-xs);
-                        color: var(--gray-400);
-                        margin-top: 2px;
-                      "
-                    >
-                      Sunday, Dec 17 · 4:00 MJ
-                    </div>
-                  </div>
-                  <span class="badge badge-info">Requested</span>
+                  <h3>No upcoming rides</h3>
+                  <p>Book a ride to see it here.</p>
                 </div>
               </div>
             </div>
 
-            <!-- Recent Activity -->
             <div class="card animate-fade-up delay-1">
               <div class="card-header">
-                <h3 style="font-size: var(--text-base); color: var(--navy)">
-                  Recent Activity
-                </h3>
+                <h3 class="card-title">Recent Activity</h3>
               </div>
-              <div class="card-body" style="padding: 0">
-                <div
-                  class="info-row"
-                  style="padding: var(--space-4) var(--space-6)"
-                >
-                  <div class="info-icon">✅</div>
-                  <div>
-                    <div class="info-value">Ride Completed</div>
-                    <div class="info-label">Campus → CBD · KSh 350 saved</div>
+              <div class="card-body" id="recentActivity">
+                <div class="empty-state">
+                  <div class="empty-state-icon">
+                    <svg class="icon icon-2xl"><use href="assets/icons.svg#icon-activity"></use></svg>
                   </div>
-                  <span
-                    style="
-                      font-size: var(--text-xs);
-                      color: var(--gray-400);
-                      margin-left: auto;
-                    "
-                    >2h ago</span
-                  >
-                </div>
-
-                <div
-                  class="info-row"
-                  style="padding: var(--space-4) var(--space-6)"
-                >
-                  <div class="info-icon">⭐</div>
-                  <div>
-                    <div class="info-value">You rated John K.</div>
-                    <div class="info-label">5 stars — Great driver!</div>
-                  </div>
-                  <span
-                    style="
-                      font-size: var(--text-xs);
-                      color: var(--gray-400);
-                      margin-left: auto;
-                    "
-                    >2h ago</span
-                  >
-                </div>
-
-                <div
-                  class="info-row"
-                  style="padding: var(--space-4) var(--space-6)"
-                >
-                  <div class="info-icon">🤖</div>
-                  <div>
-                    <div class="info-value">AI found 4 rides</div>
-                    <div class="info-label">Matching your Friday request</div>
-                  </div>
-                  <span
-                    style="
-                      font-size: var(--text-xs);
-                      color: var(--gray-400);
-                      margin-left: auto;
-                    "
-                    >5h ago</span
-                  >
-                </div>
-
-                <div
-                  class="info-row"
-                  style="padding: var(--space-4) var(--space-6)"
-                >
-                  <div class="info-icon">🎉</div>
-                  <div>
-                    <div class="info-value">Badge Earned</div>
-                    <div class="info-label">Eco Traveller — 20kg CO₂ saved</div>
-                  </div>
-                  <span
-                    style="
-                      font-size: var(--text-xs);
-                      color: var(--gray-400);
-                      margin-left: auto;
-                    "
-                    >1d ago</span
-                  >
+                  <h3>No recent activity</h3>
+                  <p>Your activity will show up here.</p>
                 </div>
               </div>
             </div>
           </div>
 
-          <!-- Recommended Rides -->
-          <div class="card animate-fade-up" style="margin-top: var(--space-6)">
+          <div class="card animate-fade-up">
             <div class="card-header">
-              <h3 style="font-size: var(--text-base); color: var(--navy)">
-                🤖 AI Recommended Rides
+              <h3 class="card-title">
+                <svg class="icon icon-md"><use href="assets/icons.svg#icon-sparkle"></use></svg>
+                AI Recommended Rides
               </h3>
-              <a href="find-ride.html" class="btn btn-primary btn-sm"
-                >View All</a
-              >
+              <a href="find-ride.html" class="btn btn-primary btn-sm">View All</a>
             </div>
             <div class="card-body">
-              <div class="grid-3" style="gap: var(--space-4)">
-                <!-- Ride Card 1 -->
-                <div class="ride-card">
-                  <div class="ride-card-header">
-                    <div class="route-display">
-                      <span class="route-label">Campus</span>
-                      <div class="route-line"></div>
-                      <span class="route-label">CBD</span>
-                    </div>
-                    <div
-                      style="
-                        margin-top: var(--space-3);
-                        display: flex;
-                        justify-content: space-between;
-                        align-items: center;
-                      "
-                    >
-                      <span
-                        style="
-                          font-size: var(--text-xs);
-                          color: rgba(255, 255, 255, 0.6);
-                        "
-                        >Fri, 2:30 MJ</span
-                      >
-                      <span class="badge badge-gold">3 seats</span>
-                    </div>
+              <div class="grid-3" id="recommendedRides">
+                <div class="empty-state">
+                  <div class="empty-state-icon">
+                    <svg class="icon icon-2xl"><use href="assets/icons.svg#icon-sparkle"></use></svg>
                   </div>
-                  <div class="ride-card-body">
-                    <div
-                      style="
-                        display: flex;
-                        align-items: center;
-                        gap: var(--space-3);
-                        margin-bottom: var(--space-3);
-                      "
-                    >
-                      <div class="avatar avatar-sm">JK</div>
-                      <div>
-                        <div
-                          style="font-size: var(--text-sm); font-weight: 600"
-                        >
-                          John K.
-                        </div>
-                        <div class="stars">
-                          ★★★★★
-                          <span style="color: var(--gray-400); font-size: 11px"
-                            >4.9</span
-                          >
-                        </div>
-                      </div>
-                    </div>
-                    <div
-                      style="
-                        font-family: var(--font-display);
-                        font-size: var(--text-xl);
-                        font-weight: 700;
-                        color: var(--navy);
-                      "
-                    >
-                      KSh 350
-                    </div>
-                  </div>
-                  <div class="ride-card-footer">
-                    <a
-                      href="ride-details.html"
-                      class="btn btn-primary btn-sm btn-block"
-                      >View Ride</a
-                    >
-                  </div>
-                </div>
-
-                <!-- Ride Card 2 -->
-                <div class="ride-card">
-                  <div class="ride-card-header">
-                    <div class="route-display">
-                      <span class="route-label">Campus</span>
-                      <div class="route-line"></div>
-                      <span class="route-label">Westlands</span>
-                    </div>
-                    <div
-                      style="
-                        margin-top: var(--space-3);
-                        display: flex;
-                        justify-content: space-between;
-                        align-items: center;
-                      "
-                    >
-                      <span
-                        style="
-                          font-size: var(--text-xs);
-                          color: rgba(255, 255, 255, 0.6);
-                        "
-                        >Fri, 4:00 MJ</span
-                      >
-                      <span class="badge badge-gold">2 seats</span>
-                    </div>
-                  </div>
-                  <div class="ride-card-body">
-                    <div
-                      style="
-                        display: flex;
-                        align-items: center;
-                        gap: var(--space-3);
-                        margin-bottom: var(--space-3);
-                      "
-                    >
-                      <div class="avatar avatar-sm">AW</div>
-                      <div>
-                        <div
-                          style="font-size: var(--text-sm); font-weight: 600"
-                        >
-                          Amina W.
-                        </div>
-                        <div class="stars">
-                          ★★★★★
-                          <span style="color: var(--gray-400); font-size: 11px"
-                            >4.8</span
-                          >
-                        </div>
-                      </div>
-                    </div>
-                    <div
-                      style="
-                        font-family: var(--font-display);
-                        font-size: var(--text-xl);
-                        font-weight: 700;
-                        color: var(--navy);
-                      "
-                    >
-                      KSh 400
-                    </div>
-                  </div>
-                  <div class="ride-card-footer">
-                    <a
-                      href="ride-details.html"
-                      class="btn btn-primary btn-sm btn-block"
-                      >View Ride</a
-                    >
-                  </div>
-                </div>
-
-                <!-- Ride Card 3 -->
-                <div class="ride-card">
-                  <div class="ride-card-header">
-                    <div class="route-display">
-                      <span class="route-label">Campus</span>
-                      <div class="route-line"></div>
-                      <span class="route-label">Karen</span>
-                    </div>
-                    <div
-                      style="
-                        margin-top: var(--space-3);
-                        display: flex;
-                        justify-content: space-between;
-                        align-items: center;
-                      "
-                    >
-                      <span
-                        style="
-                          font-size: var(--text-xs);
-                          color: rgba(255, 255, 255, 0.6);
-                        "
-                        >Sat, 10:00 AM</span
-                      >
-                      <span class="badge badge-gold">4 seats</span>
-                    </div>
-                  </div>
-                  <div class="ride-card-body">
-                    <div
-                      style="
-                        display: flex;
-                        align-items: center;
-                        gap: var(--space-3);
-                        margin-bottom: var(--space-3);
-                      "
-                    >
-                      <div class="avatar avatar-sm">DM</div>
-                      <div>
-                        <div
-                          style="font-size: var(--text-sm); font-weight: 600"
-                        >
-                          David M.
-                        </div>
-                        <div class="stars">
-                          ★★★★☆
-                          <span style="color: var(--gray-400); font-size: 11px"
-                            >4.7</span
-                          >
-                        </div>
-                      </div>
-                    </div>
-                    <div
-                      style="
-                        font-family: var(--font-display);
-                        font-size: var(--text-xl);
-                        font-weight: 700;
-                        color: var(--navy);
-                      "
-                    >
-                      KSh 500
-                    </div>
-                  </div>
-                  <div class="ride-card-footer">
-                    <a
-                      href="ride-details.html"
-                      class="btn btn-primary btn-sm btn-block"
-                      >View Ride</a
-                    >
-                  </div>
+                  <h3>No recommendations yet</h3>
+                  <p>Take a few rides and our AI will suggest matches.</p>
                 </div>
               </div>
             </div>
@@ -651,13 +200,12 @@
       </div>
     </div>
 
-    <script>
-      // Mobile nav toggle
-      document.getElementById("navToggle").addEventListener("click", () => {
-        document.getElementById("navLinks").classList.toggle("open");
-      });
-      // Member 3 will populate real ride data from the backend here
-      console.log("dashboard.js will load real rides here");
-    </script>
+    <script src="js/config.js"></script>
+    <script src="js/api.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/app.js"></script>
+    <script src="js/home.js"></script>
+  </body>
+</html>
   </body>
 </html>

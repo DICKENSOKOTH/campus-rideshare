@@ -9,7 +9,8 @@ Flask-JWT-Extended==4.6.0
 Flask-CORS==4.0.1
 
 # PostgreSQL Driver
-psycopg2-binary==2.9.9
+psycopg2-binary
+#>=2.9.9
 
 # WebSockets
 websockets==12.0

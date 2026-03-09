@@ -141,12 +141,8 @@ const AuthAPI = {
         return api.post(API_ENDPOINTS.REGISTER, userData, { includeAuth: false });
     },
 
-    async logout() {
-        return api.post(API_ENDPOINTS.LOGOUT);
-    },
-
-    async verifyToken() {
-        return api.get(API_ENDPOINTS.VERIFY_TOKEN);
+    async getMe() {
+        return api.get(API_ENDPOINTS.ME);
     },
 };
 
@@ -159,20 +155,20 @@ const UserAPI = {
         return api.put(API_ENDPOINTS.UPDATE_PROFILE, userData);
     },
 
-    async updateLocation(location) {
-        return api.post(API_ENDPOINTS.UPDATE_LOCATION, location);
+    async getPublicProfile(userId) {
+        return api.get(API_ENDPOINTS.GET_PUBLIC_PROFILE, { params: { id: userId } });
     },
 
-    async getUserRides() {
-        return api.get(API_ENDPOINTS.GET_USER_RIDES);
+    async getMyRides() {
+        return api.get(API_ENDPOINTS.GET_MY_RIDES);
     },
 
-    async getUserBookings() {
-        return api.get(API_ENDPOINTS.GET_USER_BOOKINGS);
+    async getMyBookings() {
+        return api.get(API_ENDPOINTS.GET_MY_BOOKINGS);
     },
 
-    async getRatings(userId) {
-        return api.get(API_ENDPOINTS.GET_RATINGS, { params: { id: userId } });
+    async rateUser(bookingId, ratingData) {
+        return api.post(API_ENDPOINTS.RATE_USER, ratingData, { params: { id: bookingId } });
     },
 };
 
@@ -189,75 +185,53 @@ const RideAPI = {
         return api.get(API_ENDPOINTS.GET_RIDE, { params: { id: rideId } });
     },
 
-    async updateRide(rideId, rideData) {
-        return api.put(API_ENDPOINTS.UPDATE_RIDE, rideData, { params: { id: rideId } });
-    },
-
     async deleteRide(rideId) {
         return api.delete(API_ENDPOINTS.DELETE_RIDE, { params: { id: rideId } });
-    },
-
-    async searchRides(searchParams) {
-        return api.get(API_ENDPOINTS.SEARCH_RIDES, { queryParams: searchParams });
     },
 };
 
 const BookingAPI = {
-    async createBooking(rideId, bookingData) {
-        return api.post(API_ENDPOINTS.CREATE_BOOKING, bookingData, { params: { id: rideId } });
-    },
-
-    async updateBooking(bookingId, bookingData) {
-        return api.put(API_ENDPOINTS.UPDATE_BOOKING, bookingData, { params: { id: bookingId } });
+    async bookRide(rideId, data) {
+        return api.post(API_ENDPOINTS.BOOK_RIDE, data, { params: { id: rideId } });
     },
 
     async cancelBooking(bookingId) {
-        return api.post(API_ENDPOINTS.CANCEL_BOOKING, {}, { params: { id: bookingId } });
-    },
-
-    async acceptBooking(bookingId) {
-        return api.post(API_ENDPOINTS.ACCEPT_BOOKING, {}, { params: { id: bookingId } });
-    },
-
-    async rejectBooking(bookingId) {
-        return api.post(API_ENDPOINTS.REJECT_BOOKING, {}, { params: { id: bookingId } });
-    },
-};
-
-const RatingAPI = {
-    async createRating(rideId, ratingData) {
-        return api.post(API_ENDPOINTS.CREATE_RATING, ratingData, { params: { id: rideId } });
+        return api.delete(API_ENDPOINTS.CANCEL_BOOKING, { params: { id: bookingId } });
     },
 };
 
 const AIAPI = {
-    async chat(message, context = {}) {
-        return api.post(API_ENDPOINTS.AI_CHAT, { message, context });
+    async chat(message, history = []) {
+        return api.post(API_ENDPOINTS.AI_CHAT, { message, history });
     },
 
-    async getSuggestions(userContext) {
-        return api.post(API_ENDPOINTS.AI_SUGGESTIONS, userContext);
+    async getSuggestions() {
+        return api.get(API_ENDPOINTS.AI_SUGGESTIONS);
+    },
+
+    async getChatPageData() {
+        return api.get(API_ENDPOINTS.AI_CHAT);
     },
 };
 
 const AdminAPI = {
-    async getAllUsers(filters = {}) {
-        return api.get(API_ENDPOINTS.GET_ALL_USERS, { queryParams: filters });
-    },
-
-    async getAllRides(filters = {}) {
-        return api.get(API_ENDPOINTS.GET_ALL_RIDES, { queryParams: filters });
-    },
-
     async getStats() {
-        return api.get(API_ENDPOINTS.GET_STATS);
+        return api.get(API_ENDPOINTS.ADMIN_STATS);
     },
 
-    async moderateUser(userId, action, reason) {
-        return api.post(API_ENDPOINTS.MODERATE_USER, { action, reason }, { params: { id: userId } });
+    async getUsers(filters = {}) {
+        return api.get(API_ENDPOINTS.ADMIN_USERS, { queryParams: filters });
     },
 
-    async moderateRide(rideId, action, reason) {
-        return api.post(API_ENDPOINTS.MODERATE_RIDE, { action, reason }, { params: { id: rideId } });
+    async toggleUser(userId) {
+        return api.put(API_ENDPOINTS.ADMIN_TOGGLE_USER, {}, { params: { id: userId } });
+    },
+
+    async getActivity() {
+        return api.get(API_ENDPOINTS.ADMIN_ACTIVITY);
+    },
+
+    async getRides(filters = {}) {
+        return api.get(API_ENDPOINTS.ADMIN_RIDES, { queryParams: filters });
     },
 };

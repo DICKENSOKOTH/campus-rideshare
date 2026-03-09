@@ -207,6 +207,11 @@ p  { color: var(--gray-600); line-height: 1.7; }
 .text-sm     { font-size: var(--text-sm); }
 .text-xs     { font-size: var(--text-xs); }
 .text-center { text-align: center; }
+.flex-1      { flex: 1; }
+.gold-light  { color: var(--gold-light); }
+.overflow-hidden { overflow: hidden; }
+.pb-0        { padding-bottom: 0 !important; }
+.gap-3       { gap: var(--space-3); }
 
 @media (max-width: 1024px) {
   .grid-4 { grid-template-columns: repeat(2, 1fr); }

@@ -9,11 +9,12 @@
     <link rel="stylesheet" href="css/pages.css" />
   </head>
   <body>
-    <!-- NAVBAR -->
     <nav class="navbar solid" id="navbar">
       <div class="container nav-inner">
         <a href="index.html" class="nav-logo">
-          <div class="nav-logo-icon">🚗</div>
+          <div class="nav-logo-icon">
+            <svg class="icon icon-md"><use href="assets/icons.svg#icon-car"></use></svg>
+          </div>
           CampusRide
         </a>
         <div class="nav-links" id="navLinks">
@@ -23,7 +24,7 @@
           <a href="ai-assistant.html" class="nav-link">AI Assistant</a>
         </div>
         <div class="nav-actions">
-          <a href="profile.html" class="nav-avatar">MJ</a>
+          <a href="profile.html" class="nav-avatar" id="navAvatar"></a>
           <button class="nav-toggle" id="navToggle">
             <span></span><span></span><span></span>
           </button>
@@ -31,333 +32,95 @@
       </div>
     </nav>
 
-    <div
-      style="
-        padding-top: var(--nav-h);
-        background: var(--gray-50);
-        min-height: 100vh;
-        padding-bottom: 80px;
-      "
-    >
-      <div class="container" style="padding-top: var(--space-8)">
-        <!-- Back Button -->
-        <a
-          href="find-ride.html"
-          style="
-            display: inline-flex;
-            align-items: center;
-            gap: var(--space-2);
-            color: var(--gray-500);
-            font-size: var(--text-sm);
-            font-weight: 600;
-            margin-bottom: var(--space-6);
-          "
-        >
-          ← Back to results
+    <div class="page-body">
+      <div class="container">
+        <a href="find-ride.html" class="back-link">
+          <svg class="icon icon-sm"><use href="assets/icons.svg#icon-arrow-left"></use></svg>
+          Back to results
         </a>
 
-        <div class="ride-details-layout">
-          <!-- LEFT COLUMN — Main Details -->
+        <div class="ride-details-layout" id="rideDetailsContainer">
+          <!-- LEFT COLUMN -->
           <div>
             <!-- Hero Banner -->
             <div class="ride-hero-banner">
               <div class="ride-route-large">
                 <div>
-                  <div
-                    style="
-                      font-size: var(--text-xs);
-                      color: rgba(255, 255, 255, 0.5);
-                      margin-bottom: 4px;
-                    "
-                  >
-                    FROM
-                  </div>
-                  <div class="route-city">Campus</div>
+                  <div class="route-label-sm">FROM</div>
+                  <div class="route-city" id="rideOrigin">&mdash;</div>
                 </div>
-                <div class="route-arrow">→</div>
+                <div class="route-arrow">
+                  <svg class="icon icon-lg"><use href="assets/icons.svg#icon-arrow-right"></use></svg>
+                </div>
                 <div>
-                  <div
-                    style="
-                      font-size: var(--text-xs);
-                      color: rgba(255, 255, 255, 0.5);
-                      margin-bottom: 4px;
-                    "
-                  >
-                    TO
-                  </div>
-                  <div class="route-city">CBD Nairobi</div>
+                  <div class="route-label-sm">TO</div>
+                  <div class="route-city" id="rideDestination">&mdash;</div>
                 </div>
               </div>
-              <div
-                style="
-                  position: relative;
-                  z-index: 1;
-                  display: flex;
-                  gap: var(--space-6);
-                  flex-wrap: wrap;
-                "
-              >
-                <div>
-                  <div
-                    style="
-                      font-size: var(--text-xs);
-                      color: rgba(255, 255, 255, 0.5);
-                    "
-                  >
-                    DATE
-                  </div>
-                  <div style="font-weight: 600; color: var(--white)">
-                    Friday, Dec 15 2024
-                  </div>
+              <div class="ride-hero-meta">
+                <div class="ride-hero-meta-item">
+                  <div class="route-label-sm">DATE</div>
+                  <div id="rideDate">&mdash;</div>
                 </div>
-                <div>
-                  <div
-                    style="
-                      font-size: var(--text-xs);
-                      color: rgba(255, 255, 255, 0.5);
-                    "
-                  >
-                    DEPARTURE
-                  </div>
-                  <div style="font-weight: 600; color: var(--white)">
-                    2:30 PM
-                  </div>
+                <div class="ride-hero-meta-item">
+                  <div class="route-label-sm">DEPARTURE</div>
+                  <div id="rideTime">&mdash;</div>
                 </div>
-                <div>
-                  <div
-                    style="
-                      font-size: var(--text-xs);
-                      color: rgba(255, 255, 255, 0.5);
-                    "
-                  >
-                    DURATION
-                  </div>
-                  <div style="font-weight: 600; color: var(--white)">
-                    ~45 minutes
-                  </div>
-                </div>
-                <div>
-                  <div
-                    style="
-                      font-size: var(--text-xs);
-                      color: rgba(255, 255, 255, 0.5);
-                    "
-                  >
-                    SEATS LEFT
-                  </div>
-                  <div style="font-weight: 600; color: var(--gold-light)">
-                    3 of 4
-                  </div>
+                <div class="ride-hero-meta-item">
+                  <div class="route-label-sm">SEATS LEFT</div>
+                  <div id="rideSeats">&mdash;</div>
                 </div>
               </div>
             </div>
 
             <!-- Driver Card -->
-            <div class="card" style="margin-bottom: var(--space-6)">
+            <div class="card mb-6">
               <div class="card-header">
-                <h3 style="font-size: var(--text-base); color: var(--navy)">
-                  Your Driver
-                </h3>
-                <span class="badge badge-success">✓ Verified</span>
+                <h3 class="card-title">Your Driver</h3>
+                <span class="badge badge-success" id="driverVerified">
+                  <svg class="icon icon-sm"><use href="assets/icons.svg#icon-check"></use></svg>
+                  Verified
+                </span>
               </div>
               <div class="card-body">
-                <div
-                  style="
-                    display: flex;
-                    align-items: center;
-                    gap: var(--space-5);
-                    margin-bottom: var(--space-6);
-                  "
-                >
-                  <div class="avatar avatar-lg">JK</div>
-                  <div style="flex: 1">
-                    <div
-                      style="
-                        font-family: var(--font-display);
-                        font-size: var(--text-xl);
-                        font-weight: 700;
-                        color: var(--navy);
-                      "
-                    >
-                      John Kamau
-                    </div>
-                    <div class="stars" style="margin: 4px 0">★★★★★</div>
-                    <div
-                      style="font-size: var(--text-sm); color: var(--gray-500)"
-                    >
-                      4.9 rating · 47 completed trips
-                    </div>
+                <div class="ride-card-driver mb-4">
+                  <div class="avatar avatar-lg" id="driverAvatar">&mdash;</div>
+                  <div>
+                    <div class="profile-name" id="driverName">&mdash;</div>
+                    <div class="stars" id="driverStars"></div>
+                    <p class="text-muted" id="driverStats"></p>
                   </div>
-                  <button
-                    class="btn btn-ghost btn-sm"
-                    style="color: var(--navy); border-color: var(--navy)"
-                    id="messageDriver"
-                  >
-                    💬 Message
+                  <button class="btn btn-ghost btn-sm" id="messageDriver">
+                    <svg class="icon icon-sm"><use href="assets/icons.svg#icon-chat"></use></svg>
+                    Message
                   </button>
                 </div>
-
-                <div class="grid-3" style="gap: var(--space-4)">
-                  <div
-                    style="
-                      text-align: center;
-                      padding: var(--space-4);
-                      background: var(--gray-50);
-                      border-radius: var(--radius);
-                    "
-                  >
-                    <div
-                      style="
-                        font-family: var(--font-display);
-                        font-size: var(--text-2xl);
-                        font-weight: 700;
-                        color: var(--navy);
-                      "
-                    >
-                      47
-                    </div>
-                    <div
-                      style="font-size: var(--text-xs); color: var(--gray-400)"
-                    >
-                      Total Trips
-                    </div>
-                  </div>
-                  <div
-                    style="
-                      text-align: center;
-                      padding: var(--space-4);
-                      background: var(--gray-50);
-                      border-radius: var(--radius);
-                    "
-                  >
-                    <div
-                      style="
-                        font-family: var(--font-display);
-                        font-size: var(--text-2xl);
-                        font-weight: 700;
-                        color: var(--navy);
-                      "
-                    >
-                      4.9
-                    </div>
-                    <div
-                      style="font-size: var(--text-xs); color: var(--gray-400)"
-                    >
-                      Rating
-                    </div>
-                  </div>
-                  <div
-                    style="
-                      text-align: center;
-                      padding: var(--space-4);
-                      background: var(--gray-50);
-                      border-radius: var(--radius);
-                    "
-                  >
-                    <div
-                      style="
-                        font-family: var(--font-display);
-                        font-size: var(--text-2xl);
-                        font-weight: 700;
-                        color: var(--navy);
-                      "
-                    >
-                      98%
-                    </div>
-                    <div
-                      style="font-size: var(--text-xs); color: var(--gray-400)"
-                    >
-                      On Time
-                    </div>
-                  </div>
+                <div class="driver-stat-grid" id="driverStatGrid">
+                  <!-- Populated by JS -->
                 </div>
               </div>
             </div>
 
             <!-- Ride Info -->
-            <div class="card" style="margin-bottom: var(--space-6)">
+            <div class="card mb-6">
               <div class="card-header">
-                <h3 style="font-size: var(--text-base); color: var(--navy)">
-                  Ride Information
-                </h3>
+                <h3 class="card-title">Ride Information</h3>
               </div>
-              <div class="card-body" style="padding: 0">
-                <div
-                  class="info-row"
-                  style="padding: var(--space-4) var(--space-6)"
-                >
-                  <div class="info-icon">🚗</div>
-                  <div>
-                    <div class="info-label">Vehicle</div>
-                    <div class="info-value">Toyota Vitz · White · KBZ 123A</div>
-                  </div>
-                </div>
-                <div
-                  class="info-row"
-                  style="padding: var(--space-4) var(--space-6)"
-                >
-                  <div class="info-icon">📍</div>
-                  <div>
-                    <div class="info-label">Pickup Point</div>
-                    <div class="info-value">USIU-Africa Main Gate</div>
-                  </div>
-                </div>
-                <div
-                  class="info-row"
-                  style="padding: var(--space-4) var(--space-6)"
-                >
-                  <div class="info-icon">📌</div>
-                  <div>
-                    <div class="info-label">Stopover</div>
-                    <div class="info-value">Parklands Bus Stop</div>
-                  </div>
-                </div>
-                <div
-                  class="info-row"
-                  style="padding: var(--space-4) var(--space-6)"
-                >
-                  <div class="info-icon">🏁</div>
-                  <div>
-                    <div class="info-label">Drop-off Point</div>
-                    <div class="info-value">Kencom Bus Stop, CBD</div>
-                  </div>
-                </div>
-                <div
-                  class="info-row"
-                  style="padding: var(--space-4) var(--space-6)"
-                >
-                  <div class="info-icon">🎵</div>
-                  <div>
-                    <div class="info-label">Preferences</div>
-                    <div class="info-value">
-                      Music allowed · No eating · Chat before confirm
-                    </div>
-                  </div>
-                </div>
+              <div class="card-body" id="rideInfoBody">
+                <!-- Populated by JS -->
               </div>
             </div>
 
             <!-- Map -->
-            <div class="card" style="margin-bottom: var(--space-6)">
+            <div class="card mb-6">
               <div class="card-header">
-                <h3 style="font-size: var(--text-base); color: var(--navy)">
-                  Route Map
-                </h3>
+                <h3 class="card-title">Route Map</h3>
               </div>
-              <div class="card-body" style="padding: 0">
-                <div
-                  class="map-container"
-                  style="border-radius: 0 0 var(--radius) var(--radius)"
-                  id="detailsMap"
-                >
+              <div class="card-body p-0">
+                <div class="map-container" id="detailsMap">
                   <div class="map-placeholder">
-                    <div style="font-size: 2.5rem">🗺️</div>
-                    <p style="font-weight: 600; color: var(--gray-600)">
-                      Interactive map loads here
-                    </p>
-                    <p style="font-size: var(--text-xs)">
-                      Member 3 connects Google Maps API
-                    </p>
+                    <svg class="icon icon-3xl"><use href="assets/icons.svg#icon-map"></use></svg>
+                    <p>Map loads here</p>
                   </div>
                 </div>
               </div>
@@ -366,101 +129,13 @@
             <!-- Reviews -->
             <div class="card">
               <div class="card-header">
-                <h3 style="font-size: var(--text-base); color: var(--navy)">
-                  Passenger Reviews
-                </h3>
-                <div class="stars">
-                  ★★★★★
-                  <span
-                    style="
-                      color: var(--gray-400);
-                      font-size: 12px;
-                      margin-left: 4px;
-                    "
-                    >4.9</span
-                  >
-                </div>
+                <h3 class="card-title">Passenger Reviews</h3>
+                <div class="stars" id="reviewStars"></div>
               </div>
-              <div class="card-body">
-                <div class="review-card">
-                  <div
-                    style="
-                      display: flex;
-                      align-items: center;
-                      gap: var(--space-3);
-                      margin-bottom: var(--space-3);
-                    "
-                  >
-                    <div class="avatar avatar-sm">AW</div>
-                    <div style="flex: 1">
-                      <div style="font-weight: 600; font-size: var(--text-sm)">
-                        Amina W.
-                      </div>
-                      <div class="stars" style="font-size: 11px">★★★★★</div>
-                    </div>
-                    <span
-                      style="font-size: var(--text-xs); color: var(--gray-400)"
-                      >2 days ago</span
-                    >
-                  </div>
-                  <p style="font-size: var(--text-sm); color: var(--gray-600)">
-                    John is an amazing driver! Very punctual, clean car and
-                    great music. Will definitely book again.
-                  </p>
-                </div>
-
-                <div class="review-card">
-                  <div
-                    style="
-                      display: flex;
-                      align-items: center;
-                      gap: var(--space-3);
-                      margin-bottom: var(--space-3);
-                    "
-                  >
-                    <div class="avatar avatar-sm">DM</div>
-                    <div style="flex: 1">
-                      <div style="font-weight: 600; font-size: var(--text-sm)">
-                        David M.
-                      </div>
-                      <div class="stars" style="font-size: 11px">★★★★★</div>
-                    </div>
-                    <span
-                      style="font-size: var(--text-xs); color: var(--gray-400)"
-                      >1 week ago</span
-                    >
-                  </div>
-                  <p style="font-size: var(--text-sm); color: var(--gray-600)">
-                    Safe driver, arrived on time and dropped me exactly where I
-                    needed. Highly recommend!
-                  </p>
-                </div>
-
-                <div class="review-card">
-                  <div
-                    style="
-                      display: flex;
-                      align-items: center;
-                      gap: var(--space-3);
-                      margin-bottom: var(--space-3);
-                    "
-                  >
-                    <div class="avatar avatar-sm">SK</div>
-                    <div style="flex: 1">
-                      <div style="font-weight: 600; font-size: var(--text-sm)">
-                        Sarah K.
-                      </div>
-                      <div class="stars" style="font-size: 11px">★★★★☆</div>
-                    </div>
-                    <span
-                      style="font-size: var(--text-xs); color: var(--gray-400)"
-                      >2 weeks ago</span
-                    >
-                  </div>
-                  <p style="font-size: var(--text-sm); color: var(--gray-600)">
-                    Good ride overall, was 5 minutes late but communicated ahead
-                    of time. Car was clean and comfortable.
-                  </p>
+              <div class="card-body" id="reviewsContainer">
+                <div class="empty-state">
+                  <svg class="icon icon-xl"><use href="assets/icons.svg#icon-chat"></use></svg>
+                  <p>No reviews yet.</p>
                 </div>
               </div>
             </div>
@@ -468,192 +143,65 @@
 
           <!-- RIGHT COLUMN — Booking Sidebar -->
           <div class="booking-sidebar">
-            <!-- Price Header -->
             <div class="booking-price-header">
-              <div
-                style="
-                  font-size: var(--text-xs);
-                  color: rgba(255, 255, 255, 0.5);
-                  margin-bottom: var(--space-2);
-                "
-              >
-                PRICE PER SEAT
-              </div>
-              <div class="booking-price">KSh 350</div>
-              <div
-                style="
-                  font-size: var(--text-xs);
-                  color: rgba(255, 255, 255, 0.5);
-                  margin-top: var(--space-2);
-                "
-              >
-                3 seats available
-              </div>
+              <div class="route-label-sm">PRICE PER SEAT</div>
+              <div class="booking-price" id="bookingPrice">&mdash;</div>
+              <div class="route-label-sm" id="bookingSeatsLabel">&mdash;</div>
             </div>
 
             <div class="booking-body">
-              <!-- Seat Selector -->
               <div class="form-group">
                 <label class="form-label">Select Your Seat</label>
-                <div class="seat-grid">
-                  <div class="seat available" id="seatA1">A1</div>
-                  <div class="seat available" id="seatA2">A2</div>
-                  <div class="seat booked" id="seatB1">B1</div>
-                  <div class="seat available" id="seatB2">B2</div>
-                  <div class="seat available" id="seatB3">B3</div>
+                <div class="seat-grid" id="seatGrid">
+                  <!-- Populated by JS -->
                 </div>
-                <div
-                  style="
-                    display: flex;
-                    gap: var(--space-4);
-                    margin-top: var(--space-3);
-                  "
-                >
-                  <div
-                    style="
-                      display: flex;
-                      align-items: center;
-                      gap: 6px;
-                      font-size: var(--text-xs);
-                      color: var(--gray-500);
-                    "
-                  >
-                    <div
-                      style="
-                        width: 14px;
-                        height: 14px;
-                        background: var(--gold);
-                        border-radius: 3px;
-                      "
-                    ></div>
-                    Available
+                <div class="seat-legend">
+                  <div class="seat-legend-item">
+                    <div class="seat-legend-dot available"></div> Available
                   </div>
-                  <div
-                    style="
-                      display: flex;
-                      align-items: center;
-                      gap: 6px;
-                      font-size: var(--text-xs);
-                      color: var(--gray-500);
-                    "
-                  >
-                    <div
-                      style="
-                        width: 14px;
-                        height: 14px;
-                        background: var(--gray-200);
-                        border-radius: 3px;
-                      "
-                    ></div>
-                    Taken
+                  <div class="seat-legend-item">
+                    <div class="seat-legend-dot booked"></div> Taken
                   </div>
                 </div>
               </div>
 
-              <!-- Pickup Note -->
               <div class="form-group">
                 <label class="form-label" for="pickupNote">Pickup Note</label>
-                <input
-                  type="text"
-                  id="pickupNote"
-                  class="form-input"
-                  placeholder="e.g. I'll be at the main gate"
-                />
-                <span class="form-hint"
-                  >Let the driver know where exactly to find you</span
-                >
+                <input type="text" id="pickupNote" class="form-input" placeholder="e.g. I'll be at the main gate" />
+                <span class="form-hint">Let the driver know where to find you</span>
               </div>
 
-              <!-- Price Breakdown -->
-              <div
-                style="
-                  background: var(--gray-50);
-                  border-radius: var(--radius);
-                  padding: var(--space-4);
-                  margin-bottom: var(--space-5);
-                "
-              >
-                <div class="flex-between" style="margin-bottom: var(--space-2)">
-                  <span
-                    style="font-size: var(--text-sm); color: var(--gray-500)"
-                    >1 seat × KSh 350</span
-                  >
-                  <span style="font-size: var(--text-sm); font-weight: 600"
-                    >KSh 350</span
-                  >
+              <div class="price-breakdown" id="priceBreakdown">
+                <div class="price-breakdown-row">
+                  <span>1 seat</span>
+                  <span id="breakdownSubtotal">&mdash;</span>
                 </div>
-                <div class="flex-between" style="margin-bottom: var(--space-2)">
-                  <span
-                    style="font-size: var(--text-sm); color: var(--gray-500)"
-                    >Service fee</span
-                  >
-                  <span style="font-size: var(--text-sm); font-weight: 600"
-                    >KSh 0</span
-                  >
+                <div class="price-breakdown-row">
+                  <span>Service fee</span>
+                  <span>KSh 0</span>
                 </div>
-                <hr
-                  style="
-                    border: none;
-                    border-top: 1px solid var(--gray-200);
-                    margin: var(--space-3) 0;
-                  "
-                />
-                <div class="flex-between">
-                  <span style="font-weight: 700; color: var(--navy)"
-                    >Total</span
-                  >
-                  <span
-                    style="
-                      font-family: var(--font-display);
-                      font-size: var(--text-xl);
-                      font-weight: 700;
-                      color: var(--navy);
-                    "
-                    >KSh 350</span
-                  >
+                <div class="price-breakdown-total">
+                  <span>Total</span>
+                  <span id="breakdownTotal">&mdash;</span>
                 </div>
               </div>
 
               <button class="btn btn-primary btn-block btn-lg" id="bookRideBtn">
-                🚗 Book This Ride
+                <svg class="icon icon-md"><use href="assets/icons.svg#icon-check-circle"></use></svg>
+                Book This Ride
               </button>
 
-              <button
-                class="btn btn-block"
-                style="
-                  margin-top: var(--space-3);
-                  border: 1px solid var(--gray-200);
-                  color: var(--gray-600);
-                "
-                id="saveRideBtn"
-              >
-                🔖 Save for Later
+              <button class="btn btn-secondary btn-block mt-3" id="saveRideBtn">
+                <svg class="icon icon-md"><use href="assets/icons.svg#icon-bookmark"></use></svg>
+                Save for Later
               </button>
 
-              <!-- Safety Note -->
-              <div
-                style="
-                  margin-top: var(--space-5);
-                  padding: var(--space-4);
-                  background: rgba(26, 122, 74, 0.06);
-                  border-radius: var(--radius-sm);
-                  border: 1px solid rgba(26, 122, 74, 0.15);
-                "
-              >
-                <div
-                  style="
-                    font-size: var(--text-xs);
-                    font-weight: 700;
-                    color: var(--success);
-                    margin-bottom: 4px;
-                  "
-                >
-                  🛡️ Safe Ride Guarantee
+              <div class="safety-note">
+                <div class="safety-note-title">
+                  <svg class="icon icon-sm"><use href="assets/icons.svg#icon-shield"></use></svg>
+                  Safe Ride Guarantee
                 </div>
-                <div style="font-size: var(--text-xs); color: var(--gray-500)">
-                  Driver is verified. Trip is tracked. Emergency contact
-                  notified on booking.
-                </div>
+                <div class="safety-note-text">Driver is verified. Trip is tracked. Emergency contact notified on booking.</div>
               </div>
             </div>
           </div>
@@ -661,32 +209,10 @@
       </div>
     </div>
 
-    <script>
-      // Mobile nav
-      document.getElementById("navToggle").addEventListener("click", () => {
-        document.getElementById("navLinks").classList.toggle("open");
-      });
-
-      // Seat selection
-      document.querySelectorAll(".seat.available").forEach((seat) => {
-        seat.addEventListener("click", function () {
-          document
-            .querySelectorAll(".seat")
-            .forEach((s) => s.classList.remove("selected"));
-          this.classList.add("selected");
-        });
-      });
-
-      // Booking & messaging — Member 3 handles real logic
-      document.getElementById("bookRideBtn").addEventListener("click", () => {
-        console.log("Book ride — booking.js will handle this");
-      });
-      document.getElementById("messageDriver").addEventListener("click", () => {
-        console.log("Message driver — chat.js will handle this");
-      });
-      document.getElementById("saveRideBtn").addEventListener("click", () => {
-        console.log("Save ride — rides.js will handle this");
-      });
-    </script>
+    <script src="js/config.js"></script>
+    <script src="js/api.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/app.js"></script>
+    <script src="js/rideDetails.js"></script>
   </body>
 </html>

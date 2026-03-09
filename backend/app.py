@@ -49,6 +49,23 @@ def create_app():
     app.register_blueprint(admin_bp)
     app.register_blueprint(ai_bp)
 
+    # ── Serve frontend HTML pages ────────────────────────────────
+    from flask import send_from_directory
+
+    @app.route('/')
+    def serve_index():
+        return send_from_directory(app_config.STATIC_FOLDER, 'index.html')
+
+    @app.route('/<path:filename>')
+    def serve_frontend(filename):
+        """Serve frontend files (HTML, CSS, JS, assets)."""
+        import os
+        file_path = os.path.join(app_config.STATIC_FOLDER, filename)
+        if os.path.isfile(file_path):
+            return send_from_directory(app_config.STATIC_FOLDER, filename)
+        # Fallback to index.html for SPA-like behavior
+        return send_from_directory(app_config.STATIC_FOLDER, 'index.html')
+
     # ── Health-check endpoint ────────────────────────────────────
     @app.route('/api/health/')
     def health():

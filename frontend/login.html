@@ -10,79 +10,30 @@
   </head>
   <body>
     <div class="auth-page">
-      <!-- LEFT: Brand Panel -->
       <div class="auth-brand">
         <div class="auth-brand-cards">
           <div class="auth-card-preview animate-fade-up delay-1">
-            <div
-              style="
-                font-size: 12px;
-                color: rgba(255, 255, 255, 0.5);
-                margin-bottom: 6px;
-              "
-            >
-              📍 Upcoming Ride
+            <div class="hero-card-label">
+              <svg class="icon icon-sm"><use href="assets/icons.svg#icon-map-pin"></use></svg> Upcoming Ride
             </div>
-            <div style="font-weight: 600; font-size: 15px">
-              Campus → Nairobi CBD
-            </div>
-            <div
-              style="
-                font-size: 12px;
-                color: rgba(255, 255, 255, 0.55);
-                margin-top: 4px;
-              "
-            >
-              Friday, 2:30 PM · KSh 350
-            </div>
+            <div class="route-label">Campus &rarr; Nairobi CBD</div>
+            <div class="hero-card-meta">Friday, 2:30 PM &middot; KSh 350</div>
           </div>
           <div class="auth-card-preview animate-fade-up delay-2">
-            <div
-              style="
-                font-size: 12px;
-                color: rgba(255, 255, 255, 0.5);
-                margin-bottom: 6px;
-              "
-            >
-              🤖 AI says…
+            <div class="hero-card-label">
+              <svg class="icon icon-sm"><use href="assets/icons.svg#icon-sparkle"></use></svg> AI says&hellip;
             </div>
-            <div style="font-size: 14px; color: rgba(255, 255, 255, 0.85)">
-              "Found 3 rides to Westlands this evening under KSh 400"
-            </div>
+            <div class="hero-card-bubble">"Found 3 rides to Westlands this evening under KSh 400"</div>
           </div>
-          <div class="auth-card-preview animate-fade-up delay-3">
-            <div
-              style="
-                display: flex;
-                justify-content: space-between;
-                align-items: center;
-              "
-            >
-              <div>
-                <div style="font-size: 12px; color: rgba(255, 255, 255, 0.5)">
-                  💰 Savings this month
-                </div>
-                <div
-                  style="
-                    font-family: &quot;Playfair Display&quot;, serif;
-                    font-size: 26px;
-                    font-weight: 700;
-                    color: #e5b95a;
-                    margin-top: 2px;
-                  "
-                >
-                  KSh 3,200
-                </div>
-              </div>
-              <div style="font-size: 2rem">📈</div>
+          <div class="auth-card-preview animate-fade-up">
+            <div class="hero-card-label">
+              <svg class="icon icon-sm"><use href="assets/icons.svg#icon-trending-up"></use></svg> Savings this month
             </div>
+            <div class="hero-card-stat-num">KSh 3,200</div>
           </div>
         </div>
         <div class="auth-brand-content animate-fade-up">
-          <hr
-            class="divider-gold"
-            style="margin-bottom: var(--space-5); width: 40px"
-          />
+          <hr class="divider-gold" />
           <h2>Welcome back to smarter campus travel.</h2>
           <p>
             Join verified students already sharing rides and saving thousands
@@ -91,100 +42,85 @@
         </div>
       </div>
 
-      <!-- RIGHT: Login Form -->
       <div class="auth-panel">
         <div class="auth-form-container animate-fade-up">
           <div class="auth-logo">
-            <div class="auth-logo-icon">🚗</div>
-            <span
-              style="
-                font-family: var(--font-display);
-                font-size: var(--text-xl);
-                font-weight: 700;
-                color: var(--navy);
-              "
-              >Campus Rideshare</span
-            >
+            <div class="auth-logo-icon">
+              <svg class="icon icon-lg"><use href="assets/icons.svg#icon-car"></use></svg>
+            </div>
+            <span class="auth-logo-text">Campus Rideshare</span>
           </div>
 
           <h1>Sign In</h1>
           <p class="auth-subtitle">
-            Don't have an account? <a href="register.html">Create one free →</a>
+            Don't have an account? <a href="register.html">Create one free &rarr;</a>
           </p>
 
-          <!-- Error alert (hidden by default, Member 3 shows it on wrong password) -->
-          <div
-            id="loginError"
-            class="alert alert-danger mb-6"
-            style="display: none"
-          >
-            <span>⚠️</span>
-            <span>Invalid email or password. Please try again.</span>
+          <div id="errorBanner" class="alert alert-danger mb-6 hidden">
+            <svg class="icon icon-md"><use href="assets/icons.svg#icon-alert-triangle"></use></svg>
+            <span id="errorBannerText">Invalid email or password. Please try again.</span>
           </div>
 
-          <div class="form-group">
-            <label class="form-label" for="email">
-              University Email <span class="required">*</span>
-            </label>
-            <div class="input-wrapper">
-              <span class="input-icon">📧</span>
-              <input
-                type="email"
-                id="email"
-                class="form-input"
-                placeholder="you@university.ac.ke"
-                autocomplete="email"
-              />
+          <form id="loginForm" novalidate>
+            <div class="form-group">
+              <label class="form-label" for="email">
+                University Email <span class="required">*</span>
+              </label>
+              <div class="input-wrapper">
+                <span class="input-icon">
+                  <svg class="icon icon-md"><use href="assets/icons.svg#icon-mail"></use></svg>
+                </span>
+                <input
+                  type="email"
+                  id="email"
+                  class="form-input"
+                  placeholder="you@university.ac.ke"
+                  autocomplete="email"
+                  required
+                />
+              </div>
             </div>
-          </div>
 
-          <div class="form-group">
-            <label class="form-label" for="password">
-              Password <span class="required">*</span>
-            </label>
-            <div class="input-wrapper">
-              <span class="input-icon">🔒</span>
-              <input
-                type="password"
-                id="password"
-                class="form-input"
-                placeholder="Enter your password"
-                autocomplete="current-password"
-              />
-              <button class="password-toggle" id="togglePassword" type="button">
-                👁️
-              </button>
+            <div class="form-group">
+              <label class="form-label" for="password">
+                Password <span class="required">*</span>
+              </label>
+              <div class="input-wrapper">
+                <span class="input-icon">
+                  <svg class="icon icon-md"><use href="assets/icons.svg#icon-lock"></use></svg>
+                </span>
+                <input
+                  type="password"
+                  id="password"
+                  class="form-input"
+                  placeholder="Enter your password"
+                  autocomplete="current-password"
+                  required
+                />
+                <button class="password-toggle" id="togglePassword" type="button" aria-label="Toggle password visibility">
+                  <svg class="icon icon-md"><use href="assets/icons.svg#icon-eye"></use></svg>
+                </button>
+              </div>
             </div>
-          </div>
 
-          <div class="flex-between mb-6">
-            <label class="form-check">
-              <input type="checkbox" id="remember" />
-              <span class="form-check-label">Keep me signed in</span>
-            </label>
-            <a
-              href="#"
-              style="
-                font-size: var(--text-sm);
-                color: var(--gold);
-                font-weight: 600;
-              "
-              >Forgot password?</a
-            >
-          </div>
+            <div class="flex-between mb-6">
+              <label class="form-check">
+                <input type="checkbox" id="remember" />
+                <span class="form-check-label">Keep me signed in</span>
+              </label>
+              <a href="#" class="auth-footer-link">Forgot password?</a>
+            </div>
 
-          <button
-            class="btn btn-primary btn-block btn-lg"
-            id="loginBtn"
-            type="button"
-          >
-            Sign In
-          </button>
+            <button class="btn btn-primary btn-block btn-lg" id="loginBtn" type="submit">
+              Sign In
+            </button>
+          </form>
 
           <div class="auth-divider">or continue with</div>
 
           <button class="btn btn-secondary btn-block" type="button">
-            🎓 Sign in with University SSO
+            <svg class="icon icon-md"><use href="assets/icons.svg#icon-globe"></use></svg>
+            Sign in with University SSO
           </button>
 
           <p class="auth-footer">
@@ -195,22 +131,8 @@
       </div>
     </div>
 
-    <script>
-      // Password show/hide toggle
-      document
-        .getElementById("togglePassword")
-        .addEventListener("click", function () {
-          const pwd = document.getElementById("password");
-          const show = pwd.type === "password";
-          pwd.type = show ? "text" : "password";
-          this.textContent = show ? "🙈" : "👁️";
-        });
-      // Member 3 (auth.js) will handle the actual login logic
-      document
-        .getElementById("loginBtn")
-        .addEventListener("click", function () {
-          console.log("Login — auth.js will handle this");
-        });
-    </script>
+    <script src="js/config.js"></script>
+    <script src="js/api.js"></script>
+    <script src="js/auth.js"></script>
   </body>
 </html>

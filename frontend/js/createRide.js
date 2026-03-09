@@ -1,284 +1,185 @@
-// Create Ride Logic - Handles ride creation and editing
+// Create Ride Logic - Handles ride creation with step wizard
 
 class CreateRideManager {
     constructor() {
-        this.isEditMode = false;
-        this.rideId = null;
-        this.rideData = null;
-        this.originCoords = null;
-        this.destinationCoords = null;
+        this.currentStep = 1;
     }
 
-    async init() {
-        // Require authentication
-        if (!authManager.requireAuth()) {
-            return;
+    init() {
+        if (!authManager.requireAuth()) return;
+        initNavToggle();
+        initNavAvatar();
+        initLogoutLinks();
+
+        this.initWizard();
+        this.initEarningsCalculator();
+
+        const submitBtn = document.getElementById('submitRide');
+        if (submitBtn) {
+            submitBtn.addEventListener('click', () => this.handleSubmit());
         }
-
-        // Check if editing existing ride
-        const urlParams = new URLSearchParams(window.location.search);
-        this.rideId = urlParams.get('id');
-        this.isEditMode = urlParams.get('edit') === 'true' && this.rideId;
-
-        if (this.isEditMode) {
-            await this.loadRideData();
-        }
-
-        this.setupForm();
-        this.setupMapPickers();
-    }
-
-    async loadRideData() {
-        try {
-            const response = await RideAPI.getRide(this.rideId);
-            
-            if (response.success && response.data) {
-                this.rideData = response.data;
-                this.populateForm();
-            } else {
-                showNotification('Failed to load ride data', 'error');
-                window.location.href = '/dashboard.html';
-            }
-        } catch (error) {
-            console.error('Failed to load ride:', error);
-            showNotification('Failed to load ride data', 'error');
-            window.location.href = '/dashboard.html';
-        }
-    }
-
-    populateForm() {
-        if (!this.rideData) return;
-
-        const form = document.getElementById('createRideForm');
-        if (!form) return;
-
-        // Update page title
-        const pageTitle = document.getElementById('pageTitle');
-        if (pageTitle) pageTitle.textContent = 'Edit Ride';
-
-        // Populate form fields
-        const fields = {
-            origin: this.rideData.origin,
-            destination: this.rideData.destination,
-            departureDate: this.rideData.departure_time.split('T')[0],
-            departureTime: this.rideData.departure_time.split('T')[1].substring(0, 5),
-            totalSeats: this.rideData.total_seats,
-            pricePerSeat: this.rideData.price_per_seat,
-            description: this.rideData.description || '',
-        };
-
-        Object.keys(fields).forEach(key => {
-            const input = form.elements[key];
-            if (input) input.value = fields[key];
-        });
-
-        // Store coordinates
-        this.originCoords = {
-            lat: this.rideData.origin_lat,
-            lng: this.rideData.origin_lng,
-        };
-        this.destinationCoords = {
-            lat: this.rideData.destination_lat,
-            lng: this.rideData.destination_lng,
-        };
-    }
-
-    setupForm() {
-        const form = document.getElementById('createRideForm');
-        if (!form) return;
-
-        form.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            await this.handleSubmit();
-        });
 
         // Set minimum date to today
-        const dateInput = form.elements['departureDate'];
+        const dateInput = document.getElementById('departureDate');
         if (dateInput) {
-            const today = new Date().toISOString().split('T')[0];
-            dateInput.setAttribute('min', today);
-        }
-
-        // Real-time validation
-        const seatsInput = form.elements['totalSeats'];
-        if (seatsInput) {
-            seatsInput.addEventListener('input', (e) => {
-                const value = parseInt(e.target.value);
-                if (value < 1) e.target.value = 1;
-                if (value > APP_CONSTANTS.MAX_PASSENGERS) e.target.value = APP_CONSTANTS.MAX_PASSENGERS;
-            });
-        }
-
-        const priceInput = form.elements['pricePerSeat'];
-        if (priceInput) {
-            priceInput.addEventListener('input', (e) => {
-                const value = parseFloat(e.target.value);
-                if (value < APP_CONSTANTS.MIN_PRICE) e.target.value = APP_CONSTANTS.MIN_PRICE;
-                if (value > APP_CONSTANTS.MAX_PRICE) e.target.value = APP_CONSTANTS.MAX_PRICE;
-            });
+            dateInput.setAttribute('min', new Date().toISOString().split('T')[0]);
         }
     }
 
-    setupMapPickers() {
-        // Setup origin map picker
-        const originBtn = document.getElementById('selectOriginBtn');
-        if (originBtn) {
-            originBtn.addEventListener('click', () => {
-                this.openMapPicker('origin');
-            });
-        }
+    /* ---- Step Wizard ---- */
 
-        // Setup destination map picker
-        const destinationBtn = document.getElementById('selectDestinationBtn');
-        if (destinationBtn) {
-            destinationBtn.addEventListener('click', () => {
-                this.openMapPicker('destination');
-            });
-        }
+    initWizard() {
+        document.getElementById('toStep2')?.addEventListener('click', () => {
+            const pickup = document.getElementById('pickupLocation')?.value.trim();
+            const dropoff = document.getElementById('dropoffLocation')?.value.trim();
+            if (!pickup || !dropoff) {
+                showNotification('Please enter pickup and drop-off locations.', 'error');
+                return;
+            }
+            this.goToStep(2);
+        });
+        document.getElementById('toStep3')?.addEventListener('click', () => {
+            const date = document.getElementById('departureDate')?.value;
+            const time = document.getElementById('departureTime')?.value;
+            const seats = document.getElementById('availableSeats')?.value;
+            if (!date || !time) {
+                showNotification('Please select departure date and time.', 'error');
+                return;
+            }
+            if (!seats) {
+                showNotification('Please select available seats.', 'error');
+                return;
+            }
+            this.goToStep(3);
+            this.populateSummary();
+        });
+        document.getElementById('backToStep1')?.addEventListener('click', () => this.goToStep(1));
+        document.getElementById('backToStep2')?.addEventListener('click', () => this.goToStep(2));
     }
 
-    openMapPicker(type) {
-        // This would open a map modal to select location
-        // For now, we'll use geocoding from the address input
-        const form = document.getElementById('createRideForm');
-        const address = form.elements[type]?.value;
-
-        if (!address) {
-            showNotification(`Please enter ${type} address first`, 'error');
-            return;
+    goToStep(step) {
+        // Hide all steps
+        for (let i = 1; i <= 3; i++) {
+            const panel = document.getElementById('step' + i);
+            if (panel) panel.classList.toggle('hidden', i !== step);
         }
-
-        // Use geocoding service (would be implemented with map.js)
-        if (window.mapManager) {
-            window.mapManager.geocodeAddress(address, (coords) => {
-                if (type === 'origin') {
-                    this.originCoords = coords;
-                } else {
-                    this.destinationCoords = coords;
-                }
-                showNotification(`${type} location set`, 'success');
-            });
+        // Update wizard circles & labels
+        for (let i = 1; i <= 3; i++) {
+            const circle = document.getElementById('step' + i + 'circle');
+            const label = document.getElementById('step' + i + 'label');
+            if (circle) circle.classList.toggle('active', i <= step);
+            if (label) label.classList.toggle('active', i <= step);
         }
+        this.currentStep = step;
     }
+
+    /* ---- Earnings Calculator ---- */
+
+    initEarningsCalculator() {
+        const priceInput = document.getElementById('pricePerSeat');
+        const seatsSelect = document.getElementById('availableSeats');
+        const update = () => {
+            const price = Number(priceInput?.value) || 0;
+            const seats = Number(seatsSelect?.value) || 0;
+            const display = document.getElementById('earningsDisplay');
+            if (display) display.textContent = 'KSh ' + (price * seats).toLocaleString();
+        };
+        priceInput?.addEventListener('input', update);
+        seatsSelect?.addEventListener('change', update);
+    }
+
+    /* ---- Summary ---- */
+
+    populateSummary() {
+        const from = document.getElementById('pickupLocation')?.value || 'Not set';
+        const to = document.getElementById('dropoffLocation')?.value || 'Not set';
+        const date = document.getElementById('departureDate')?.value || 'Not set';
+        const time = document.getElementById('departureTime')?.value || 'Not set';
+        const seats = document.getElementById('availableSeats')?.value || '\u2014';
+        const price = document.getElementById('pricePerSeat')?.value;
+
+        const el = (id, text) => { const e = document.getElementById(id); if (e) e.textContent = text; };
+        el('summaryRoute', from + ' \u2192 ' + to);
+        el('summaryDateTime', date + ' \u00b7 ' + time);
+        el('summarySeats', seats + ' seats');
+        if (price) el('summaryPrice', 'KSh ' + Number(price).toLocaleString());
+    }
+
+    /* ---- Submit ---- */
 
     async handleSubmit() {
-        const form = document.getElementById('createRideForm');
-        const submitBtn = document.getElementById('submitBtn');
-        const errorMessage = document.getElementById('errorMessage');
+        const submitBtn = document.getElementById('submitRide');
 
-        // Clear previous errors
-        if (errorMessage) errorMessage.textContent = '';
+        const origin = document.getElementById('pickupLocation')?.value.trim();
+        const destination = document.getElementById('dropoffLocation')?.value.trim();
+        const departureDate = document.getElementById('departureDate')?.value;
+        const departureTime = document.getElementById('departureTime')?.value;
+        const availableSeats = document.getElementById('availableSeats')?.value;
+        const pricePerSeat = document.getElementById('pricePerSeat')?.value;
+        const notes = document.getElementById('rideNotes')?.value.trim() || '';
 
-        // Get form data
-        const formData = new FormData(form);
-        const rideData = {
-            origin: formData.get('origin').trim(),
-            destination: formData.get('destination').trim(),
-            departure_time: `${formData.get('departureDate')}T${formData.get('departureTime')}:00`,
-            total_seats: parseInt(formData.get('totalSeats')),
-            price_per_seat: parseFloat(formData.get('pricePerSeat')),
-            description: formData.get('description')?.trim() || '',
-            vehicle_info: formData.get('vehicleInfo')?.trim() || '',
-        };
-
-        // Add coordinates if available
-        if (this.originCoords) {
-            rideData.origin_lat = this.originCoords.lat;
-            rideData.origin_lng = this.originCoords.lng;
+        if (!origin || !destination) {
+            showNotification('Please enter pickup and drop-off locations.', 'error');
+            return;
         }
-        if (this.destinationCoords) {
-            rideData.destination_lat = this.destinationCoords.lat;
-            rideData.destination_lng = this.destinationCoords.lng;
+        if (!departureDate || !departureTime) {
+            showNotification('Please select departure date and time.', 'error');
+            return;
         }
-
-        // Validate
-        const validation = this.validateRideData(rideData);
-        if (!validation.valid) {
-            if (errorMessage) errorMessage.textContent = validation.message;
+        if (!availableSeats) {
+            showNotification('Please select available seats.', 'error');
+            return;
+        }
+        if (!pricePerSeat) {
+            showNotification('Please enter a price per seat.', 'error');
             return;
         }
 
-        // Disable submit button
+        const departureISO = `${departureDate}T${departureTime}:00`;
+        if (new Date(departureISO) <= new Date()) {
+            showNotification('Departure time must be in the future.', 'error');
+            return;
+        }
+
+        const rideData = {
+            origin,
+            destination,
+            departure_time: departureISO,
+            available_seats: parseInt(availableSeats),
+            price_per_seat: parseFloat(pricePerSeat),
+            notes: notes || undefined,
+        };
+
         if (submitBtn) {
             submitBtn.disabled = true;
-            submitBtn.textContent = this.isEditMode ? 'Updating...' : 'Creating...';
+            submitBtn.textContent = 'Posting\u2026';
         }
 
         try {
-            let response;
-            if (this.isEditMode) {
-                response = await RideAPI.updateRide(this.rideId, rideData);
-            } else {
-                response = await RideAPI.createRide(rideData);
-            }
+            const response = await RideAPI.createRide(rideData);
 
             if (response.success) {
-                const message = this.isEditMode ? SUCCESS_MESSAGES.RIDE_UPDATED : SUCCESS_MESSAGES.RIDE_CREATED;
-                showNotification(message, 'success');
-                
-                // Redirect to ride details or dashboard
+                showNotification(SUCCESS_MESSAGES.RIDE_CREATED, 'success');
                 setTimeout(() => {
                     if (response.data && response.data.id) {
-                        window.location.href = `/ride-details.html?id=${response.data.id}`;
+                        window.location.href = `ride-details.html?id=${response.data.id}`;
                     } else {
-                        window.location.href = '/dashboard.html';
+                        window.location.href = 'dashboard.html';
                     }
                 }, 1000);
             } else {
-                if (errorMessage) errorMessage.textContent = response.message || 'Failed to save ride';
-                if (submitBtn) {
-                    submitBtn.disabled = false;
-                    submitBtn.textContent = this.isEditMode ? 'Update Ride' : 'Create Ride';
-                }
+                showNotification(response.message || 'Failed to create ride.', 'error');
+                if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = 'Post My Ride'; }
             }
         } catch (error) {
-            console.error('Failed to save ride:', error);
-            if (errorMessage) errorMessage.textContent = error.message || ERROR_MESSAGES.SERVER;
-            if (submitBtn) {
-                submitBtn.disabled = false;
-                submitBtn.textContent = this.isEditMode ? 'Update Ride' : 'Create Ride';
-            }
+            showNotification(error.message || ERROR_MESSAGES.SERVER, 'error');
+            if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = 'Post My Ride'; }
         }
-    }
-
-    validateRideData(data) {
-        // Check required fields
-        if (!data.origin || !data.destination) {
-            return { valid: false, message: 'Please enter origin and destination' };
-        }
-
-        if (data.origin === data.destination) {
-            return { valid: false, message: 'Origin and destination cannot be the same' };
-        }
-
-        if (!data.departure_time) {
-            return { valid: false, message: 'Please select departure date and time' };
-        }
-
-        // Check if departure time is in the future
-        const departureDate = new Date(data.departure_time);
-        const now = new Date();
-        if (departureDate <= now) {
-            return { valid: false, message: 'Departure time must be in the future' };
-        }
-
-        // Validate seats
-        if (data.total_seats < 1 || data.total_seats > APP_CONSTANTS.MAX_PASSENGERS) {
-            return { valid: false, message: `Seats must be between 1 and ${APP_CONSTANTS.MAX_PASSENGERS}` };
-        }
-
-        // Validate price
-        if (data.price_per_seat < APP_CONSTANTS.MIN_PRICE || data.price_per_seat > APP_CONSTANTS.MAX_PRICE) {
-            return { valid: false, message: `Price must be between $${APP_CONSTANTS.MIN_PRICE} and $${APP_CONSTANTS.MAX_PRICE}` };
-        }
-
-        return { valid: true };
     }
 }
 
 // Initialize when page loads
 let createRideManager;
-
 if (window.location.pathname.includes('create-ride.html')) {
     document.addEventListener('DOMContentLoaded', () => {
         createRideManager = new CreateRideManager();

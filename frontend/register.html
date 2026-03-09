@@ -10,296 +10,185 @@
   </head>
   <body>
     <div class="auth-page">
-      <!-- LEFT: Brand Panel -->
       <div class="auth-brand">
         <div class="auth-brand-cards">
           <div class="auth-card-preview animate-fade-up delay-1">
-            <div
-              style="
-                font-size: 12px;
-                color: rgba(255, 255, 255, 0.5);
-                margin-bottom: 6px;
-              "
-            >
-              ✅ Verified Student
+            <div class="hero-card-label">
+              <svg class="icon icon-sm"><use href="assets/icons.svg#icon-check-circle"></use></svg> Verified Student
             </div>
-            <div style="display: flex; align-items: center; gap: 10px">
-              <div
-                style="
-                  width: 36px;
-                  height: 36px;
-                  background: linear-gradient(135deg, #c9973a, #e5b95a);
-                  border-radius: 50%;
-                  display: flex;
-                  align-items: center;
-                  justify-content: center;
-                  color: #0b1a3b;
-                  font-weight: 700;
-                  font-size: 14px;
-                "
-              >
-                AW
-              </div>
+            <div class="hero-card-row">
+              <div class="avatar avatar-sm">AW</div>
               <div>
-                <div style="font-weight: 600; font-size: 14px">Amina W.</div>
-                <div style="font-size: 12px; color: rgba(255, 255, 255, 0.5)">
-                  University of Nairobi
-                </div>
+                <div class="route-label">Amina W.</div>
+                <div class="hero-card-meta">University of Nairobi</div>
               </div>
             </div>
           </div>
           <div class="auth-card-preview animate-fade-up delay-2">
-            <div
-              style="
-                font-size: 12px;
-                color: rgba(255, 255, 255, 0.5);
-                margin-bottom: 8px;
-              "
-            >
-              🛡️ Safety Features
+            <div class="hero-card-label">
+              <svg class="icon icon-sm"><use href="assets/icons.svg#icon-shield"></use></svg> Safety Features
             </div>
-            <div style="display: flex; flex-direction: column; gap: 6px">
-              <div style="font-size: 13px">
-                <span style="color: #1a7a4a">✓</span> University email
-                verification
+            <div class="auth-safety-list">
+              <div class="auth-safety-item">
+                <svg class="icon icon-sm" style="color:var(--success)"><use href="assets/icons.svg#icon-check"></use></svg>
+                University email verification
               </div>
-              <div style="font-size: 13px">
-                <span style="color: #1a7a4a">✓</span> Driver's license check
+              <div class="auth-safety-item">
+                <svg class="icon icon-sm" style="color:var(--success)"><use href="assets/icons.svg#icon-check"></use></svg>
+                Driver license check
               </div>
-              <div style="font-size: 13px">
-                <span style="color: #1a7a4a">✓</span> Mutual rating system
+              <div class="auth-safety-item">
+                <svg class="icon icon-sm" style="color:var(--success)"><use href="assets/icons.svg#icon-check"></use></svg>
+                Mutual rating system
               </div>
             </div>
           </div>
         </div>
         <div class="auth-brand-content animate-fade-up">
-          <hr
-            class="divider-gold"
-            style="margin-bottom: var(--space-5); width: 40px"
-          />
+          <hr class="divider-gold" />
           <h2>Your campus travel community starts here.</h2>
           <p>Safe, verified, and affordable. Register in under two minutes.</p>
         </div>
       </div>
 
-      <!-- RIGHT: Register Form -->
-      <div class="auth-panel" style="overflow-y: auto">
+      <div class="auth-panel auth-panel-scroll">
         <div class="auth-form-container animate-fade-up">
           <div class="auth-logo">
-            <div class="auth-logo-icon">🚗</div>
-            <span
-              style="
-                font-family: var(--font-display);
-                font-size: var(--text-xl);
-                font-weight: 700;
-                color: var(--navy);
-              "
-              >Campus Rideshare</span
-            >
+            <div class="auth-logo-icon">
+              <svg class="icon icon-lg"><use href="assets/icons.svg#icon-car"></use></svg>
+            </div>
+            <span class="auth-logo-text">Campus Rideshare</span>
           </div>
 
           <h1>Create Account</h1>
           <p class="auth-subtitle">
-            Already registered? <a href="login.html">Sign in instead →</a>
+            Already registered? <a href="login.html">Sign in instead &rarr;</a>
           </p>
 
-          <!-- Role Toggle -->
-          <div class="form-group">
-            <label class="form-label">I want to…</label>
-            <div class="role-toggle">
-              <div class="role-option active" id="rolePassenger">
-                🧳 Find Rides
-              </div>
-              <div class="role-option" id="roleDriver">🚗 Offer Rides</div>
-            </div>
-          </div>
-
-          <!-- Name -->
-          <div class="form-row">
-            <div class="form-group" style="margin-bottom: 0">
-              <label class="form-label" for="firstName"
-                >First Name <span class="required">*</span></label
-              >
-              <input
-                type="text"
-                id="firstName"
-                class="form-input"
-                placeholder="Jane"
-              />
-            </div>
-            <div class="form-group" style="margin-bottom: 0">
-              <label class="form-label" for="lastName"
-                >Last Name <span class="required">*</span></label
-              >
-              <input
-                type="text"
-                id="lastName"
-                class="form-input"
-                placeholder="Doe"
-              />
-            </div>
-          </div>
-          <div style="margin-bottom: var(--space-5)"></div>
-
-          <!-- Email -->
-          <div class="form-group">
-            <label class="form-label" for="email"
-              >University Email <span class="required">*</span></label
-            >
-            <div class="input-wrapper">
-              <span class="input-icon">📧</span>
-              <input
-                type="email"
-                id="email"
-                class="form-input"
-                placeholder="you@university.ac.ke"
-              />
-            </div>
-            <span class="form-hint"
-              >Must be a valid institutional email (.ac.ke, .edu etc.)</span
-            >
-          </div>
-
-          <!-- Phone -->
-          <div class="form-group">
-            <label class="form-label" for="phone"
-              >Phone Number <span class="required">*</span></label
-            >
-            <div class="input-wrapper">
-              <span class="input-icon">📱</span>
-              <input
-                type="tel"
-                id="phone"
-                class="form-input"
-                placeholder="+254 7XX XXX XXX"
-              />
-            </div>
-          </div>
-
-          <!-- Password -->
-          <div class="form-group">
-            <label class="form-label" for="password"
-              >Password <span class="required">*</span></label
-            >
-            <div class="input-wrapper">
-              <span class="input-icon">🔒</span>
-              <input
-                type="password"
-                id="password"
-                class="form-input"
-                placeholder="Min. 8 characters"
-              />
-              <button class="password-toggle" id="togglePwd" type="button">
-                👁️
-              </button>
-            </div>
-            <div class="progress" style="margin-top: 8px">
-              <div
-                class="progress-bar"
-                id="strengthBar"
-                style="width: 0%"
-              ></div>
-            </div>
-            <span class="form-hint" id="strengthText">Password strength</span>
-          </div>
-
-          <!-- Driver fields — hidden until driver role selected -->
-          <div id="driverFields" style="display: none">
-            <div
-              style="
-                border-top: 1px solid var(--gray-100);
-                padding-top: var(--space-5);
-                margin-bottom: var(--space-5);
-              "
-            >
-              <p class="form-section-title">Driver Verification</p>
-            </div>
+          <form id="registerForm" novalidate>
             <div class="form-group">
-              <label class="form-label" for="licenseNo"
-                >Driver's License Number <span class="required">*</span></label
-              >
-              <div class="input-wrapper">
-                <span class="input-icon">🪪</span>
-                <input
-                  type="text"
-                  id="licenseNo"
-                  class="form-input"
-                  placeholder="DL-XXXX-XXXX"
-                />
-              </div>
-            </div>
-            <div class="form-row">
-              <div class="form-group" style="margin-bottom: 0">
-                <label class="form-label">Vehicle Make</label>
-                <input type="text" class="form-input" placeholder="Toyota" />
-              </div>
-              <div class="form-group" style="margin-bottom: 0">
-                <label class="form-label">Model & Year</label>
-                <input type="text" class="form-input" placeholder="Vitz 2019" />
-              </div>
-            </div>
-            <div style="margin-bottom: var(--space-5)"></div>
-            <div class="form-group">
-              <label class="form-label">Upload License Photo</label>
-              <div class="upload-zone">
-                <div style="font-size: 2rem; margin-bottom: var(--space-3)">
-                  📄
+              <label class="form-label">I want to&hellip;</label>
+              <div class="role-toggle">
+                <div class="role-option active" id="rolePassenger">
+                  <svg class="icon icon-md"><use href="assets/icons.svg#icon-search"></use></svg> Find Rides
                 </div>
-                <p
-                  style="
-                    font-weight: 600;
-                    color: var(--navy);
-                    font-size: var(--text-sm);
-                  "
-                >
-                  Click to upload or drag & drop
-                </p>
-                <p style="font-size: var(--text-xs); color: var(--gray-400)">
-                  PNG, JPG or PDF — max 5MB
-                </p>
+                <div class="role-option" id="roleDriver">
+                  <svg class="icon icon-md"><use href="assets/icons.svg#icon-car"></use></svg> Offer Rides
+                </div>
               </div>
             </div>
-          </div>
 
-          <!-- Emergency Contact -->
-          <div class="form-group">
-            <label class="form-label" for="emergency">Emergency Contact</label>
-            <div class="input-wrapper">
-              <span class="input-icon">🆘</span>
-              <input
-                type="tel"
-                id="emergency"
-                class="form-input"
-                placeholder="+254 7XX XXX XXX"
-              />
+            <div class="form-row mb-6">
+              <div class="form-group">
+                <label class="form-label" for="firstName">First Name <span class="required">*</span></label>
+                <input type="text" id="firstName" class="form-input" placeholder="Jane" required />
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="lastName">Last Name <span class="required">*</span></label>
+                <input type="text" id="lastName" class="form-input" placeholder="Doe" required />
+              </div>
             </div>
-            <span class="form-hint">Shared only in emergency situations</span>
-          </div>
 
-          <!-- Terms -->
-          <div class="form-group">
-            <label class="form-check">
-              <input type="checkbox" id="terms" />
-              <span class="form-check-label">
-                I agree to the
-                <a href="#" style="color: var(--gold); font-weight: 600"
-                  >Terms of Service</a
-                >
-                and
-                <a href="#" style="color: var(--gold); font-weight: 600"
-                  >Safety Guidelines</a
-                >
-              </span>
-            </label>
-          </div>
+            <div class="form-group">
+              <label class="form-label" for="email">University Email <span class="required">*</span></label>
+              <div class="input-wrapper">
+                <span class="input-icon">
+                  <svg class="icon icon-md"><use href="assets/icons.svg#icon-mail"></use></svg>
+                </span>
+                <input type="email" id="email" class="form-input" placeholder="you@university.ac.ke" required />
+              </div>
+              <span class="form-hint">Must be a valid institutional email (.ac.ke, .edu etc.)</span>
+            </div>
 
-          <button
-            class="btn btn-primary btn-block btn-lg"
-            id="registerBtn"
-            type="button"
-          >
-            Create Account
-          </button>
+            <div class="form-group">
+              <label class="form-label" for="phone">Phone Number <span class="required">*</span></label>
+              <div class="input-wrapper">
+                <span class="input-icon">
+                  <svg class="icon icon-md"><use href="assets/icons.svg#icon-phone"></use></svg>
+                </span>
+                <input type="tel" id="phone" class="form-input" placeholder="+254 7XX XXX XXX" />
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" for="password">Password <span class="required">*</span></label>
+              <div class="input-wrapper">
+                <span class="input-icon">
+                  <svg class="icon icon-md"><use href="assets/icons.svg#icon-lock"></use></svg>
+                </span>
+                <input type="password" id="password" class="form-input" placeholder="Min. 8 characters" required />
+                <button class="password-toggle" id="togglePwd" type="button" aria-label="Toggle password visibility">
+                  <svg class="icon icon-md"><use href="assets/icons.svg#icon-eye"></use></svg>
+                </button>
+              </div>
+              <div class="progress mt-4">
+                <div class="progress-bar" id="strengthBar"></div>
+              </div>
+              <span class="form-hint" id="strengthText">Password strength</span>
+            </div>
+
+            <div id="driverFields" class="hidden">
+              <div class="divider"></div>
+              <p class="form-section-title">Driver Verification</p>
+
+              <div class="form-group">
+                <label class="form-label" for="licenseNo">Driver License Number <span class="required">*</span></label>
+                <div class="input-wrapper">
+                  <span class="input-icon">
+                    <svg class="icon icon-md"><use href="assets/icons.svg#icon-clipboard"></use></svg>
+                  </span>
+                  <input type="text" id="licenseNo" class="form-input" placeholder="DL-XXXX-XXXX" />
+                </div>
+              </div>
+
+              <div class="form-row mb-6">
+                <div class="form-group">
+                  <label class="form-label">Vehicle Make</label>
+                  <input type="text" class="form-input" placeholder="Toyota" />
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Model &amp; Year</label>
+                  <input type="text" class="form-input" placeholder="Vitz 2019" />
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label">Upload License Photo</label>
+                <div class="upload-zone">
+                  <svg class="icon icon-2xl"><use href="assets/icons.svg#icon-file-text"></use></svg>
+                  <p class="upload-zone-title">Click to upload or drag &amp; drop</p>
+                  <p class="form-hint">PNG, JPG or PDF &mdash; max 5 MB</p>
+                </div>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" for="emergency">Emergency Contact</label>
+              <div class="input-wrapper">
+                <span class="input-icon">
+                  <svg class="icon icon-md"><use href="assets/icons.svg#icon-phone"></use></svg>
+                </span>
+                <input type="tel" id="emergency" class="form-input" placeholder="+254 7XX XXX XXX" />
+              </div>
+              <span class="form-hint">Shared only in emergency situations</span>
+            </div>
+
+            <div class="form-group">
+              <label class="form-check">
+                <input type="checkbox" id="terms" />
+                <span class="form-check-label">
+                  I agree to the
+                  <a href="#" class="auth-footer-link">Terms of Service</a>
+                  and
+                  <a href="#" class="auth-footer-link">Safety Guidelines</a>
+                </span>
+              </label>
+            </div>
+
+            <button class="btn btn-primary btn-block btn-lg" id="registerBtn" type="submit">
+              Create Account
+            </button>
+          </form>
 
           <p class="auth-footer">
             Already have an account? <a href="login.html">Sign in</a>
@@ -308,60 +197,9 @@
       </div>
     </div>
 
-    <script>
-      // Role toggle — switches between passenger and driver
-      document
-        .getElementById("rolePassenger")
-        .addEventListener("click", function () {
-          this.classList.add("active");
-          document.getElementById("roleDriver").classList.remove("active");
-          document.getElementById("driverFields").style.display = "none";
-        });
-
-      document
-        .getElementById("roleDriver")
-        .addEventListener("click", function () {
-          this.classList.add("active");
-          document.getElementById("rolePassenger").classList.remove("active");
-          document.getElementById("driverFields").style.display = "block";
-        });
-
-      // Password strength bar
-      document
-        .getElementById("password")
-        .addEventListener("input", function () {
-          const val = this.value;
-          let strength = 0;
-          if (val.length >= 8) strength++;
-          if (/[A-Z]/.test(val)) strength++;
-          if (/[0-9]/.test(val)) strength++;
-          if (/[^A-Za-z0-9]/.test(val)) strength++;
-          const widths = ["0%", "25%", "50%", "75%", "100%"];
-          const colors = ["", "#C0392B", "#E67E22", "#F1C40F", "#1A7A4A"];
-          const labels = ["", "Weak", "Fair", "Good", "Strong"];
-          document.getElementById("strengthBar").style.width = widths[strength];
-          document.getElementById("strengthBar").style.background =
-            colors[strength];
-          document.getElementById("strengthText").textContent =
-            labels[strength] || "Password strength";
-        });
-
-      // Password toggle
-      document
-        .getElementById("togglePwd")
-        .addEventListener("click", function () {
-          const pwd = document.getElementById("password");
-          const show = pwd.type === "password";
-          pwd.type = show ? "text" : "password";
-          this.textContent = show ? "🙈" : "👁️";
-        });
-
-      // Member 3 (auth.js) handles actual registration submission
-      document
-        .getElementById("registerBtn")
-        .addEventListener("click", function () {
-          console.log("Register — auth.js will handle this");
-        });
-    </script>
+    <script src="js/config.js"></script>
+    <script src="js/api.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/register.js"></script>
   </body>
 </html>

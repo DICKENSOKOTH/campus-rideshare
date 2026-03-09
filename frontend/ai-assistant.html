@@ -8,13 +8,15 @@
   <link rel="stylesheet" href="css/components.css" />
   <link rel="stylesheet" href="css/pages.css" />
 </head>
-<body style="overflow:hidden;">
+<body class="overflow-hidden">
 
   <!-- NAVBAR -->
   <nav class="navbar solid" id="navbar">
     <div class="container nav-inner">
       <a href="index.html" class="nav-logo">
-        <div class="nav-logo-icon">🚗</div>
+        <div class="nav-logo-icon">
+          <svg class="icon icon-md"><use href="assets/icons.svg#icon-car"></use></svg>
+        </div>
         CampusRide
       </a>
       <div class="nav-links" id="navLinks">
@@ -24,7 +26,7 @@
         <a href="ai-assistant.html" class="nav-link active">AI Assistant</a>
       </div>
       <div class="nav-actions">
-        <a href="profile.html" class="nav-avatar">MJ</a>
+        <a href="profile.html" class="nav-avatar" id="navAvatar"></a>
         <button class="nav-toggle" id="navToggle">
           <span></span><span></span><span></span>
         </button>
@@ -32,8 +34,8 @@
     </div>
   </nav>
 
-  <!-- AI PAGE — starts exactly below navbar -->
-  <div class="ai-page" style="margin-top:var(--nav-h);">
+  <!-- AI PAGE -->
+  <div class="ai-page ai-page-offset">
 
     <!-- LEFT SIDEBAR -->
     <aside class="ai-sidebar">
@@ -42,23 +44,14 @@
           <div class="ai-dot"></div>
           Campus Rideshare AI
         </div>
-        <button class="btn btn-primary btn-sm btn-block" style="margin-top:var(--space-3);" id="newChatBtn">
-          + New Chat
+        <button class="btn btn-primary btn-sm btn-block mt-3" id="newChatBtn">
+          <svg class="icon icon-sm"><use href="assets/icons.svg#icon-plus"></use></svg>
+          New Chat
         </button>
       </div>
 
-      <div class="chat-history">
-        <p style="font-size:var(--text-xs);color:var(--gray-400);padding:var(--space-3);font-weight:700;text-transform:uppercase;letter-spacing:0.08em;">Today</p>
-
-        <div class="chat-history-item active">🔍 Find ride to CBD Friday</div>
-        <div class="chat-history-item">💰 Cheapest routes this week</div>
-        <div class="chat-history-item">🚗 Post ride to Westlands</div>
-
-        <p style="font-size:var(--text-xs);color:var(--gray-400);padding:var(--space-3);font-weight:700;text-transform:uppercase;letter-spacing:0.08em;margin-top:var(--space-2);">Yesterday</p>
-
-        <div class="chat-history-item">📍 Rides near Parklands</div>
-        <div class="chat-history-item">⭐ Best rated drivers</div>
-        <div class="chat-history-item">🗓️ Weekend trip planning</div>
+      <div class="chat-history" id="chatHistory">
+        <!-- Populated by JS -->
       </div>
     </aside>
 
@@ -67,116 +60,49 @@
 
       <!-- Chat Header -->
       <div class="ai-chat-header">
-        <div class="ai-avatar">🤖</div>
-        <div style="flex:1;">
-          <div style="font-weight:700;color:var(--navy);font-size:var(--text-sm);">Campus Rideshare AI Assistant</div>
-          <div class="ai-status">● Online — Ready to help</div>
+        <div class="ai-avatar">
+          <svg class="icon icon-md gold-light"><use href="assets/icons.svg#icon-sparkle"></use></svg>
         </div>
-        <button class="btn btn-sm" style="color:var(--gray-500);border:1px solid var(--gray-200);" id="clearChatBtn">
-          🗑️ Clear
+        <div class="ai-chat-header-info">
+          <div class="ai-chat-header-title">Campus Rideshare AI Assistant</div>
+          <div class="ai-status">Online — Ready to help</div>
+        </div>
+        <button class="btn btn-sm btn-ghost" id="clearChatBtn">
+          <svg class="icon icon-sm"><use href="assets/icons.svg#icon-trash"></use></svg>
+          Clear
         </button>
       </div>
 
-      <!-- Messages — this section scrolls -->
+      <!-- Messages -->
       <div class="chat-messages" id="chatMessages">
-
-        <!-- AI Welcome -->
-        <div class="message ai">
-          <div class="ai-avatar" style="width:32px;height:32px;font-size:0.9rem;flex-shrink:0;">🤖</div>
-          <div>
-            <div class="message-bubble">
-              <strong>Hey Merrinette! 👋</strong> I'm your Campus Rideshare AI assistant.<br><br>
-              I can help you:
-              <ul style="margin:8px 0 0 16px;display:flex;flex-direction:column;gap:4px;">
-                <li>🔍 Find rides that match your schedule</li>
-                <li>💰 Compare prices across available rides</li>
-                <li>🗺️ Plan your route with stops</li>
-                <li>🚗 Help you post a ride as a driver</li>
-                <li>⭐ Recommend top-rated drivers</li>
-              </ul>
-              <br>Just tell me where you want to go! 😊
-            </div>
-            <div class="message-time">Just now</div>
-          </div>
-        </div>
-
-        <!-- User Message 1 -->
-        <div class="message user">
-          <div class="avatar avatar-sm" style="flex-shrink:0;">MJ</div>
-          <div>
-            <div class="message-bubble">
-              I need a cheap ride to CBD Nairobi this Friday afternoon
-            </div>
-            <div class="message-time">2 min ago</div>
-          </div>
-        </div>
-
-        <!-- AI Response 1 -->
-        <div class="message ai">
-          <div class="ai-avatar" style="width:32px;height:32px;font-size:0.9rem;flex-shrink:0;">🤖</div>
-          <div>
-            <div class="message-bubble">
-              Great! I found <strong>4 rides to CBD Nairobi this Friday</strong> 🎉<br><br>
-              Here are the best options for you:
-              <div class="chat-ride-card" onclick="window.location='ride-details.html'">
-                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
-                  <span style="font-weight:700;font-size:14px;">Campus → CBD Nairobi</span>
-                  <span style="font-family:'Playfair Display',serif;font-weight:700;color:var(--navy);">KSh 350</span>
-                </div>
-                <div style="font-size:12px;color:var(--gray-500);">Friday 2:30 PM · John K. ★4.9 · 3 seats left</div>
-              </div>
-              <div class="chat-ride-card" onclick="window.location='ride-details.html'">
-                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
-                  <span style="font-weight:700;font-size:14px;">Campus → CBD Nairobi</span>
-                  <span style="font-family:'Playfair Display',serif;font-weight:700;color:var(--navy);">KSh 300</span>
-                </div>
-                <div style="font-size:12px;color:var(--gray-500);">Friday 4:00 PM · Sarah K. ★5.0 · 1 seat left</div>
-              </div>
-              The <strong>KSh 300 ride</strong> is the cheapest but only has 1 seat left — book fast! 🏃
-            </div>
-            <div class="message-time">2 min ago</div>
-          </div>
-        </div>
-
-        <!-- User Message 2 -->
-        <div class="message user">
-          <div class="avatar avatar-sm" style="flex-shrink:0;">MJ</div>
-          <div>
-            <div class="message-bubble">
-              What about Saturday morning to Westlands?
-            </div>
-            <div class="message-time">1 min ago</div>
-          </div>
-        </div>
-
-        <!-- AI Response 2 -->
-        <div class="message ai">
-          <div class="ai-avatar" style="width:32px;height:32px;font-size:0.9rem;flex-shrink:0;">🤖</div>
-          <div>
-            <div class="message-bubble">
-              For <strong>Saturday morning to Westlands</strong> I found 2 options 🗺️<br><br>
-              <div class="chat-ride-card" onclick="window.location='ride-details.html'">
-                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
-                  <span style="font-weight:700;font-size:14px;">Campus → Westlands</span>
-                  <span style="font-family:'Playfair Display',serif;font-weight:700;color:var(--navy);">KSh 400</span>
-                </div>
-                <div style="font-size:12px;color:var(--gray-500);">Saturday 9:00 AM · Amina W. ★4.8 · 2 seats left</div>
-              </div>
-              Would you like me to book one of these for you? Just say <strong>"Book the 9AM ride"</strong> and I'll handle it! 😊
-            </div>
-            <div class="message-time">Just now</div>
-          </div>
-        </div>
-
-        <!-- Typing Indicator -->
-        <div class="typing-indicator" id="typingIndicator" style="display:none;">
+        <!-- Populated by JS -->
+        <div class="typing-indicator hidden" id="typingIndicator">
           <div class="typing-dot"></div>
           <div class="typing-dot"></div>
           <div class="typing-dot"></div>
         </div>
-
       </div>
 
-      <!-- Input Area — stays at bottom -->
+      <!-- Input Area -->
       <div class="chat-input-area">
-        <div class="quick-prompts
+        <div class="quick-prompts" id="quickActionsContainer">
+          <!-- Populated by JS -->
+        </div>
+        <form id="chatForm" class="chat-input-form">
+          <textarea id="messageInput" placeholder="Ask me anything about ridesharing..." rows="1"></textarea>
+          <button type="submit" id="sendBtn" class="btn btn-primary" disabled>
+            <svg class="icon icon-sm"><use href="assets/icons.svg#icon-send"></use></svg>
+          </button>
+        </form>
+      </div>
+
+    </div>
+  </div>
+
+  <script src="js/config.js"></script>
+  <script src="js/api.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/app.js"></script>
+  <script src="js/aiAssistant.js"></script>
+</body>
+</html>
