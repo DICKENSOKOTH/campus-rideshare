@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 50" width="200" height="50">
+
+  <rect x="0" y="5" width="44" height="40" rx="8" ry="8"
+    fill="url(#goldGrad)" />
+
+  <g transform="translate(6, 12)">
+    <rect x="2" y="10" width="28" height="12" rx="3" fill="#0B1A3B" />
+    <rect x="7" y="4" width="18" height="10" rx="3" fill="#0B1A3B" />
+    <rect x="9" y="5.5" width="7" height="7" rx="1.5" fill="rgba(255,255,255,0.25)" />
+    <rect x="18" y="5.5" width="5" height="7" rx="1.5" fill="rgba(255,255,255,0.25)" />
+    <circle cx="8"  cy="23" r="4" fill="#0B1A3B" />
+    <circle cx="8"  cy="23" r="2" fill="#C9973A" />
+    <circle cx="24" cy="23" r="4" fill="#0B1A3B" />
+    <circle cx="24" cy="23" r="2" fill="#C9973A" />
+    <rect x="28" y="13" width="3" height="3" rx="1" fill="rgba(255,255,255,0.6)" />
+  </g>
+
+  <text x="54" y="24"
+    font-family="'Playfair Display', Georgia, serif"
+    font-size="16" font-weight="700"
+    fill="#0B1A3B" letter-spacing="0.3">Campus</text>
+
+  <text x="54" y="40"
+    font-family="'DM Sans', Arial, sans-serif"
+    font-size="11" font-weight="600"
+    fill="#C9973A" letter-spacing="2">RIDE SHARE</text>
+
+  <defs>
+    <linearGradient id="goldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%"   stop-color="#C9973A" />
+      <stop offset="100%" stop-color="#E5B95A" />
+    </linearGradient>
+  </defs>
+
+</svg>
