@@ -1,7 +1,6 @@
 """
 RideU - Settings File
 All the configuration for our Django app lives here.
-Written by [Your Name] - Member 1
 """
 
 import os

@@ -109,7 +109,7 @@ CREATE TABLE IF NOT EXISTS ai_chat_history (
 
 -- ──────────────────────────────────────────────
 -- 8. Notifications
--- ──────────────────────────────────────────────
+-- ──────────────────────────────────────
 CREATE TABLE IF NOT EXISTS notifications (
     id         BIGSERIAL     PRIMARY KEY,
     user_id    BIGINT        NOT NULL REFERENCES users(id) ON DELETE CASCADE,
