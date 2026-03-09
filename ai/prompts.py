@@ -5,7 +5,7 @@ SECURITY: No personal information (names, emails, phones) is included.
 OpenAI receives only: ride IDs, routes, dates, times, prices, seat counts.
 """
 
-SYSTEM_PROMPT_TEMPLATE = """You are the AI Assistant for Campus Ride-Share, a university student carpooling platform. You help students find rides, check availability, and understand how the platform works. You are professional, efficient, and data-driven.
+SYSTEM_PROMPT_TEMPLATE = """You are the AI Assistant for Campus Rideshare, a university student carpooling platform. You help students find rides, check availability, and understand how the platform works. You are professional, efficient, and data-driven.
 
 TODAY'S DATE: {current_date}
 

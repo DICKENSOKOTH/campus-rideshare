@@ -10,14 +10,18 @@ import logging
 from typing import Optional, List, Dict, Any
 
 from backend.config import config
-from backend.database import db
+from backend.database.database import (
+    get_all_active_rides,
+    get_user_chat_count_last_minute,
+    log_chat_interaction,
+)
 from ai.prompts import SYSTEM_PROMPT_TEMPLATE
 from ai.context import get_current_date, build_rides_context
 
 
 class RideShareChatbot:
     """
-    Secure AI Assistant for the Campus Ride-Share platform.
+    Secure AI Assistant for the Campus Rideshare platform.
 
     Security Features:
     - NEVER sends driver names to OpenAI
@@ -85,7 +89,7 @@ class RideShareChatbot:
 
     def check_rate_limit(self, user_id: int) -> tuple:
         """Check if the user has exceeded the rate limit."""
-        request_count = db.get_user_chat_count_last_minute(user_id)
+        request_count = get_user_chat_count_last_minute(user_id)
         if request_count >= self.rate_limit:
             return False, "Rate limit reached. Please wait before sending another message."
         return True, ""
@@ -142,7 +146,7 @@ class RideShareChatbot:
             bot_response = response.choices[0].message.content.strip()
             tokens_used = response.usage.total_tokens if response.usage else None
 
-            db.log_chat_interaction(
+            log_chat_interaction(
                 user_id=user_id,
                 user_message=user_message,
                 bot_response=bot_response,
@@ -156,7 +160,7 @@ class RideShareChatbot:
             fallback_response = self._get_fallback_response()
 
             try:
-                db.log_chat_interaction(
+                log_chat_interaction(
                     user_id=user_id,
                     user_message=user_message,
                     bot_response=f"[ERROR] {fallback_response}",
@@ -178,7 +182,7 @@ class RideShareChatbot:
     def _get_fallback_response(self) -> str:
         """Get a professional fallback response when the API fails."""
         try:
-            active_rides = db.get_all_active_rides()
+            active_rides = get_all_active_rides()
             ride_count = len(active_rides)
 
             if ride_count > 0:
@@ -202,7 +206,7 @@ class RideShareChatbot:
         suggestions = []
 
         try:
-            active_rides = db.get_all_active_rides()
+            active_rides = get_all_active_rides()
 
             if active_rides:
                 destinations = {}
@@ -230,7 +234,7 @@ class RideShareChatbot:
     def get_initial_greeting(self) -> str:
         """Get the professional initial greeting for the chat interface."""
         try:
-            active_rides = db.get_all_active_rides()
+            active_rides = get_all_active_rides()
             ride_count = len(active_rides)
 
             if ride_count > 0:

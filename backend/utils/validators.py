@@ -1,5 +1,5 @@
 """
-RideU - Input Validators
+Campus Rideshare - Input Validators
 Reusable validation functions used across services and routes.
 """
 
@@ -145,3 +145,78 @@ def validate_required_fields(data: dict, required: list) -> None:
     missing = [f for f in required if not data.get(f)]
     if missing:
         raise ValueError(f"Missing required fields: {', '.join(missing)}")
+
+
+# ── Composite validators used by routes ────────────────────────
+
+def validate_registration(data: dict) -> list:
+    """
+    Validate registration payload.
+    Returns a list of error strings (empty == valid).
+    """
+    errors = []
+    if not data:
+        return ["No data provided"]
+
+    for field in ("full_name", "email", "password"):
+        if not data.get(field):
+            errors.append(f"{field} is required")
+    if errors:
+        return errors
+
+    try:
+        validate_full_name(data["full_name"])
+    except ValueError as e:
+        errors.append(str(e))
+
+    try:
+        validate_email(data["email"])
+    except ValueError as e:
+        errors.append(str(e))
+
+    try:
+        validate_password(data["password"])
+    except ValueError as e:
+        errors.append(str(e))
+
+    if data.get("phone"):
+        try:
+            validate_phone(data["phone"])
+        except ValueError as e:
+            errors.append(str(e))
+
+    return errors
+
+
+def validate_ride(data: dict) -> list:
+    """
+    Validate ride creation payload.
+    Returns a list of error strings (empty == valid).
+    """
+    errors = []
+    if not data:
+        return ["No data provided"]
+
+    for field in ("origin", "destination", "departure_time", "available_seats"):
+        if not data.get(field):
+            errors.append(f"{field} is required")
+    if errors:
+        return errors
+
+    try:
+        validate_seats(data["available_seats"])
+    except ValueError as e:
+        errors.append(str(e))
+
+    try:
+        validate_departure_time(data["departure_time"])
+    except ValueError as e:
+        errors.append(str(e))
+
+    if data.get("price_per_seat") is not None:
+        try:
+            validate_price(data["price_per_seat"])
+        except ValueError as e:
+            errors.append(str(e))
+
+    return errors

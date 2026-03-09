@@ -80,7 +80,7 @@ class RideDetailsManager {
 
     renderRideDetails() {
         // Update page title
-        document.title = `${this.ride.origin} to ${this.ride.destination} - Campus Rideshare`;
+        document.title = `${this.ride.origin} to ${this.ride.destination} — Campus Rideshare`;
 
         // Render main ride info
         const container = document.getElementById('rideDetailsContainer');

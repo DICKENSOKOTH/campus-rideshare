@@ -38,7 +38,7 @@ def update_profile():
     user = update_user(user_id,
         full_name=data.get("full_name"),
         phone=data.get("phone"),
-        student_id=data.get("student_id")
+        avatar_url=data.get("avatar_url")
     )
     if not user:
         return error_response("Update failed")

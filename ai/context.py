@@ -6,7 +6,7 @@ Personal information (names, phones, emails) is NEVER included.
 """
 from datetime import datetime
 from typing import Dict, Any, List
-from backend.database import db
+from backend.database.database import get_all_active_rides, get_platform_statistics
 
 
 def get_current_date() -> str:
@@ -55,8 +55,8 @@ def build_rides_context() -> Dict[str, Any]:
 
     Returns dict with: active_rides, rides_section, origins, destinations, stats
     """
-    active_rides = db.get_all_active_rides()
-    stats = db.get_platform_statistics()
+    active_rides = get_all_active_rides()
+    stats = get_platform_statistics()
 
     if active_rides:
         rides_list = "\n".join([

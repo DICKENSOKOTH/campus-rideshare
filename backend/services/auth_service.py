@@ -2,14 +2,13 @@
 backend/services/auth_service.py
 ----------------------------------
 Business logic for authentication.
-Routes call this — never put business logic directly in routes.
+Uses Flask-Bcrypt for hashing and Flask-JWT-Extended for tokens.
 """
 
-from flask_bcrypt import Bcrypt
+from flask_bcrypt import generate_password_hash, check_password_hash
 from flask_jwt_extended import create_access_token, create_refresh_token
-from backend.models.user import find_user_by_email, create_user
+from backend.models.user import find_user_by_email, find_user_by_id, create_user
 
-bcrypt = Bcrypt()
 
 def register_user(data: dict):
     """
@@ -18,22 +17,20 @@ def register_user(data: dict):
     """
     email = data["email"].lower().strip()
 
-    # Check duplicate
     if find_user_by_email(email):
         return None, "An account with this email already exists"
 
-    # Hash password
-    password_hash = bcrypt.generate_password_hash(data["password"]).decode("utf-8")
+    password_hash = generate_password_hash(data["password"]).decode("utf-8")
 
     user = create_user(
         full_name=data["full_name"].strip(),
         email=email,
         password_hash=password_hash,
-        student_id=data.get("student_id"),
-        phone=data.get("phone"),
-        role=data.get("role", "student")
+        phone=data.get("phone", ""),
+        role=data.get("role", "rider"),
     )
     return user, None
+
 
 def login_user(email: str, password: str):
     """
@@ -48,22 +45,21 @@ def login_user(email: str, password: str):
     if not user.get("is_active"):
         return None, "This account has been deactivated"
 
-    if not bcrypt.check_password_hash(user["password_hash"], password):
+    if not check_password_hash(user["password_hash"], password):
         return None, "Invalid email or password"
 
-    # Create JWT tokens (identity is user ID as string)
-    access_token = create_access_token(identity=str(user["id"]))
+    # Identity is user ID as string
+    access_token  = create_access_token(identity=str(user["id"]))
     refresh_token = create_refresh_token(identity=str(user["id"]))
 
     return {
-        "access_token": access_token,
+        "access_token":  access_token,
         "refresh_token": refresh_token,
         "user": {
-            "id": str(user["id"]),
+            "id":        str(user["id"]),
             "full_name": user["full_name"],
-            "email": user["email"],
-            "role": user["role"],
-            "profile_pic": user.get("profile_pic"),
-            "rating_avg": float(user.get("rating_avg") or 0)
-        }
+            "email":     user["email"],
+            "role":      user["role"],
+            "avatar_url": user.get("avatar_url"),
+        },
     }, None

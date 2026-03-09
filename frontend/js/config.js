@@ -53,10 +53,10 @@ const API_ENDPOINTS = {
 
 // Local Storage Keys
 const STORAGE_KEYS = {
-    TOKEN: 'rideu_token',
-    USER: 'rideu_user',
-    THEME: 'rideu_theme',
-    LOCATION: 'rideu_last_location',
+    TOKEN: 'campus_rideshare_token',
+    USER: 'campus_rideshare_user',
+    THEME: 'campus_rideshare_theme',
+    LOCATION: 'campus_rideshare_last_location',
 };
 
 // Map Configuration

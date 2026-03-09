@@ -1,112 +1,73 @@
 """
-RideU - Settings File
-All the configuration for our Django app lives here.
+Campus Rideshare - Flask Configuration
+All settings are loaded from a .env file via python-dotenv.
 """
 
 import os
 from pathlib import Path
-from decouple import config
+from datetime import timedelta
+from dotenv import load_dotenv
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-SECRET_KEY = config('SECRET_KEY', default='change-me-in-production')
-DEBUG = config('DEBUG', default=True, cast=bool)
-ALLOWED_HOSTS = ['*']
-
-INSTALLED_APPS = [
-    'django.contrib.admin',
-    'django.contrib.auth',
-    'django.contrib.contenttypes',
-    'django.contrib.sessions',
-    'django.contrib.messages',
-    'django.contrib.staticfiles',
-    'rest_framework',
-    'rest_framework_simplejwt',
-    'corsheaders',
-    'channels',
-]
-
-MIDDLEWARE = [
-    'corsheaders.middleware.CorsMiddleware',
-    'django.middleware.security.SecurityMiddleware',
-    'django.contrib.sessions.middleware.SessionMiddleware',
-    'django.middleware.common.CommonMiddleware',
-    'django.middleware.csrf.CsrfViewMiddleware',
-    'django.contrib.auth.middleware.AuthenticationMiddleware',
-    'django.contrib.messages.middleware.MessageMiddleware',
-    'django.middleware.clickjacking.XFrameOptionsMiddleware',
-]
-
-ROOT_URLCONF = 'backend.routes.urls'
-
-TEMPLATES = [
-    {
-        'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [BASE_DIR / 'frontend'],
-        'APP_DIRS': True,
-        'OPTIONS': {
-            'context_processors': [
-                'django.template.context_processors.debug',
-                'django.template.context_processors.request',
-                'django.contrib.auth.context_processors.auth',
-                'django.contrib.messages.context_processors.messages',
-            ],
-        },
-    },
-]
-
-WSGI_APPLICATION = 'backend.app.application'
-ASGI_APPLICATION = 'backend.app.asgi_application'
-
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME':     config('DB_NAME',     default='rideu_db'),
-        'USER':     config('DB_USER',     default=''),
-        'PASSWORD': config('DB_PASSWORD', default=''),
-        'HOST':     config('DB_HOST',     default='127.0.0.1'),
-        'PORT':     config('DB_PORT',     default='5432'),
-    }
-}
-
-AUTH_PASSWORD_VALIDATORS = [
-    {'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator'},
-    {'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator'},
-    {'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator'},
-    {'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator'},
-]
-REST_FRAMEWORK = {
-    'DEFAULT_AUTHENTICATION_CLASSES': (
-        'rest_framework_simplejwt.authentication.JWTAuthentication',
-    ),
-    'DEFAULT_PERMISSION_CLASSES': (
-        'rest_framework.permissions.IsAuthenticated',
-    ),
-    'DEFAULT_RENDERER_CLASSES': (
-        'rest_framework.renderers.JSONRenderer',
-    ),
-    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
-    'PAGE_SIZE': 10,
-}
+# Load .env from project root
+load_dotenv(BASE_DIR / '.env')
 
 
-from datetime import timedelta
-SIMPLE_JWT = {
-    'ACCESS_TOKEN_LIFETIME':  timedelta(hours=1),
-    'REFRESH_TOKEN_LIFETIME': timedelta(days=7),
-    'ROTATE_REFRESH_TOKENS':  True,
-}
+def _env(key: str, default: str = '') -> str:
+    return os.getenv(key, default)
 
-CORS_ALLOW_ALL_ORIGINS = DEBUG
 
-# Set to Nairobi since RideU is based in Kenya
-LANGUAGE_CODE = 'en-us'
-TIME_ZONE = 'Africa/Nairobi'
-USE_I18N = True
-USE_TZ = True
+def _env_bool(key: str, default: bool = False) -> bool:
+    return _env(key, str(default)).lower() in ('true', '1', 'yes')
 
-STATIC_URL  = '/static/'
-STATICFILES_DIRS = [BASE_DIR / 'frontend']
-STATIC_ROOT = BASE_DIR / 'staticfiles'
 
-DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+def _env_int(key: str, default: int = 0) -> int:
+    try:
+        return int(_env(key, str(default)))
+    except ValueError:
+        return default
+
+
+class Config:
+    """Base configuration."""
+
+    APP_NAME = 'Campus Rideshare'
+
+    SECRET_KEY = _env('SECRET_KEY', 'change-me-in-production')
+    DEBUG = _env_bool('DEBUG', True)
+
+    # ── Database (PostgreSQL) ─────────────────────────────────────
+    DB_NAME     = _env('DB_NAME',     'campus_rideshare_db')
+    DB_USER     = _env('DB_USER')
+    DB_PASSWORD = _env('DB_PASSWORD')
+    DB_HOST     = _env('DB_HOST',     '127.0.0.1')
+    DB_PORT     = _env('DB_PORT',     '5432')
+
+    # ── JWT (Flask-JWT-Extended) ──────────────────────────────────
+    JWT_SECRET_KEY = SECRET_KEY
+    JWT_ACCESS_TOKEN_EXPIRES  = timedelta(hours=1)
+    JWT_REFRESH_TOKEN_EXPIRES = timedelta(days=7)
+
+    # ── CORS ──────────────────────────────────────────────────────
+    CORS_ORIGINS = _env('CORS_ORIGINS', '*')
+
+    # ── Static / Frontend ─────────────────────────────────────────
+    STATIC_FOLDER = str(BASE_DIR / 'frontend')
+
+    # ── OpenAI / Chatbot ──────────────────────────────────────────
+    OPENAI_API_KEY     = _env('OPENAI_API_KEY')
+    OPENAI_MODEL       = _env('OPENAI_MODEL', 'gpt-3.5-turbo')
+    OPENAI_MAX_TOKENS  = _env_int('OPENAI_MAX_TOKENS', 500)
+    CHATBOT_RATE_LIMIT = _env_int('CHATBOT_RATE_LIMIT', 10)
+
+    # ── WebSocket ─────────────────────────────────────────────────
+    WS_HOST = _env('WS_HOST', '0.0.0.0')
+    WS_PORT = _env_int('WS_PORT', 8765)
+
+    def is_openai_enabled(self) -> bool:
+        return bool(self.OPENAI_API_KEY)
+
+
+# Singleton used by the rest of the app
+config = Config()

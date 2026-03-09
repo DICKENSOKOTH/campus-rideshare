@@ -1,23 +1,24 @@
 """
 AI Routes - AI chatbot API endpoints.
+Uses Flask-JWT-Extended for authentication.
 """
 from flask import Blueprint, jsonify, request
-from backend.database import db
-from backend.services.auth_service import api_login_required, get_api_user
+from flask_jwt_extended import jwt_required, get_jwt_identity
+from backend.database.database import get_chat_history_for_user
 from backend.services.ai_service import (
     get_chat_response, get_quick_suggestions, get_initial_greeting,
 )
 
-ai_bp = Blueprint('ai', __name__, url_prefix='/api')
+ai_bp = Blueprint('ai', __name__, url_prefix='/api/ai')
 
 
-@ai_bp.route('/chat')
-@api_login_required
+@ai_bp.route('/chat', methods=['GET'])
+@jwt_required()
 def api_chat_page_data():
     """Get initial data for the chat page."""
     suggestions = get_quick_suggestions()
-    user = get_api_user()
-    history = db.get_chat_history_for_user(user['id'], limit=10)
+    user_id = get_jwt_identity()
+    history = get_chat_history_for_user(user_id, limit=10)
 
     return jsonify({
         'success': True,
@@ -28,7 +29,7 @@ def api_chat_page_data():
 
 
 @ai_bp.route('/chat', methods=['POST'])
-@api_login_required
+@jwt_required()
 def api_chat():
     """API endpoint for chatbot conversations."""
     try:
@@ -50,9 +51,9 @@ def api_chat():
                 'response': 'Please enter a message.',
             }), 400
 
-        user = get_api_user()
+        user_id = get_jwt_identity()
         result = get_chat_response(
-            user_id=user['id'],
+            user_id=user_id,
             message=message,
             history=history,
         )
@@ -78,16 +79,16 @@ def api_chat():
         }), 500
 
 
-@ai_bp.route('/chat/suggestions')
-@api_login_required
+@ai_bp.route('/chat/suggestions', methods=['GET'])
+@jwt_required()
 def api_chat_suggestions():
     """API endpoint to get chatbot suggestions."""
     suggestions = get_quick_suggestions()
     return jsonify({'success': True, 'suggestions': suggestions})
 
 
-@ai_bp.route('/chat/history')
-@api_login_required
+@ai_bp.route('/chat/history', methods=['GET'])
+@jwt_required()
 def api_chat_history():
     """API endpoint to get chat history."""
     limit = request.args.get('limit', '10')
@@ -96,6 +97,7 @@ def api_chat_history():
     except ValueError:
         limit = 10
 
-    user = get_api_user()
-    history = db.get_chat_history_for_user(user['id'], limit=limit)
+    user_id = get_jwt_identity()
+    history = get_chat_history_for_user(user_id, limit=limit)
+    return jsonify({'success': True, 'history': history})
     return jsonify({'success': True, 'history': history})

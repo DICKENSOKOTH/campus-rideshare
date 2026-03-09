@@ -1,33 +1,26 @@
 
-# RideU — Python Dependencies
+# Campus Rideshare — Python Dependencies
 # Install with: pip install -r requirements.txt
 
-# Django Core 
-Django==5.0.6
-djangorestframework==3.15.2
-djangorestframework-simplejwt==5.3.1
-django-cors-headers==4.3.1
-python-decouple==3.8
+# Flask Core
+Flask==3.0.3
+Flask-Bcrypt==1.0.1
+Flask-JWT-Extended==4.6.0
+Flask-CORS==4.0.1
 
-# PostgreSQL Driver 
+# PostgreSQL Driver
 psycopg2-binary==2.9.9
 
-# WebSockets (Django Channels) 
-channels==4.1.0
-channels-redis==4.2.0
-daphne==4.1.2
+# WebSockets
+websockets==12.0
 
-# Redis 
-redis==5.0.4
+# AI (OpenAI)
+openai>=1.30.5
 
-# AI (OpenAI) 
-openai==1.30.5
-
-# Utilities 
-Pillow==10.3.0
+# Utilities
+python-dotenv==1.0.1
 python-dateutil==2.9.0
 requests==2.32.3
 
-# Dev / Testing 
+# Dev / Testing
 pytest==8.2.2
-pytest-django==4.8.0

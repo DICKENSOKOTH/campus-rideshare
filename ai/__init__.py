@@ -1,5 +1,5 @@
 """
-AI Module - Campus Ride-Share AI chatbot powered by OpenAI.
+AI Module - Campus Rideshare AI chatbot powered by OpenAI.
 
 Security-first design: Never sends personal data to OpenAI.
 """

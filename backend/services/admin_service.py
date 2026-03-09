@@ -32,9 +32,9 @@ def toggle_user_status(user_id: str, admin_id: str):
 
 def get_recent_activity(limit=20):
     return execute_query(
-        """SELECT 'booking' as type, b.created_at, u.full_name as actor,
+        """SELECT 'booking' as type, b.booked_at as created_at, u.full_name as actor,
                   r.origin || ' → ' || r.destination as detail
-           FROM bookings b JOIN users u ON b.passenger_id=u.id JOIN rides r ON b.ride_id=r.id
-           ORDER BY b.created_at DESC LIMIT %s""",
+           FROM bookings b JOIN users u ON b.rider_id=u.id JOIN rides r ON b.ride_id=r.id
+           ORDER BY b.booked_at DESC LIMIT %s""",
         (limit,)
     )
