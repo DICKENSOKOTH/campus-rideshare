@@ -37,7 +37,11 @@ class Config:
     SECRET_KEY = _env('SECRET_KEY', 'change-me-in-production')
     DEBUG = _env_bool('DEBUG', True)
 
-    # ── Database (PostgreSQL) ─────────────────────────────────────
+    # ── Database ─────────────────────────────────────────────────
+    USE_SQLITE  = _env_bool('USE_SQLITE', True)
+    SQLITE_PATH = str(BASE_DIR / _env('SQLITE_PATH', 'campus_rideshare.db'))
+
+    # PostgreSQL (production — used when USE_SQLITE=False)
     DB_NAME     = _env('DB_NAME',     'campus_rideshare_db')
     DB_USER     = _env('DB_USER')
     DB_PASSWORD = _env('DB_PASSWORD')

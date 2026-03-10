@@ -26,8 +26,9 @@ def toggle_user_status(user_id: str, admin_id: str):
     if not rows:
         return False, "User not found"
     current = rows[0]["is_active"]
-    execute_query("UPDATE users SET is_active=%s WHERE id=%s", (not current, user_id), fetch=False)
-    return True, "activated" if not current else "deactivated"
+    new_status = 0 if current else 1
+    execute_query("UPDATE users SET is_active=%s WHERE id=%s", (new_status, user_id), fetch=False)
+    return True, "activated" if new_status else "deactivated"
 
 def get_recent_activity(limit=20):
     return execute_query(

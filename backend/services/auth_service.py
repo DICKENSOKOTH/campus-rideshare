@@ -5,9 +5,13 @@ Business logic for authentication.
 Uses Flask-Bcrypt for hashing and Flask-JWT-Extended for tokens.
 """
 
+import logging
+
 from flask_bcrypt import generate_password_hash, check_password_hash
 from flask_jwt_extended import create_access_token, create_refresh_token
 from backend.models.user import find_user_by_email, create_user
+
+logger = logging.getLogger(__name__)
 
 
 def register_user(data: dict):
@@ -22,13 +26,20 @@ def register_user(data: dict):
 
     password_hash = generate_password_hash(data["password"]).decode("utf-8")
 
-    user = create_user(
-        full_name=data["full_name"].strip(),
-        email=email,
-        password_hash=password_hash,
-        phone=data.get("phone", ""),
-        role=data.get("role", "rider"),
-    )
+    try:
+        user = create_user(
+            full_name=data["full_name"].strip(),
+            email=email,
+            password_hash=password_hash,
+            phone=data.get("phone") or None,
+            role=data.get("role", "rider"),
+        )
+    except Exception as e:
+        logger.error("Registration DB error: %s", e)
+        msg = str(e).lower()
+        if "unique" in msg or "duplicate" in msg:
+            return None, "An account with this email already exists"
+        return None, "Registration failed. Please try again."
     return user, None
 
 

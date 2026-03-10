@@ -93,8 +93,8 @@ class APIClient {
                     // Unauthorized - clear token and redirect to login
                     localStorage.removeItem(STORAGE_KEYS.TOKEN);
                     localStorage.removeItem(STORAGE_KEYS.USER);
-                    if (window.location.pathname !== '/login.html' && window.location.pathname !== '/register.html') {
-                        window.location.href = '/login.html';
+                    if (!window.location.pathname.includes('login.html') && !window.location.pathname.includes('register.html')) {
+                        window.location.href = 'login.html';
                     }
                 }
                 throw error;

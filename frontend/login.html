@@ -63,7 +63,7 @@
           <form id="loginForm" novalidate>
             <div class="form-group">
               <label class="form-label" for="email">
-                University Email <span class="required">*</span>
+                Email Address <span class="required">*</span>
               </label>
               <div class="input-wrapper">
                 <span class="input-icon">
@@ -78,6 +78,7 @@
                   required
                 />
               </div>
+              <span class="form-error hidden" id="emailError"></span>
             </div>
 
             <div class="form-group">
@@ -100,6 +101,7 @@
                   <svg class="icon icon-md"><use href="assets/icons.svg#icon-eye"></use></svg>
                 </button>
               </div>
+              <span class="form-error hidden" id="passwordError"></span>
             </div>
 
             <div class="flex-between mb-6">

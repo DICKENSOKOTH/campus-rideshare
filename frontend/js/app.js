@@ -11,7 +11,8 @@ document.addEventListener('DOMContentLoaded', () => {
 function initNavToggle() {
     const toggle = document.getElementById('navToggle');
     const links = document.getElementById('navLinks');
-    if (toggle && links) {
+    if (toggle && links && !toggle.dataset.bound) {
+        toggle.dataset.bound = '1';
         toggle.addEventListener('click', () => links.classList.toggle('open'));
     }
 }

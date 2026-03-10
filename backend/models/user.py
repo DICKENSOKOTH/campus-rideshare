@@ -2,7 +2,7 @@
 backend/models/user.py
 -----------------------
 User model: queries related to the users table.
-Column names match schema.sql: avatar_url (not profile_pic), phone is NOT NULL, etc.
+Column names match schema.sql: avatar_url (not profile_pic), phone is nullable (DEFAULT NULL), etc.
 """
 
 from backend.database.database import execute_query

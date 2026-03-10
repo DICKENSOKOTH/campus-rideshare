@@ -42,14 +42,15 @@ class AuthManager {
             const response = await AuthAPI.login(email, password);
 
             if (response.success && response.data) {
-                // Backend returns access_token, not token
                 this.saveAuthData(response.data.access_token, response.data.user);
                 return { success: true, user: response.data.user };
             }
 
             return { success: false, message: response.message || 'Login failed' };
         } catch (error) {
-            return { success: false, message: error.message || ERROR_MESSAGES.SERVER };
+            const detail = error.data?.errors;
+            const msg = Array.isArray(detail) ? detail.join(', ') : (error.message || ERROR_MESSAGES.SERVER);
+            return { success: false, message: msg };
         }
     }
 
@@ -61,9 +62,12 @@ class AuthManager {
                 return { success: true, message: response.message || SUCCESS_MESSAGES.REGISTER };
             }
 
-            return { success: false, message: response.message || 'Registration failed' };
+            const msg = response.errors?.join(', ') || response.message || 'Registration failed';
+            return { success: false, message: msg };
         } catch (error) {
-            return { success: false, message: error.message || ERROR_MESSAGES.SERVER };
+            const detail = error.data?.errors;
+            const msg = Array.isArray(detail) ? detail.join(', ') : (error.message || ERROR_MESSAGES.SERVER);
+            return { success: false, message: msg };
         }
     }
 
@@ -126,6 +130,8 @@ if (window.location.pathname.includes('login.html')) {
         const passwordInput = document.getElementById('password');
         const errorBanner = document.getElementById('errorBanner');
         const errorText = document.getElementById('errorBannerText');
+        const emailError = document.getElementById('emailError');
+        const passwordError = document.getElementById('passwordError');
 
         function showLoginError(msg) {
             if (errorBanner) {
@@ -138,28 +144,73 @@ if (window.location.pathname.includes('login.html')) {
             if (errorBanner) errorBanner.classList.add('hidden');
         }
 
-        async function handleLogin(e) {
-            if (e) e.preventDefault();
+        function setFieldError(input, errorEl, msg) {
+            if (input) input.classList.add('error');
+            if (errorEl) { errorEl.textContent = msg; errorEl.classList.remove('hidden'); }
+        }
+
+        function clearFieldError(input, errorEl) {
+            if (input) input.classList.remove('error');
+            if (errorEl) errorEl.classList.add('hidden');
+        }
+
+        function clearAllErrors() {
+            hideLoginError();
+            clearFieldError(emailInput, emailError);
+            clearFieldError(passwordInput, passwordError);
+        }
+
+        // Clear field error on input
+        if (emailInput) emailInput.addEventListener('input', () => { clearFieldError(emailInput, emailError); hideLoginError(); });
+        if (passwordInput) passwordInput.addEventListener('input', () => { clearFieldError(passwordInput, passwordError); hideLoginError(); });
+
+        function validateLoginForm() {
+            let valid = true;
             const email = emailInput?.value.trim();
             const password = passwordInput?.value;
 
-            hideLoginError();
-
-            if (!email || !password) {
-                showLoginError('Please fill in all fields.');
-                return;
+            if (!email) {
+                setFieldError(emailInput, emailError, 'Email is required.');
+                valid = false;
+            } else if (!/^[\w.+-]+@[\w.-]+\.[a-zA-Z]{2,}$/.test(email)) {
+                setFieldError(emailInput, emailError, 'Please enter a valid email address.');
+                valid = false;
             }
+
+            if (!password) {
+                setFieldError(passwordInput, passwordError, 'Password is required.');
+                valid = false;
+            }
+
+            return valid;
+        }
+
+        async function handleLogin(e) {
+            if (e) e.preventDefault();
+            clearAllErrors();
+
+            if (!validateLoginForm()) return;
 
             loginBtn.disabled = true;
             loginBtn.textContent = 'Signing in\u2026';
 
-            const result = await authManager.login(email, password);
+            try {
+                const result = await authManager.login(
+                    emailInput.value.trim(),
+                    passwordInput.value
+                );
 
-            if (result.success) {
-                showNotification(SUCCESS_MESSAGES.LOGIN, 'success');
-                setTimeout(() => { window.location.href = 'dashboard.html'; }, 500);
-            } else {
-                showLoginError(result.message);
+                if (result.success) {
+                    showNotification(SUCCESS_MESSAGES.LOGIN, 'success');
+                    setTimeout(() => { window.location.href = 'dashboard.html'; }, 500);
+                } else {
+                    showLoginError(result.message);
+                    loginBtn.disabled = false;
+                    loginBtn.textContent = 'Sign In';
+                }
+            } catch (err) {
+                console.error('Login error:', err);
+                showLoginError(err.message || ERROR_MESSAGES.SERVER);
                 loginBtn.disabled = false;
                 loginBtn.textContent = 'Sign In';
             }

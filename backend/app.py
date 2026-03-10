@@ -66,6 +66,17 @@ def create_app():
         # Fallback to index.html for SPA-like behavior
         return send_from_directory(app_config.STATIC_FOLDER, 'index.html')
 
+    # ── Global JSON error handler ──────────────────────────────────
+    from werkzeug.exceptions import HTTPException
+
+    @app.errorhandler(Exception)
+    def handle_exception(e):
+        if isinstance(e, HTTPException):
+            return e
+        app.logger.exception('Unhandled exception')
+        from backend.utils.response import error_response
+        return error_response('An internal error occurred', 500)
+
     # ── Health-check endpoint ────────────────────────────────────
     @app.route('/api/health/')
     def health():

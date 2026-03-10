@@ -9,7 +9,7 @@ from datetime import datetime, timezone
 
 # Patterns
 
-EMAIL_RE = re.compile(r'^[\w.+-]+@[\w-]+\.[a-zA-Z]{2,}$')
+EMAIL_RE = re.compile(r'^[\w.+-]+@[\w.-]+\.[a-zA-Z]{2,}$')
 PHONE_RE = re.compile(r'^\+?[0-9]{9,15}$')
 PLATE_RE = re.compile(r'^[A-Z0-9 -]{3,10}$', re.I)
 

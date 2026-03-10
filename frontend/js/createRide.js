@@ -7,9 +7,6 @@ class CreateRideManager {
 
     init() {
         if (!authManager.requireAuth()) return;
-        initNavToggle();
-        initNavAvatar();
-        initLogoutLinks();
 
         this.initWizard();
         this.initEarningsCalculator();

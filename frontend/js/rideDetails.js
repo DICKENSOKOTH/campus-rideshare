@@ -11,9 +11,6 @@ class RideDetailsManager {
 
     async init() {
         if (!authManager.requireAuth()) return;
-        initNavToggle();
-        initNavAvatar();
-        initLogoutLinks();
 
         const urlParams = new URLSearchParams(window.location.search);
         this.rideId = urlParams.get('id');

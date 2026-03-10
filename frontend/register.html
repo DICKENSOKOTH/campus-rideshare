@@ -60,48 +60,39 @@
           </p>
 
           <form id="registerForm" novalidate>
-            <div class="form-group">
-              <label class="form-label">I want to&hellip;</label>
-              <div class="role-toggle">
-                <div class="role-option active" id="rolePassenger">
-                  <svg class="icon icon-md"><use href="assets/icons.svg#icon-search"></use></svg> Find Rides
-                </div>
-                <div class="role-option" id="roleDriver">
-                  <svg class="icon icon-md"><use href="assets/icons.svg#icon-car"></use></svg> Offer Rides
-                </div>
-              </div>
-            </div>
-
             <div class="form-row mb-6">
               <div class="form-group">
                 <label class="form-label" for="firstName">First Name <span class="required">*</span></label>
-                <input type="text" id="firstName" class="form-input" placeholder="Jane" required />
+                <input type="text" id="firstName" class="form-input" placeholder="Jane" autocomplete="given-name" required />
+                <span class="form-error hidden" id="firstNameError"></span>
               </div>
               <div class="form-group">
                 <label class="form-label" for="lastName">Last Name <span class="required">*</span></label>
-                <input type="text" id="lastName" class="form-input" placeholder="Doe" required />
+                <input type="text" id="lastName" class="form-input" placeholder="Doe" autocomplete="family-name" required />
+                <span class="form-error hidden" id="lastNameError"></span>
               </div>
             </div>
 
             <div class="form-group">
-              <label class="form-label" for="email">University Email <span class="required">*</span></label>
+              <label class="form-label" for="email">Email Address <span class="required">*</span></label>
               <div class="input-wrapper">
                 <span class="input-icon">
                   <svg class="icon icon-md"><use href="assets/icons.svg#icon-mail"></use></svg>
                 </span>
-                <input type="email" id="email" class="form-input" placeholder="you@university.ac.ke" required />
+                <input type="email" id="email" class="form-input" placeholder="you@university.ac.ke" autocomplete="email" required />
               </div>
-              <span class="form-hint">Must be a valid institutional email (.ac.ke, .edu etc.)</span>
+              <span class="form-error hidden" id="emailError"></span>
             </div>
 
             <div class="form-group">
-              <label class="form-label" for="phone">Phone Number <span class="required">*</span></label>
+              <label class="form-label" for="phone">Phone Number <span class="form-hint" style="font-weight:400">(optional)</span></label>
               <div class="input-wrapper">
                 <span class="input-icon">
                   <svg class="icon icon-md"><use href="assets/icons.svg#icon-phone"></use></svg>
                 </span>
-                <input type="tel" id="phone" class="form-input" placeholder="+254 7XX XXX XXX" />
+                <input type="tel" id="phone" class="form-input" placeholder="+254 7XX XXX XXX" autocomplete="tel" />
               </div>
+              <span class="form-error hidden" id="phoneError"></span>
             </div>
 
             <div class="form-group">
@@ -110,7 +101,7 @@
                 <span class="input-icon">
                   <svg class="icon icon-md"><use href="assets/icons.svg#icon-lock"></use></svg>
                 </span>
-                <input type="password" id="password" class="form-input" placeholder="Min. 8 characters" required />
+                <input type="password" id="password" class="form-input" placeholder="Min. 8 characters" autocomplete="new-password" required />
                 <button class="password-toggle" id="togglePwd" type="button" aria-label="Toggle password visibility">
                   <svg class="icon icon-md"><use href="assets/icons.svg#icon-eye"></use></svg>
                 </button>
@@ -119,20 +110,32 @@
                 <div class="progress-bar" id="strengthBar"></div>
               </div>
               <span class="form-hint" id="strengthText">Password strength</span>
+              <span class="form-error hidden" id="passwordError"></span>
+            </div>
+
+            <div class="form-group">
+              <label class="form-check">
+                <input type="checkbox" id="offerRides" />
+                <span class="form-check-label">
+                  I also want to offer rides
+                  <span class="form-hint" style="display:block; margin-top:2px">You can share your car or Bolt rides with other students</span>
+                </span>
+              </label>
             </div>
 
             <div id="driverFields" class="hidden">
               <div class="divider"></div>
-              <p class="form-section-title">Driver Verification</p>
+              <p class="form-section-title">Driver Details</p>
 
               <div class="form-group">
-                <label class="form-label" for="licenseNo">Driver License Number <span class="required">*</span></label>
+                <label class="form-label" for="licenseNo">Driver License Number</label>
                 <div class="input-wrapper">
                   <span class="input-icon">
                     <svg class="icon icon-md"><use href="assets/icons.svg#icon-clipboard"></use></svg>
                   </span>
                   <input type="text" id="licenseNo" class="form-input" placeholder="DL-XXXX-XXXX" />
                 </div>
+                <span class="form-hint">Optional &mdash; you can add this later from your profile</span>
               </div>
 
               <div class="form-row mb-6">
@@ -153,18 +156,8 @@
                   <p class="upload-zone-title">Click to upload or drag &amp; drop</p>
                   <p class="form-hint">PNG, JPG or PDF &mdash; max 5 MB</p>
                 </div>
+                <span class="form-hint">Optional &mdash; you can verify later</span>
               </div>
-            </div>
-
-            <div class="form-group">
-              <label class="form-label" for="emergency">Emergency Contact</label>
-              <div class="input-wrapper">
-                <span class="input-icon">
-                  <svg class="icon icon-md"><use href="assets/icons.svg#icon-phone"></use></svg>
-                </span>
-                <input type="tel" id="emergency" class="form-input" placeholder="+254 7XX XXX XXX" />
-              </div>
-              <span class="form-hint">Shared only in emergency situations</span>
             </div>
 
             <div class="form-group">
@@ -177,6 +170,7 @@
                   <a href="#" class="auth-footer-link">Safety Guidelines</a>
                 </span>
               </label>
+              <span class="form-error hidden" id="termsError"></span>
             </div>
 
             <button class="btn btn-primary btn-block btn-lg" id="registerBtn" type="submit">

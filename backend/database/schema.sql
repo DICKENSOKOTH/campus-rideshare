@@ -9,7 +9,7 @@ CREATE TABLE IF NOT EXISTS users (
     id            BIGSERIAL        PRIMARY KEY,
     full_name     VARCHAR(150)     NOT NULL,
     email         VARCHAR(254)     NOT NULL UNIQUE,
-    phone         VARCHAR(20)      NOT NULL UNIQUE,
+    phone         VARCHAR(20)      DEFAULT NULL UNIQUE,
     password_hash VARCHAR(255)     NOT NULL,
     role          VARCHAR(20)      NOT NULL DEFAULT 'rider',
     avatar_url    VARCHAR(500)     DEFAULT NULL,

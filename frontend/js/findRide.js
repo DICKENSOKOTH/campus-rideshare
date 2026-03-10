@@ -15,9 +15,6 @@ class FindRideManager {
 
     async init() {
         if (!authManager.requireAuth()) return;
-        initNavToggle();
-        initNavAvatar();
-        initLogoutLinks();
 
         this.setupSearch();
         this.setupFilters();
