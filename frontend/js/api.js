@@ -176,19 +176,39 @@ class APIClient {
 // Create a singleton instance
 const api = new APIClient();
 
+// Debounce utility to prevent redundant API calls
+function debounce(func, wait) {
+    let timeout;
+    return function (...args) {
+        clearTimeout(timeout);
+        timeout = setTimeout(() => func.apply(this, args), wait);
+    };
+}
+
+// Centralized error handling for API responses
+async function handleAPIError(promise) {
+    try {
+        return await promise;
+    } catch (error) {
+        console.error('API Error:', error);
+        showNotification(error.message || 'An error occurred', 'error');
+        throw error; // Re-throw to allow further handling if needed
+    }
+}
+
 // API Service Methods - Organized by feature
 
 const AuthAPI = {
     async login(email, password) {
-        return api.post(API_ENDPOINTS.LOGIN, { email, password }, { includeAuth: false });
+        return handleAPIError(api.post(API_ENDPOINTS.LOGIN, { email, password }, { includeAuth: false }));
     },
 
     async register(userData) {
-        return api.post(API_ENDPOINTS.REGISTER, userData, { includeAuth: false });
+        return handleAPIError(api.post(API_ENDPOINTS.REGISTER, userData, { includeAuth: false }));
     },
 
     async getMe() {
-        return api.get(API_ENDPOINTS.ME);
+        return handleAPIError(api.get(API_ENDPOINTS.ME));
     },
 };
 
@@ -224,7 +244,7 @@ const RideAPI = {
     },
 
     async getRides(filters = {}) {
-        return api.get(API_ENDPOINTS.GET_RIDES, { queryParams: filters });
+        return handleAPIError(api.get(API_ENDPOINTS.GET_RIDES, { queryParams: filters }));
     },
 
     async getRide(rideId) {
@@ -278,6 +298,6 @@ const AdminAPI = {
     },
 
     async getRides(filters = {}) {
-        return api.get(API_ENDPOINTS.ADMIN_RIDES, { queryParams: filters });
+        return handleAPIError(api.get(API_ENDPOINTS.ADMIN_RIDES, { queryParams: filters }));
     },
 };

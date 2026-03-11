@@ -10,6 +10,8 @@ class WebSocketManager {
         this.subscriptions = new Map();
         this.messageHandlers = [];
         this.heartbeatInterval = null;
+        this.reconnectTimeout = null;
+        this.lastMessageId = null; // Track the last processed message ID
     }
 
     /**
@@ -73,6 +75,13 @@ class WebSocketManager {
             const message = JSON.parse(event.data);
             console.log('WebSocket message received:', message);
 
+            // Deduplicate messages based on a unique ID
+            if (message.id && message.id === this.lastMessageId) {
+                console.warn('Duplicate WebSocket message ignored:', message.id);
+                return;
+            }
+            this.lastMessageId = message.id;
+
             // Handle different message types
             switch (message.type) {
                 case 'auth_success':
@@ -118,6 +127,7 @@ class WebSocketManager {
      */
     handleError(error) {
         console.error('WebSocket error:', error);
+        showNotification('WebSocket connection error. Retrying...', 'error');
     }
 
     /**
@@ -145,11 +155,11 @@ class WebSocketManager {
         }
 
         this.reconnectAttempts++;
-        const delay = this.reconnectDelay * this.reconnectAttempts;
-        
+        const delay = Math.min(this.reconnectDelay * Math.pow(2, this.reconnectAttempts - 1), 30000); // Cap delay at 30 seconds
+
         console.log(`Reconnecting in ${delay}ms (attempt ${this.reconnectAttempts})`);
-        
-        setTimeout(() => {
+
+        this.reconnectTimeout = setTimeout(() => {
             this.connect();
         }, delay);
     }
@@ -387,7 +397,12 @@ class WebSocketManager {
      */
     disconnect() {
         this.stopHeartbeat();
-        
+
+        if (this.reconnectTimeout) {
+            clearTimeout(this.reconnectTimeout);
+            this.reconnectTimeout = null;
+        }
+
         if (this.ws) {
             this.ws.close(1000, 'Client disconnect');
             this.ws = null;

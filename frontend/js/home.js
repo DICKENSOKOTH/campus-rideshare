@@ -61,6 +61,7 @@ class Dashboard {
         }
     }
 
+    // Optimized DOM updates to reduce unnecessary reflows and repaints
     updateStats() {
         const statsRow = document.getElementById('statsRow');
         if (!statsRow) return;
@@ -75,8 +76,13 @@ class Dashboard {
         ).length;
 
         const statNumbers = statsRow.querySelectorAll('.stat-number');
-        if (statNumbers[0]) statNumbers[0].textContent = totalRides + totalBookings;
-        if (statNumbers[2]) statNumbers[2].textContent = upcoming || '\u2014';
+        const updates = [totalRides + totalBookings, null, upcoming || '\u2014'];
+
+        statNumbers.forEach((el, index) => {
+            if (el && el.textContent !== updates[index]?.toString()) {
+                el.textContent = updates[index];
+            }
+        });
     }
 
     async cancelBooking(bookingId) {
