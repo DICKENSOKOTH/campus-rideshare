@@ -136,12 +136,9 @@ function initRegisterForm() {
 
     form.addEventListener('submit', async (e) => {
         e.preventDefault();
-
         const btn = document.getElementById('registerBtn');
         if (btn && btn.disabled) return;
-
         clearAllRegErrors();
-
         if (!validateRegForm()) return;
 
         const firstName = document.getElementById('firstName').value.trim();
@@ -164,10 +161,10 @@ function initRegisterForm() {
 
         try {
             const result = await authManager.register(userData);
-
             if (result.success) {
-                showNotification(result.message, 'success');
-                setTimeout(() => { window.location.href = 'login.html'; }, 800);
+                showNotificationWithRedirect(result.message, 'success', 'login.html', 2000);
+                form.reset();
+                return;
             } else {
                 showNotification(result.message, 'error');
                 btn.disabled = false;
@@ -180,4 +177,14 @@ function initRegisterForm() {
             btn.textContent = 'Create Account';
         }
     });
+}
+
+// Patch: Improve registration notification and redirect
+function showNotificationWithRedirect(message, type = 'info', redirectUrl = null, delay = 2000) {
+    showNotification(message, type);
+    if (redirectUrl && type === 'success') {
+        setTimeout(() => {
+            window.location.href = redirectUrl;
+        }, delay);
+    }
 }

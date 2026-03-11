@@ -4,11 +4,15 @@ class APIClient {
     constructor() {
         this.baseURL = API_CONFIG.BASE_URL;
         this.timeout = API_CONFIG.TIMEOUT;
+        this._refreshing = null; // shared promise for concurrent refresh attempts
+        this._redirecting = false;
+        this._refreshFailedUntil = 0; // cooldown when refresh repeatedly fails
     }
 
     // Get auth token from localStorage
     getToken() {
-        return localStorage.getItem(STORAGE_KEYS.TOKEN);
+        // Tokens are handled by httpOnly cookies; no client-side token access
+        return null;
     }
 
     // Build headers with auth token
@@ -17,12 +21,7 @@ class APIClient {
             'Content-Type': 'application/json',
         };
 
-        if (includeAuth) {
-            const token = this.getToken();
-            if (token) {
-                headers['Authorization'] = `Bearer ${token}`;
-            }
-        }
+        // Authorization header intentionally not used; cookies carry JWTs
 
         return headers;
     }
@@ -67,6 +66,8 @@ class APIClient {
             const timeoutId = setTimeout(() => controller.abort(), this.timeout);
 
             config.signal = controller.signal;
+            // Send cookies for auth (httpOnly cookies set by backend)
+            config.credentials = 'include';
 
             const response = await fetch(urlObj.toString(), config);
             clearTimeout(timeoutId);
@@ -89,19 +90,64 @@ class APIClient {
 
             if (error.status) {
                 // Error from server
-                if (error.status === 401) {
-                    // Unauthorized - clear token and redirect to login
-                    localStorage.removeItem(STORAGE_KEYS.TOKEN);
-                    localStorage.removeItem(STORAGE_KEYS.USER);
-                    if (!window.location.pathname.includes('login.html') && !window.location.pathname.includes('register.html')) {
-                        window.location.href = 'login.html';
+                if (error.status === 401 && options.includeAuth !== false && !options._retried) {
+                    // Try to refresh the token (server uses httpOnly refresh cookie)
+                    const refreshed = await this._tryRefreshToken();
+                    if (refreshed) {
+                        // Retry the original request once
+                        return this.request(method, endpoint, { ...options, _retried: true });
                     }
+                    // Refresh failed — redirect to login
+                    this._forceLogout();
                 }
                 throw error;
             }
 
             // Network error
             throw { status: 0, message: ERROR_MESSAGES.NETWORK };
+        }
+    }
+
+    // Attempt to refresh the access token by calling the refresh endpoint.
+    // The server expects the refresh token in an httpOnly cookie.
+    async _tryRefreshToken() {
+        // If recent refresh attempts failed, avoid hammering the server
+        if (Date.now() < this._refreshFailedUntil) return false;
+
+        if (!this._refreshing) {
+            this._refreshing = (async () => {
+                try {
+                    const res = await fetch(this.baseURL + API_ENDPOINTS.REFRESH, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        credentials: 'include',
+                    });
+                    if (!res.ok) {
+                        // put a short cooldown (5s) on further refresh attempts
+                        this._refreshFailedUntil = Date.now() + 5000;
+                        return false;
+                    }
+                    const body = await res.json();
+                    return body.success === true;
+                } catch {
+                    this._refreshFailedUntil = Date.now() + 5000;
+                    return false;
+                } finally {
+                    this._refreshing = null;
+                }
+            })();
+        }
+        return this._refreshing;
+    }
+
+    // Clear auth data and redirect to login — guarded against multiple parallel calls
+    _forceLogout() {
+        try { if (typeof authManager !== 'undefined') authManager.clearAuthData(); } catch(_){}
+        if (this._redirecting) return;
+        const path = window.location.pathname;
+        if (!path.includes('login.html') && !path.includes('register.html') && !path.includes('index.html')) {
+            this._redirecting = true;
+            window.location.href = 'login.html';
         }
     }
 

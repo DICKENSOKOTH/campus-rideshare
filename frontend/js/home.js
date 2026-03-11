@@ -6,8 +6,23 @@ class Dashboard {
         this.userBookings = [];
     }
 
+    populateSidebar() {
+        const user = authManager.currentUser;
+        if (!user) return;
+        const avatar = document.getElementById('sidebarAvatar');
+        const name   = document.getElementById('sidebarName');
+        const role   = document.getElementById('sidebarRole');
+        if (avatar) {
+            avatar.textContent = user.full_name.split(' ').map(p => p[0]).join('').substring(0, 2).toUpperCase();
+        }
+        if (name) name.textContent = user.full_name;
+        if (role) role.textContent = user.role === 'driver' ? 'Driver' : 'Rider';
+    }
+
     async init() {
-        if (!authManager.requireAuth()) return;
+        if (!(await authManager.requireAuth())) return;
+
+        this.populateSidebar();
 
         const greeting = document.getElementById('pageGreeting');
         if (greeting && authManager.currentUser) {
@@ -135,16 +150,16 @@ function buildHeroCards() {
 }
 
 // ── Bootstrap ──────────────────────────────────────────────
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
     const path = window.location.pathname;
 
     if (path.endsWith('index.html') || path.endsWith('/') || path === '') {
         initLandingPage();
     }
 
-    if (path.includes('dashboard') || path.includes('home')) {
+    if (path.includes('home')) {
         const dashboard = new Dashboard();
-        dashboard.init();
-        setInterval(() => dashboard.init(), 30000);
+        await dashboard.init();
+        setInterval(async () => { await dashboard.init(); }, 30000);
     }
 });

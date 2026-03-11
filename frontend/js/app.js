@@ -31,7 +31,7 @@ function initNavAvatar() {
 
 /** Highlight sidebar link matching current page */
 function initSidebarActive() {
-    const page = window.location.pathname.split('/').pop() || 'dashboard.html';
+    const page = window.location.pathname.split('/').pop() || 'home.html';
     document.querySelectorAll('.sidebar-link').forEach(link => {
         const href = link.getAttribute('href');
         if (href === page) {
@@ -47,7 +47,9 @@ function initLogoutLinks() {
     document.querySelectorAll('[data-action="logout"]').forEach(el => {
         el.addEventListener('click', e => {
             e.preventDefault();
-            if (typeof authManager !== 'undefined') authManager.logout();
+            if (confirm('Are you sure you want to logout?')) {
+                if (typeof authManager !== 'undefined') authManager.logout();
+            }
         });
     });
 }

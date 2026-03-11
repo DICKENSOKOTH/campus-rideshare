@@ -27,7 +27,11 @@ def create_app():
     app.config.from_object(app_config)
 
     # Initialise extensions
-    CORS(app)
+    # Allow credentialed CORS for API routes and use configured origins.
+    # Note: when using credentials, the Access-Control-Allow-Origin header
+    # must be a specific origin (not '*'). Configure CORS_ORIGINS in .env
+    # to the frontend origin (e.g. http://localhost:5500) if needed.
+    CORS(app, supports_credentials=True, resources={r"/api/*": {"origins": app_config.CORS_ORIGINS}})
     bcrypt.init_app(app)
     jwt.init_app(app)
 

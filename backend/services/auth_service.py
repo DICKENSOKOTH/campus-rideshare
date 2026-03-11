@@ -6,10 +6,11 @@ Uses Flask-Bcrypt for hashing and Flask-JWT-Extended for tokens.
 """
 
 import logging
-
 from flask_bcrypt import generate_password_hash, check_password_hash
-from flask_jwt_extended import create_access_token, create_refresh_token
+from flask_jwt_extended import create_access_token, create_refresh_token, decode_token
 from backend.models.user import find_user_by_email, create_user
+from backend.database.database import store_refresh_token, delete_refresh_token, get_refresh_token
+import datetime
 
 logger = logging.getLogger(__name__)
 
@@ -62,6 +63,11 @@ def login_user(email: str, password: str):
     # Identity is user ID as string
     access_token  = create_access_token(identity=str(user["id"]))
     refresh_token = create_refresh_token(identity=str(user["id"]))
+
+    # Store refresh token in DB
+    decoded = decode_token(refresh_token)
+    expires_at = datetime.datetime.fromtimestamp(decoded["exp"]).isoformat()
+    store_refresh_token(user["id"], refresh_token, expires_at)
 
     return {
         "access_token":  access_token,

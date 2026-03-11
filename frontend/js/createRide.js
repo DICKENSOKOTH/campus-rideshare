@@ -5,8 +5,8 @@ class CreateRideManager {
         this.currentStep = 1;
     }
 
-    init() {
-        if (!authManager.requireAuth()) return;
+    async init() {
+        if (!(await authManager.requireAuth())) return;
 
         this.initWizard();
         this.initEarningsCalculator();
@@ -161,7 +161,7 @@ class CreateRideManager {
                     if (response.data && response.data.id) {
                         window.location.href = `ride-details.html?id=${response.data.id}`;
                     } else {
-                        window.location.href = 'dashboard.html';
+                        window.location.href = 'home.html';
                     }
                 }, 1000);
             } else {
@@ -178,8 +178,8 @@ class CreateRideManager {
 // Initialize when page loads
 let createRideManager;
 if (window.location.pathname.includes('create-ride.html')) {
-    document.addEventListener('DOMContentLoaded', () => {
+    document.addEventListener('DOMContentLoaded', async () => {
         createRideManager = new CreateRideManager();
-        createRideManager.init();
+        await createRideManager.init();
     });
 }

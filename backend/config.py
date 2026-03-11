@@ -34,7 +34,7 @@ class Config:
 
     APP_NAME = 'Campus Rideshare'
 
-    SECRET_KEY = _env('SECRET_KEY', 'change-me-in-production')
+    SECRET_KEY = _env('SECRET_KEY', 'campus-rideshare-dev-secret-key-change-in-production')
     DEBUG = _env_bool('DEBUG', True)
 
     # ── Database ─────────────────────────────────────────────────
@@ -52,6 +52,13 @@ class Config:
     JWT_SECRET_KEY = SECRET_KEY
     JWT_ACCESS_TOKEN_EXPIRES  = timedelta(hours=1)
     JWT_REFRESH_TOKEN_EXPIRES = timedelta(days=7)
+    # Use cookies for JWTs so tokens are not stored in client-side storage
+    JWT_TOKEN_LOCATION = ["cookies"]
+    JWT_COOKIE_SECURE = False  # set True in production with HTTPS
+    JWT_COOKIE_HTTPONLY = True
+    JWT_COOKIE_CSRF_PROTECT = False  # for simplicity in dev; enable in prod
+    JWT_ACCESS_COOKIE_PATH = "/"
+    JWT_REFRESH_COOKIE_PATH = "/api/auth/refresh"
 
     # ── CORS ──────────────────────────────────────────────────────
     CORS_ORIGINS = _env('CORS_ORIGINS', '*')
@@ -59,18 +66,18 @@ class Config:
     # ── Static / Frontend ─────────────────────────────────────────
     STATIC_FOLDER = str(BASE_DIR / 'frontend')
 
-    # ── OpenAI / Chatbot ──────────────────────────────────────────
-    OPENAI_API_KEY     = _env('OPENAI_API_KEY')
-    OPENAI_MODEL       = _env('OPENAI_MODEL', 'gpt-3.5-turbo')
-    OPENAI_MAX_TOKENS  = _env_int('OPENAI_MAX_TOKENS', 500)
+    # ── Gemini / Chatbot ──────────────────────────────────────────
+    GEMINI_API_KEY     = _env('GEMINI_API_KEY')
+    GEMINI_MODEL       = _env('GEMINI_MODEL', 'gemini-2.0-flash')
+    GEMINI_MAX_TOKENS  = _env_int('GEMINI_MAX_TOKENS', 500)
     CHATBOT_RATE_LIMIT = _env_int('CHATBOT_RATE_LIMIT', 10)
 
     # ── WebSocket ─────────────────────────────────────────────────
     WS_HOST = _env('WS_HOST', '0.0.0.0')
     WS_PORT = _env_int('WS_PORT', 8765)
 
-    def is_openai_enabled(self) -> bool:
-        return bool(self.OPENAI_API_KEY)
+    def is_gemini_enabled(self) -> bool:
+        return bool(self.GEMINI_API_KEY)
 
 
 # Singleton used by the rest of the app

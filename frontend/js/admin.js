@@ -12,7 +12,7 @@ class AdminPanel {
     }
 
     async init() {
-        if (!authManager.requireAdmin()) return;
+        if (!(await authManager.requireAdmin())) return;
 
         this.setupTabs();
         this.setupFilters();
@@ -356,7 +356,7 @@ class AdminPanel {
 
 // Initialize
 let adminPanel;
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
     adminPanel = new AdminPanel();
-    adminPanel.init();
+    await adminPanel.init();
 });

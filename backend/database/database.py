@@ -125,6 +125,7 @@ def init_db(app):
         conn = sqlite3.connect(_sqlite_path)
         conn.execute("PRAGMA foreign_keys = ON")
         conn.executescript(_SQLITE_SCHEMA)
+        conn.commit()
         conn.close()
         logger.info('SQLite database initialised: %s', _sqlite_path)
     else:
@@ -155,6 +156,7 @@ def get_connection():
     if _use_sqlite:
         conn = sqlite3.connect(_sqlite_path)
         conn.row_factory = sqlite3.Row
+        conn.execute("PRAGMA journal_mode=WAL")
         conn.execute("PRAGMA foreign_keys = ON")
         return conn
     if _pool is None:
@@ -318,3 +320,25 @@ def get_user_chat_count_last_minute(user_id):
             (user_id,),
         )
     return rows[0]['c']
+
+
+def store_refresh_token(user_id, token, expires_at):
+    execute_query(
+        "INSERT INTO refresh_tokens (user_id, token, expires_at) VALUES (%s, %s, %s)",
+        (user_id, token, expires_at),
+        fetch=False
+    )
+
+def delete_refresh_token(token):
+    execute_query(
+        "DELETE FROM refresh_tokens WHERE token = %s",
+        (token,),
+        fetch=False
+    )
+
+def get_refresh_token(token):
+    rows = execute_query(
+        "SELECT * FROM refresh_tokens WHERE token = %s",
+        (token,)
+    )
+    return rows[0] if rows else None

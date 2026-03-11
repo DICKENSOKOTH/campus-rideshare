@@ -1,23 +1,18 @@
-// AI Assistant Logic — Chat interface and AI-powered suggestions
+// AI Assistant Logic — Chat interface powered by the backend AI API
 
 class AIAssistant {
     constructor() {
         this.messages = [];
         this.isTyping = false;
-        this.context = { currentRides: [], currentBookings: [] };
     }
 
     async init() {
-        if (!authManager.requireAuth()) return;
+        if (!(await authManager.requireAuth())) return;
 
         this.setupChatInterface();
         this.setupSidebarActions();
         this.loadChatHistory();
-        await this.loadUserContext();
-
-        if (this.messages.length === 0) {
-            this.showWelcomeMessage();
-        }
+        await this.loadPageData();
     }
 
     /* ── Setup ── */
@@ -41,8 +36,6 @@ class AIAssistant {
                 messageInput.style.height = messageInput.scrollHeight + 'px';
             });
         }
-
-        this.renderQuickActions();
     }
 
     setupSidebarActions() {
@@ -53,40 +46,56 @@ class AIAssistant {
         if (clearBtn) clearBtn.addEventListener('click', () => this.clearHistory());
     }
 
-    renderQuickActions() {
+    /* ── Page data from backend ── */
+
+    async loadPageData() {
+        try {
+            const data = await AIAPI.getChatPageData();
+            if (data.success) {
+                this.renderQuickActions(data.suggestions || []);
+                if (this.messages.length === 0 && data.greeting) {
+                    this.addMessage({
+                        role: 'assistant',
+                        content: data.greeting,
+                        timestamp: new Date().toISOString(),
+                    }, false);
+                }
+            }
+        } catch (err) {
+            console.error('Failed to load AI page data:', err);
+        }
+
+        // Fallback welcome if nothing loaded
+        if (this.messages.length === 0) {
+            this.showFallbackWelcome();
+        }
+    }
+
+    renderQuickActions(suggestions) {
         const container = document.getElementById('quickActionsContainer');
         if (!container) return;
 
-        const actions = [
-            { id: 'findRide',   label: 'Find me a ride' },
-            { id: 'createRide', label: 'I want to offer a ride' },
-            { id: 'myRides',    label: 'Show my rides' },
-            { id: 'help',       label: 'How does this work?' },
-        ];
+        if (!suggestions.length) {
+            suggestions = ['Search available rides', 'How booking works', 'Platform help'];
+        }
 
-        container.innerHTML = actions.map(a =>
-            `<button class="quick-prompt" data-action="${a.id}">${a.label}</button>`
+        container.innerHTML = suggestions.map(label =>
+            `<button class="quick-prompt" data-prompt="${this.escapeHtml(label)}">${this.escapeHtml(label)}</button>`
         ).join('');
 
         container.addEventListener('click', (e) => {
-            const btn = e.target.closest('[data-action]');
-            if (btn) this.quickAction(btn.dataset.action);
+            const btn = e.target.closest('[data-prompt]');
+            if (btn) this.sendMessage(btn.dataset.prompt);
         });
     }
 
-    /* ── Context ── */
-
-    async loadUserContext() {
-        try {
-            const [ridesRes, bookingsRes] = await Promise.all([
-                UserAPI.getMyRides(),
-                UserAPI.getMyBookings(),
-            ]);
-            if (ridesRes.success && ridesRes.data) this.context.currentRides = ridesRes.data;
-            if (bookingsRes.success && bookingsRes.data) this.context.currentBookings = bookingsRes.data;
-        } catch (error) {
-            console.error('Failed to load user context:', error);
-        }
+    showFallbackWelcome() {
+        const userName = authManager.currentUser?.full_name?.split(' ')[0] || 'there';
+        this.addMessage({
+            role: 'assistant',
+            content: `Hi ${userName}! I can help you find rides, check availability, or answer questions about the platform. What would you like to know?`,
+            timestamp: new Date().toISOString(),
+        }, false);
     }
 
     /* ── Chat History ── */
@@ -158,29 +167,28 @@ class AIAssistant {
 
     /* ── Send Message ── */
 
-    async handleSendMessage() {
+    async sendMessage(text) {
         const messageInput = document.getElementById('messageInput');
-        const message = messageInput?.value.trim();
-        if (!message) return;
-
         if (messageInput) { messageInput.value = ''; messageInput.style.height = 'auto'; }
         const sendBtn = document.getElementById('sendBtn');
         if (sendBtn) sendBtn.disabled = true;
 
-        this.addMessage({ role: 'user', content: message, timestamp: new Date().toISOString() });
+        this.addMessage({ role: 'user', content: text, timestamp: new Date().toISOString() });
         this.showTyping();
 
         try {
-            const response = await AIAPI.chat(message, this.messages);
-            if (response.success) {
-                this.addMessage({
-                    role: 'assistant',
-                    content: response.response || response.data?.message || 'No response',
-                    timestamp: new Date().toISOString(),
-                });
-            } else {
-                throw new Error(response.error || response.message || 'Failed to get response');
-            }
+            // Build clean history for the backend: only role + content
+            const history = this.messages
+                .filter(m => m.role === 'user' || m.role === 'assistant')
+                .map(m => ({ role: m.role, content: m.content }));
+
+            const response = await AIAPI.chat(text, history);
+
+            this.addMessage({
+                role: 'assistant',
+                content: response.response || 'No response received.',
+                timestamp: new Date().toISOString(),
+            });
         } catch (error) {
             console.error('AI chat error:', error);
             this.addMessage({
@@ -192,6 +200,13 @@ class AIAssistant {
         } finally {
             this.hideTyping();
         }
+    }
+
+    async handleSendMessage() {
+        const messageInput = document.getElementById('messageInput');
+        const message = messageInput?.value.trim();
+        if (!message) return;
+        await this.sendMessage(message);
     }
 
     /* ── Message Rendering ── */
@@ -285,47 +300,10 @@ class AIAssistant {
         if (container) container.scrollTop = container.scrollHeight;
     }
 
-    /* ── Quick Actions ── */
+    /* ── Quick Actions (all go through the AI backend) ── */
 
-    quickAction(id) {
-        const actions = {
-            findRide:   () => this.quickFindRide(),
-            createRide: () => this.quickCreateRide(),
-            myRides:    () => this.quickShowMyRides(),
-            help:       () => this.quickHelp(),
-        };
-        const fn = actions[id];
-        if (fn) fn();
-    }
-
-    quickFindRide() {
-        this.addMessage({ role: 'user', content: 'Find me a ride', timestamp: new Date().toISOString() });
-        this.addMessage({ role: 'assistant', content: 'Sure! To find the best ride for you, I need a few details:\n\nWhere are you starting from?\nWhere do you want to go?\nWhen do you need to travel?', timestamp: new Date().toISOString() });
-    }
-
-    quickCreateRide() {
-        this.addMessage({ role: 'user', content: 'I want to offer a ride', timestamp: new Date().toISOString() });
-        this.addMessage({ role: 'assistant', content: 'Great! Offering rides helps the community and you can earn some money. Let me take you to the ride creation page.', timestamp: new Date().toISOString() });
-        setTimeout(() => { window.location.href = 'create-ride.html'; }, 1500);
-    }
-
-    quickShowMyRides() {
-        const upcoming = (this.context.currentRides || []).filter(r => new Date(r.departure_time) > new Date());
-        let content;
-        if (upcoming.length > 0) {
-            content = `You have ${upcoming.length} upcoming ride(s):\n\n` +
-                upcoming.map((r, i) => `${i + 1}. ${r.origin} → ${r.destination}\n   ${new Date(r.departure_time).toLocaleString()}`).join('\n\n');
-        } else {
-            content = "You don't have any upcoming rides. Would you like to create one or find a ride?";
-        }
-        this.addMessage({ role: 'user', content: 'Show my rides', timestamp: new Date().toISOString() });
-        this.addMessage({ role: 'assistant', content, timestamp: new Date().toISOString() });
-    }
-
-    quickHelp() {
-        this.addMessage({ role: 'user', content: 'How does this work?', timestamp: new Date().toISOString() });
-        this.addMessage({ role: 'assistant', content: "Here's how our rideshare platform works:\n\n**For Riders:**\n1. Search for rides going your way\n2. Book available seats\n3. Meet your driver at the pickup point\n4. Rate your experience after the ride\n\n**For Drivers:**\n1. Create a ride offer with your route\n2. Set your price and available seats\n3. Accept or reject booking requests\n4. Pick up your passengers and earn money\n\n**Safety Tips:**\n- Always verify driver/passenger identity\n- Share your trip details with friends\n- Rate honestly to help the community\n\nDo you have any specific questions?", timestamp: new Date().toISOString() });
-    }
+    // Quick action buttons just send their label as a message to the AI
+    // No more hardcoded responses — everything goes through the backend
 
     /* ── Clear ── */
 
@@ -341,8 +319,8 @@ class AIAssistant {
 // Initialize
 let aiAssistant;
 if (window.location.pathname.includes('ai-assistant.html')) {
-    document.addEventListener('DOMContentLoaded', () => {
+    document.addEventListener('DOMContentLoaded', async () => {
         aiAssistant = new AIAssistant();
-        aiAssistant.init();
+        await aiAssistant.init();
     });
 }

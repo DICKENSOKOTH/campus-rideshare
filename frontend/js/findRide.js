@@ -14,7 +14,7 @@ class FindRideManager {
     }
 
     async init() {
-        if (!authManager.requireAuth()) return;
+        if (!(await authManager.requireAuth())) return;
 
         this.setupSearch();
         this.setupFilters();
@@ -298,8 +298,8 @@ class FindRideManager {
 // Initialize when page loads
 let findRideManager;
 if (window.location.pathname.includes('find-ride.html')) {
-    document.addEventListener('DOMContentLoaded', () => {
+    document.addEventListener('DOMContentLoaded', async () => {
         findRideManager = new FindRideManager();
-        findRideManager.init();
+        await findRideManager.init();
     });
 }

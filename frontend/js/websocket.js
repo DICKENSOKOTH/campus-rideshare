@@ -22,7 +22,7 @@ class WebSocketManager {
         }
 
         try {
-            const token = localStorage.getItem(STORAGE_KEYS.TOKEN);
+            const token = (typeof authManager !== 'undefined') ? authManager._accessToken : null;
             if (!token) {
                 console.warn('No auth token, skipping WebSocket connection');
                 return;
@@ -55,7 +55,7 @@ class WebSocketManager {
         // Send authentication
         this.sendMessage({
             type: 'auth',
-            token: localStorage.getItem(STORAGE_KEYS.TOKEN),
+            token: (typeof authManager !== 'undefined') ? authManager._accessToken : null,
         });
 
         // Start heartbeat

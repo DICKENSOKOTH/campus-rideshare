@@ -46,6 +46,7 @@ const API_ENDPOINTS = {
 // Local Storage Keys
 const STORAGE_KEYS = {
     TOKEN: 'campus_rideshare_token',
+    REFRESH_TOKEN: 'campus_rideshare_refresh_token',
     USER: 'campus_rideshare_user',
     THEME: 'campus_rideshare_theme',
     LOCATION: 'campus_rideshare_last_location',

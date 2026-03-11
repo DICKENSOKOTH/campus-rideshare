@@ -10,14 +10,14 @@ class RideDetailsManager {
     }
 
     async init() {
-        if (!authManager.requireAuth()) return;
+        if (!(await authManager.requireAuth())) return;
 
         const urlParams = new URLSearchParams(window.location.search);
         this.rideId = urlParams.get('id');
 
         if (!this.rideId) {
             showNotification('Invalid ride ID', 'error');
-            window.location.href = 'dashboard.html';
+            window.location.href = 'home.html';
             return;
         }
 
@@ -252,7 +252,7 @@ class RideDetailsManager {
                     <svg class="icon icon-3xl"><use href="assets/icons.svg#icon-alert-circle"></use></svg>
                     <h3>Something went wrong</h3>
                     <p>${this.escapeHtml(message)}</p>
-                    <a href="dashboard.html" class="btn btn-secondary">Back to Dashboard</a>
+                    <a href="home.html" class="btn btn-secondary">Back to Home</a>
                 </div>`;
         }
     }
@@ -266,9 +266,9 @@ class RideDetailsManager {
 
 let rideDetailsManager;
 if (window.location.pathname.includes('ride-details.html')) {
-    document.addEventListener('DOMContentLoaded', () => {
+    document.addEventListener('DOMContentLoaded', async () => {
         rideDetailsManager = new RideDetailsManager();
-        rideDetailsManager.init();
+        await rideDetailsManager.init();
     });
     window.addEventListener('beforeunload', () => {
         if (rideDetailsManager) rideDetailsManager.cleanup();

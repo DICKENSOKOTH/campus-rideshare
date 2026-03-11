@@ -8,7 +8,7 @@ class ProfileManager {
     }
 
     async init() {
-        if (!authManager.requireAuth()) return;
+        if (!(await authManager.requireAuth())) return;
         this.setupTabs();
         this.setupEditToggle();
         await this.loadProfile();
@@ -194,7 +194,10 @@ class ProfileManager {
             if (response.success) {
                 showNotification(SUCCESS_MESSAGES.PROFILE_UPDATED, 'success');
                 if (response.data) {
-                    authManager.saveAuthData(localStorage.getItem(STORAGE_KEYS.TOKEN), response.data);
+                    // Preserve current in-memory token when updating user data
+                    const token = (typeof authManager !== 'undefined') ? authManager._accessToken : null;
+                    const refresh = (typeof authManager !== 'undefined') ? authManager._refreshToken : null;
+                    authManager.saveAuthData(token, response.data, refresh);
                 }
                 await this.loadProfile();
                 if (this.isEditMode) this.toggleEditMode();
@@ -379,8 +382,8 @@ class ProfileManager {
 // Initialize
 let profileManager;
 if (window.location.pathname.includes('profile.html')) {
-    document.addEventListener('DOMContentLoaded', () => {
+    document.addEventListener('DOMContentLoaded', async () => {
         profileManager = new ProfileManager();
-        profileManager.init();
+        await profileManager.init();
     });
 }
