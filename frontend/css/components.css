@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700;800&family=DM+Sans:wght@300;400;500;600&display=swap');
+/* ✂️ REMOVED: duplicate @import (already in base.css) */
 
 /* ── Navigation ─────────────────────────────────────────────── */
 .navbar {
@@ -111,6 +111,36 @@
   transition: transform var(--duration-md) var(--ease);
 }
 
+/* ✅ NEW: Theme Toggle Button ───────────────────────────────── */
+.theme-toggle {
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-full);
+  background: rgba(255,255,255,0.12);
+  border: 1.5px solid rgba(255,255,255,0.20);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 1rem;
+  transition: all var(--duration) var(--ease);
+  flex-shrink: 0;
+  color: var(--white);
+}
+
+.theme-toggle:hover {
+  background: rgba(255,255,255,0.20);
+  border-color: var(--gold-light);
+  transform: rotate(20deg);
+}
+
+/* Icon shown per theme — JS toggles data-theme on <html> */
+.theme-toggle .icon-light { display: none; }
+.theme-toggle .icon-dark  { display: block; }
+
+[data-theme="dark"] .theme-toggle .icon-light { display: block; }
+[data-theme="dark"] .theme-toggle .icon-dark  { display: none; }
+
 @media (max-width: 768px) {
   .nav-toggle { display: flex; }
   .nav-links {
@@ -118,6 +148,7 @@
     position: absolute;
     top: var(--nav-h);
     left: 0; right: 0;
+    /* ✅ UPDATED: uses semantic token so dark mode works */
     background: var(--navy-mid);
     flex-direction: column;
     align-items: stretch;
@@ -162,13 +193,13 @@
 
 .btn-secondary {
   background: transparent;
-  color: var(--navy);
-  border-color: var(--navy);
+  color: var(--text-primary);
+  border-color: var(--border-color);
 }
 
 .btn-secondary:hover {
-  background: var(--navy);
-  color: var(--white);
+  background: var(--gray-100);
+  color: var(--navy);
 }
 
 .btn-ghost {
@@ -195,13 +226,15 @@
 
 /* ── Cards ──────────────────────────────────────────────────── */
 .card {
-  background: var(--white);
+  /* ✅ UPDATED: uses surface tokens for dark mode */
+  background: var(--surface-card);
   border-radius: var(--radius);
-  border: 1px solid var(--gray-200);
+  border: 1px solid var(--border-color);
   box-shadow: var(--shadow-sm);
   overflow: hidden;
   transition: box-shadow var(--duration-md) var(--ease),
-              transform var(--duration-md) var(--ease);
+              transform var(--duration-md) var(--ease),
+              background-color var(--duration-md) var(--ease);
 }
 
 .card:hover {
@@ -213,7 +246,7 @@
 
 .card-header {
   padding: var(--space-5) var(--space-6);
-  border-bottom: 1px solid var(--gray-100);
+  border-bottom: 1px solid var(--border-color);
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -222,14 +255,14 @@
 
 .card-footer {
   padding: var(--space-4) var(--space-6);
-  border-top: 1px solid var(--gray-100);
+  border-top: 1px solid var(--border-color);
   background: var(--gray-50);
 }
 
 .ride-card {
-  background: var(--white);
+  background: var(--surface-card);
   border-radius: var(--radius);
-  border: 1px solid var(--gray-200);
+  border: 1px solid var(--border-color);
   box-shadow: var(--shadow-sm);
   overflow: hidden;
   transition: all var(--duration-md) var(--ease);
@@ -252,7 +285,7 @@
 
 .ride-card-footer {
   padding: var(--space-4) var(--space-6);
-  border-top: 1px solid var(--gray-100);
+  border-top: 1px solid var(--border-color);
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -291,7 +324,7 @@
 .form-label {
   font-size: var(--text-sm);
   font-weight: 600;
-  color: var(--gray-700);
+  color: var(--text-primary);
 }
 
 .form-label .required { color: var(--danger); font-size: var(--text-xs); }
@@ -301,13 +334,15 @@
 .form-textarea {
   width: 100%;
   padding: 0.75rem var(--space-4);
-  border: 1.5px solid var(--gray-300);
+  border: 1.5px solid var(--border-color);
   border-radius: var(--radius-sm);
   font-size: var(--text-base);
-  color: var(--gray-800);
-  background: var(--white);
+  color: var(--text-primary);
+  /* ✅ UPDATED: uses surface token */
+  background: var(--surface-input);
   transition: border-color var(--duration) var(--ease),
-              box-shadow var(--duration) var(--ease);
+              box-shadow var(--duration) var(--ease),
+              background-color var(--duration-md) var(--ease);
   outline: none;
 }
 
@@ -331,7 +366,8 @@
   cursor: pointer;
 }
 
-.form-hint  { font-size: var(--text-xs); color: var(--gray-500); }
+.form-hint  { font-size: var(--text-xs); color: var(--text-muted-color); }
+/* ✅ FIX: form-error uses danger directly, not a faint gray */
 .form-error { font-size: var(--text-xs); color: var(--danger); }
 
 .input-wrapper { position: relative; }
@@ -341,7 +377,7 @@
   left: var(--space-4);
   top: 50%;
   transform: translateY(-50%);
-  color: var(--gray-400);
+  color: var(--text-faint);
   pointer-events: none;
 }
 
@@ -364,7 +400,7 @@
   margin-top: 2px;
 }
 
-.form-check-label { font-size: var(--text-sm); color: var(--gray-700); }
+.form-check-label { font-size: var(--text-sm); color: var(--text-secondary); }
 
 .form-row {
   display: grid;
@@ -394,6 +430,12 @@
 .badge-danger  { background: var(--danger-bg);      color: var(--danger); }
 .badge-gray    { background: var(--gray-100);        color: var(--gray-600); }
 .badge-info    { background: var(--info-bg);         color: var(--info); }
+
+/* ✅ NEW: Dark mode badge adjustments */
+[data-theme="dark"] .badge-navy {
+  background: rgba(255,255,255,0.10);
+  color: var(--gray-600);
+}
 
 /* ── Alerts ─────────────────────────────────────────────────── */
 .alert {
@@ -437,7 +479,7 @@
 /* ── Tabs ───────────────────────────────────────────────────── */
 .tabs {
   display: flex;
-  border-bottom: 2px solid var(--gray-200);
+  border-bottom: 2px solid var(--border-color);
   margin-bottom: var(--space-6);
 }
 
@@ -445,7 +487,7 @@
   padding: var(--space-3) var(--space-5);
   font-size: var(--text-sm);
   font-weight: 600;
-  color: var(--gray-500);
+  color: var(--text-muted-color);
   border-bottom: 2px solid transparent;
   margin-bottom: -2px;
   transition: all var(--duration) var(--ease);
@@ -453,8 +495,8 @@
   cursor: pointer;
 }
 
-.tab-btn:hover  { color: var(--navy); }
-.tab-btn.active { color: var(--navy); border-bottom-color: var(--gold); }
+.tab-btn:hover  { color: var(--text-primary); }
+.tab-btn.active { color: var(--text-primary); border-bottom-color: var(--gold); }
 
 /* ── Progress ───────────────────────────────────────────────── */
 .progress {
@@ -475,11 +517,11 @@
 .empty-state {
   text-align: center;
   padding: var(--space-16) var(--space-8);
-  color: var(--gray-500);
+  color: var(--text-muted-color);
 }
 
 .empty-state-icon { font-size: 3rem; margin-bottom: var(--space-4); opacity: 0.5; }
-.empty-state h3   { color: var(--gray-600); margin-bottom: var(--space-2); }
+.empty-state h3   { color: var(--text-secondary); margin-bottom: var(--space-2); }
 
 /* ── Skeleton ───────────────────────────────────────────────── */
 .skeleton {
@@ -502,7 +544,7 @@
 
 .toast {
   background: var(--gray-800);
-  color: var(--white);
+  color: var(--surface-page);
   padding: var(--space-4) var(--space-5);
   border-radius: var(--radius);
   box-shadow: var(--shadow-lg);
@@ -533,7 +575,7 @@
 }
 
 .modal {
-  background: var(--white);
+  background: var(--surface-card);
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow-lg);
   width: 100%;
@@ -545,7 +587,7 @@
 
 .modal-header {
   padding: var(--space-6);
-  border-bottom: 1px solid var(--gray-100);
+  border-bottom: 1px solid var(--border-color);
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -555,7 +597,7 @@
 
 .modal-footer {
   padding: var(--space-5) var(--space-6);
-  border-top: 1px solid var(--gray-100);
+  border-top: 1px solid var(--border-color);
   display: flex;
   justify-content: flex-end;
   gap: var(--space-3);
@@ -568,7 +610,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  color: var(--gray-500);
+  color: var(--text-muted-color);
   cursor: pointer;
   font-size: 1.25rem;
 }
@@ -581,7 +623,7 @@
   align-items: center;
   gap: var(--space-3);
   padding: var(--space-3) 0;
-  border-bottom: 1px solid var(--gray-100);
+  border-bottom: 1px solid var(--border-color);
 }
 
 .info-row:last-child { border-bottom: none; }
@@ -590,7 +632,7 @@
   width: 36px;
   height: 36px;
   border-radius: var(--radius-sm);
-  background: var(--cream);
+  background: var(--gray-50);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -598,8 +640,10 @@
   flex-shrink: 0;
 }
 
-.info-label { font-size: var(--text-xs); color: var(--gray-400); }
-.info-value { font-size: var(--text-sm); font-weight: 600; color: var(--gray-800); }
+/* ✅ FIX: info-label bumped from gray-400 to text-faint token
+   (readable in both light and dark) */
+.info-label { font-size: var(--text-xs); color: var(--text-faint); }
+.info-value { font-size: var(--text-sm); font-weight: 600; color: var(--text-primary); }
 
 /* ── Map ────────────────────────────────────────────────────── */
 .map-container {
@@ -609,7 +653,7 @@
   border-radius: var(--radius);
   overflow: hidden;
   position: relative;
-  border: 1px solid var(--gray-200);
+  border: 1px solid var(--border-color);
 }
 
 .map-placeholder {
@@ -620,7 +664,7 @@
   justify-content: center;
   flex-direction: column;
   gap: var(--space-3);
-  color: var(--gray-400);
+  color: var(--text-faint);
   font-size: var(--text-sm);
 }
 
@@ -631,7 +675,7 @@
   width: 40px;
   height: 40px;
   border-radius: var(--radius-sm);
-  border: 2px solid var(--gray-300);
+  border: 2px solid var(--border-color);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -639,8 +683,8 @@
   font-weight: 600;
   cursor: pointer;
   transition: all var(--duration) var(--ease);
-  background: var(--white);
-  color: var(--gray-600);
+  background: var(--surface-card);
+  color: var(--text-secondary);
 }
 
 .seat.available:hover,
@@ -653,7 +697,7 @@
 .seat.booked {
   background: var(--gray-100);
   border-color: var(--gray-200);
-  color: var(--gray-400);
+  color: var(--text-faint);
   cursor: not-allowed;
 }
 
@@ -722,8 +766,8 @@
   display: flex;
   gap: 5px;
   padding: var(--space-4) var(--space-5);
-  background: var(--white);
-  border: 1px solid var(--gray-200);
+  background: var(--surface-card);
+  border: 1px solid var(--border-color);
   border-radius: 4px var(--radius) var(--radius) var(--radius);
   width: fit-content;
   box-shadow: var(--shadow-sm);

@@ -13,7 +13,11 @@
   --gray-100:   #F1F3F5;
   --gray-200:   #E9ECEF;
   --gray-300:   #DEE2E6;
-  --gray-400:   #ADB5BD;
+
+  /* ✅ FIX: --gray-400 bumped from #ADB5BD to #868E96 for better contrast
+     on light backgrounds — affects dates, subtitles, meta text site-wide */
+  --gray-400:   #868E96;
+
   --gray-500:   #6C757D;
   --gray-600:   #495057;
   --gray-700:   #343A40;
@@ -64,8 +68,76 @@
   --duration-md: 300ms;
   --max-w: 1200px;
   --nav-h: 72px;
+
+  /* ✅ NEW: Semantic surface tokens used by components for theme-awareness */
+  --surface-page:    var(--cream);
+  --surface-card:    var(--white);
+  --surface-input:   var(--white);
+  --surface-sidebar: var(--white);
+  --border-color:    var(--gray-200);
+  --text-primary:    var(--gray-800);
+  --text-secondary:  var(--gray-600);
+  --text-muted-color: var(--gray-500);
+  --text-faint:      var(--gray-400);
 }
 
+/* ══════════════════════════════════════════════════════════════
+   ✅ NEW: DARK THEME
+   Applied when <html data-theme="dark"> is set by theme.js
+   Overrides only the color variables — all spacing, typography,
+   radius, and layout tokens remain unchanged.
+══════════════════════════════════════════════════════════════ */
+[data-theme="dark"] {
+  --navy:       #0B1A3B;
+  --navy-mid:   #0D1F47;
+  --navy-light: #1A2D5A;
+
+  --gold:       #D4A843;
+  --gold-light: #ECC05E;
+  --gold-pale:  #7A5A1E;
+
+  --cream:      #111827;
+  --white:      #1F2937;
+
+  --gray-50:    #1F2937;
+  --gray-100:   #273449;
+  --gray-200:   #2E3D55;
+  --gray-300:   #3D5070;
+  --gray-400:   #7A93B8;
+  --gray-500:   #9DB3CC;
+  --gray-600:   #B8CCE0;
+  --gray-700:   #D0DFF0;
+  --gray-800:   #EBF1F8;
+
+  --success:    #2ECC71;
+  --success-bg: #0D2B1A;
+  --warning:    #E0943A;
+  --warning-bg: #2B1A08;
+  --danger:     #E05252;
+  --danger-bg:  #2B0D0D;
+  --info:       #4A90D9;
+  --info-bg:    #0D1F3A;
+
+  --shadow-sm:  0 1px 3px rgba(0,0,0,0.30);
+  --shadow:     0 4px 16px rgba(0,0,0,0.40);
+  --shadow-md:  0 8px 28px rgba(0,0,0,0.50);
+  --shadow-lg:  0 20px 48px rgba(0,0,0,0.60);
+  --shadow-gold: 0 4px 20px rgba(201,151,58,0.20);
+
+  --surface-page:    #111827;
+  --surface-card:    #1F2937;
+  --surface-input:   #273449;
+  --surface-sidebar: #1A2535;
+  --border-color:    #2E3D55;
+  --text-primary:    #EBF1F8;
+  --text-secondary:  #B8CCE0;
+  --text-muted-color: #9DB3CC;
+  --text-faint:      #7A93B8;
+}
+
+/* ══════════════════════════════════════════════════════════════
+   BASE RESETS
+══════════════════════════════════════════════════════════════ */
 *, *::before, *::after {
   box-sizing: border-box;
   margin: 0;
@@ -75,15 +147,21 @@
 html {
   font-size: 16px;
   scroll-behavior: smooth;
+  /* ✅ NEW: Smooth theme transition on all elements */
+  transition: background-color var(--duration-md) var(--ease),
+              color var(--duration-md) var(--ease);
 }
 
 body {
   font-family: var(--font-body);
   font-size: var(--text-base);
   line-height: 1.6;
-  color: var(--gray-800);
-  background: var(--cream);
+  color: var(--text-primary);
+  background: var(--surface-page);
   -webkit-font-smoothing: antialiased;
+  /* ✅ NEW: Smooth theme transition on body */
+  transition: background-color var(--duration-md) var(--ease),
+              color var(--duration-md) var(--ease);
 }
 
 img, svg { display: block; max-width: 100%; }
@@ -98,11 +176,20 @@ h1, h2, h3, h4, h5 {
   color: var(--navy);
 }
 
+/* ✅ NEW: Headings adapt in dark mode */
+[data-theme="dark"] h1,
+[data-theme="dark"] h2,
+[data-theme="dark"] h3,
+[data-theme="dark"] h4,
+[data-theme="dark"] h5 {
+  color: var(--gray-800);
+}
+
 h1 { font-size: clamp(2rem, 5vw, var(--text-5xl)); font-weight: 800; }
 h2 { font-size: clamp(1.5rem, 3vw, var(--text-3xl)); font-weight: 700; }
 h3 { font-size: var(--text-xl); font-weight: 600; }
 h4 { font-size: var(--text-lg); font-weight: 600; }
-p  { color: var(--gray-600); line-height: 1.7; }
+p  { color: var(--text-secondary); line-height: 1.7; }
 
 .container {
   width: 100%;
@@ -147,8 +234,8 @@ p  { color: var(--gray-600); line-height: 1.7; }
 .mt-8    { margin-top: var(--space-8); }
 
 .bg-navy  { background: var(--navy); color: var(--white); }
-.bg-cream { background: var(--cream); }
-.bg-white { background: var(--white); }
+.bg-cream { background: var(--surface-page); }
+.bg-white { background: var(--surface-card); }
 
 .navy-texture {
   background:
@@ -158,7 +245,7 @@ p  { color: var(--gray-600); line-height: 1.7; }
 
 .divider {
   height: 1px;
-  background: var(--gray-200);
+  background: var(--border-color);
   border: none;
   margin-block: var(--space-6);
 }
@@ -203,7 +290,7 @@ p  { color: var(--gray-600); line-height: 1.7; }
 
 .text-navy   { color: var(--navy); }
 .text-gold   { color: var(--gold); }
-.text-muted  { color: var(--gray-500); }
+.text-muted  { color: var(--text-muted-color); }
 .text-sm     { font-size: var(--text-sm); }
 .text-xs     { font-size: var(--text-xs); }
 .text-center { text-align: center; }
