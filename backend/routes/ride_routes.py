@@ -1,3 +1,11 @@
+from backend.models.user import find_user_by_id
+
+def require_user_exists():
+    user_id = get_jwt_identity()
+    user = find_user_by_id(user_id)
+    if not user:
+        return error_response("User not found", 401)
+    return user
 """
 backend/routes/ride_routes.py
 -------------------------------
@@ -26,13 +34,17 @@ ride_bp = Blueprint("rides", __name__, url_prefix="/api/rides")
 @ride_bp.route("", methods=["POST"])
 @jwt_required()
 def create():
-    data = request.get_json()
-    errors = validate_ride(data)
-    if errors:
-        return error_response("Validation failed", 422, errors)
-    driver_id = get_jwt_identity()
-    ride = create_new_ride(driver_id, data)
-    return success_response(ride, "Ride created successfully", 201)
+    user = require_user_exists()
+    if isinstance(user, dict):
+        data = request.get_json()
+        errors = validate_ride(data)
+        if errors:
+            return error_response("Validation failed", 422, errors)
+        driver_id = user["id"]
+        ride = create_new_ride(driver_id, data)
+        return success_response(ride, "Ride created successfully", 201)
+    else:
+        return user
 
 @ride_bp.route("", methods=["GET"])
 def search():
@@ -51,16 +63,22 @@ def search():
 @ride_bp.route("/my", methods=["GET"])
 @jwt_required()
 def my_rides():
-    driver_id = get_jwt_identity()
-    rides = get_driver_rides(driver_id)
-    return success_response(rides)
+    user = require_user_exists()
+    if isinstance(user, dict):
+        rides = get_driver_rides(user["id"])
+        return success_response(rides)
+    else:
+        return user
 
 @ride_bp.route("/bookings", methods=["GET"])
 @jwt_required()
 def my_bookings():
-    user_id = get_jwt_identity()
-    bookings = get_user_bookings(user_id)
-    return success_response(bookings)
+    user = require_user_exists()
+    if isinstance(user, dict):
+        bookings = get_user_bookings(user["id"])
+        return success_response(bookings)
+    else:
+        return user
 
 @ride_bp.route("/<ride_id>", methods=["GET"])
 def get_ride(ride_id):
@@ -74,26 +92,35 @@ def get_ride(ride_id):
 @ride_bp.route("/<ride_id>", methods=["DELETE"])
 @jwt_required()
 def cancel(ride_id):
-    driver_id = get_jwt_identity()
-    success, err = cancel_ride(ride_id, driver_id)
-    if not success:
-        return error_response(err, 403)
-    return success_response(message="Ride cancelled successfully")
+    user = require_user_exists()
+    if isinstance(user, dict):
+        success, err = cancel_ride(ride_id, user["id"])
+        if not success:
+            return error_response(err, 403)
+        return success_response(message="Ride cancelled successfully")
+    else:
+        return user
 
 @ride_bp.route("/<ride_id>/book", methods=["POST"])
 @jwt_required()
 def book(ride_id):
-    passenger_id = get_jwt_identity()
-    data = request.get_json() or {}
-    booking, err = book_ride(ride_id, passenger_id, data)
-    if err:
-        return error_response(err, 400)
-    return success_response(booking, "Ride booked successfully!", 201)
+    user = require_user_exists()
+    if isinstance(user, dict):
+        data = request.get_json() or {}
+        booking, err = book_ride(ride_id, user["id"], data)
+        if err:
+            return error_response(err, 400)
+        return success_response(booking, "Ride booked successfully!", 201)
+    else:
+        return user
 
 @ride_bp.route("/booking/<booking_id>", methods=["DELETE"])
 @jwt_required()
 def cancel_my_booking(booking_id):
-    user_id = get_jwt_identity()
-    if cancel_booking(booking_id, user_id):
-        return success_response(message="Booking cancelled")
-    return error_response("Cannot cancel this booking", 403)
+    user = require_user_exists()
+    if isinstance(user, dict):
+        if cancel_booking(booking_id, user["id"]):
+            return success_response(message="Booking cancelled")
+        return error_response("Cannot cancel this booking", 403)
+    else:
+        return user

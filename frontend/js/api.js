@@ -4,11 +4,15 @@ class APIClient {
     constructor() {
         this.baseURL = API_CONFIG.BASE_URL;
         this.timeout = API_CONFIG.TIMEOUT;
+        this._refreshing = null; // shared promise for concurrent refresh attempts
+        this._redirecting = false;
+        this._refreshFailedUntil = 0; // cooldown when refresh repeatedly fails
     }
 
     // Get auth token from localStorage
     getToken() {
-        return localStorage.getItem(STORAGE_KEYS.TOKEN);
+        // Tokens are handled by httpOnly cookies; no client-side token access
+        return null;
     }
 
     // Build headers with auth token
@@ -17,12 +21,7 @@ class APIClient {
             'Content-Type': 'application/json',
         };
 
-        if (includeAuth) {
-            const token = this.getToken();
-            if (token) {
-                headers['Authorization'] = `Bearer ${token}`;
-            }
-        }
+        // Authorization header intentionally not used; cookies carry JWTs
 
         return headers;
     }
@@ -67,6 +66,8 @@ class APIClient {
             const timeoutId = setTimeout(() => controller.abort(), this.timeout);
 
             config.signal = controller.signal;
+            // Send cookies for auth (httpOnly cookies set by backend)
+            config.credentials = 'include';
 
             const response = await fetch(urlObj.toString(), config);
             clearTimeout(timeoutId);
@@ -89,19 +90,64 @@ class APIClient {
 
             if (error.status) {
                 // Error from server
-                if (error.status === 401) {
-                    // Unauthorized - clear token and redirect to login
-                    localStorage.removeItem(STORAGE_KEYS.TOKEN);
-                    localStorage.removeItem(STORAGE_KEYS.USER);
-                    if (window.location.pathname !== '/login.html' && window.location.pathname !== '/register.html') {
-                        window.location.href = '/login.html';
+                if (error.status === 401 && options.includeAuth !== false && !options._retried) {
+                    // Try to refresh the token (server uses httpOnly refresh cookie)
+                    const refreshed = await this._tryRefreshToken();
+                    if (refreshed) {
+                        // Retry the original request once
+                        return this.request(method, endpoint, { ...options, _retried: true });
                     }
+                    // Refresh failed — redirect to login
+                    this._forceLogout();
                 }
                 throw error;
             }
 
             // Network error
             throw { status: 0, message: ERROR_MESSAGES.NETWORK };
+        }
+    }
+
+    // Attempt to refresh the access token by calling the refresh endpoint.
+    // The server expects the refresh token in an httpOnly cookie.
+    async _tryRefreshToken() {
+        // If recent refresh attempts failed, avoid hammering the server
+        if (Date.now() < this._refreshFailedUntil) return false;
+
+        if (!this._refreshing) {
+            this._refreshing = (async () => {
+                try {
+                    const res = await fetch(this.baseURL + API_ENDPOINTS.REFRESH, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        credentials: 'include',
+                    });
+                    if (!res.ok) {
+                        // put a short cooldown (5s) on further refresh attempts
+                        this._refreshFailedUntil = Date.now() + 5000;
+                        return false;
+                    }
+                    const body = await res.json();
+                    return body.success === true;
+                } catch {
+                    this._refreshFailedUntil = Date.now() + 5000;
+                    return false;
+                } finally {
+                    this._refreshing = null;
+                }
+            })();
+        }
+        return this._refreshing;
+    }
+
+    // Clear auth data and redirect to login — guarded against multiple parallel calls
+    _forceLogout() {
+        try { if (typeof authManager !== 'undefined') authManager.clearAuthData(); } catch(_){}
+        if (this._redirecting) return;
+        const path = window.location.pathname;
+        if (!path.includes('login.html') && !path.includes('register.html') && !path.includes('index.html')) {
+            this._redirecting = true;
+            window.location.href = 'login.html';
         }
     }
 
@@ -130,23 +176,39 @@ class APIClient {
 // Create a singleton instance
 const api = new APIClient();
 
+// Debounce utility to prevent redundant API calls
+function debounce(func, wait) {
+    let timeout;
+    return function (...args) {
+        clearTimeout(timeout);
+        timeout = setTimeout(() => func.apply(this, args), wait);
+    };
+}
+
+// Centralized error handling for API responses
+async function handleAPIError(promise) {
+    try {
+        return await promise;
+    } catch (error) {
+        console.error('API Error:', error);
+        showNotification(error.message || 'An error occurred', 'error');
+        throw error; // Re-throw to allow further handling if needed
+    }
+}
+
 // API Service Methods - Organized by feature
 
 const AuthAPI = {
     async login(email, password) {
-        return api.post(API_ENDPOINTS.LOGIN, { email, password }, { includeAuth: false });
+        return handleAPIError(api.post(API_ENDPOINTS.LOGIN, { email, password }, { includeAuth: false }));
     },
 
     async register(userData) {
-        return api.post(API_ENDPOINTS.REGISTER, userData, { includeAuth: false });
+        return handleAPIError(api.post(API_ENDPOINTS.REGISTER, userData, { includeAuth: false }));
     },
 
-    async logout() {
-        return api.post(API_ENDPOINTS.LOGOUT);
-    },
-
-    async verifyToken() {
-        return api.get(API_ENDPOINTS.VERIFY_TOKEN);
+    async getMe() {
+        return handleAPIError(api.get(API_ENDPOINTS.ME));
     },
 };
 
@@ -159,20 +221,20 @@ const UserAPI = {
         return api.put(API_ENDPOINTS.UPDATE_PROFILE, userData);
     },
 
-    async updateLocation(location) {
-        return api.post(API_ENDPOINTS.UPDATE_LOCATION, location);
+    async getPublicProfile(userId) {
+        return api.get(API_ENDPOINTS.GET_PUBLIC_PROFILE, { params: { id: userId } });
     },
 
-    async getUserRides() {
-        return api.get(API_ENDPOINTS.GET_USER_RIDES);
+    async getMyRides() {
+        return api.get(API_ENDPOINTS.GET_MY_RIDES);
     },
 
-    async getUserBookings() {
-        return api.get(API_ENDPOINTS.GET_USER_BOOKINGS);
+    async getMyBookings() {
+        return api.get(API_ENDPOINTS.GET_MY_BOOKINGS);
     },
 
-    async getRatings(userId) {
-        return api.get(API_ENDPOINTS.GET_RATINGS, { params: { id: userId } });
+    async rateUser(bookingId, ratingData) {
+        return api.post(API_ENDPOINTS.RATE_USER, ratingData, { params: { id: bookingId } });
     },
 };
 
@@ -182,82 +244,60 @@ const RideAPI = {
     },
 
     async getRides(filters = {}) {
-        return api.get(API_ENDPOINTS.GET_RIDES, { queryParams: filters });
+        return handleAPIError(api.get(API_ENDPOINTS.GET_RIDES, { queryParams: filters }));
     },
 
     async getRide(rideId) {
         return api.get(API_ENDPOINTS.GET_RIDE, { params: { id: rideId } });
     },
 
-    async updateRide(rideId, rideData) {
-        return api.put(API_ENDPOINTS.UPDATE_RIDE, rideData, { params: { id: rideId } });
-    },
-
     async deleteRide(rideId) {
         return api.delete(API_ENDPOINTS.DELETE_RIDE, { params: { id: rideId } });
-    },
-
-    async searchRides(searchParams) {
-        return api.get(API_ENDPOINTS.SEARCH_RIDES, { queryParams: searchParams });
     },
 };
 
 const BookingAPI = {
-    async createBooking(rideId, bookingData) {
-        return api.post(API_ENDPOINTS.CREATE_BOOKING, bookingData, { params: { id: rideId } });
-    },
-
-    async updateBooking(bookingId, bookingData) {
-        return api.put(API_ENDPOINTS.UPDATE_BOOKING, bookingData, { params: { id: bookingId } });
+    async bookRide(rideId, data) {
+        return api.post(API_ENDPOINTS.BOOK_RIDE, data, { params: { id: rideId } });
     },
 
     async cancelBooking(bookingId) {
-        return api.post(API_ENDPOINTS.CANCEL_BOOKING, {}, { params: { id: bookingId } });
-    },
-
-    async acceptBooking(bookingId) {
-        return api.post(API_ENDPOINTS.ACCEPT_BOOKING, {}, { params: { id: bookingId } });
-    },
-
-    async rejectBooking(bookingId) {
-        return api.post(API_ENDPOINTS.REJECT_BOOKING, {}, { params: { id: bookingId } });
-    },
-};
-
-const RatingAPI = {
-    async createRating(rideId, ratingData) {
-        return api.post(API_ENDPOINTS.CREATE_RATING, ratingData, { params: { id: rideId } });
+        return api.delete(API_ENDPOINTS.CANCEL_BOOKING, { params: { id: bookingId } });
     },
 };
 
 const AIAPI = {
-    async chat(message, context = {}) {
-        return api.post(API_ENDPOINTS.AI_CHAT, { message, context });
+    async chat(message, history = []) {
+        return api.post(API_ENDPOINTS.AI_CHAT, { message, history });
     },
 
-    async getSuggestions(userContext) {
-        return api.post(API_ENDPOINTS.AI_SUGGESTIONS, userContext);
+    async getSuggestions() {
+        return api.get(API_ENDPOINTS.AI_SUGGESTIONS);
+    },
+
+    async getChatPageData() {
+        return api.get(API_ENDPOINTS.AI_CHAT);
     },
 };
 
 const AdminAPI = {
-    async getAllUsers(filters = {}) {
-        return api.get(API_ENDPOINTS.GET_ALL_USERS, { queryParams: filters });
-    },
-
-    async getAllRides(filters = {}) {
-        return api.get(API_ENDPOINTS.GET_ALL_RIDES, { queryParams: filters });
-    },
-
     async getStats() {
-        return api.get(API_ENDPOINTS.GET_STATS);
+        return api.get(API_ENDPOINTS.ADMIN_STATS);
     },
 
-    async moderateUser(userId, action, reason) {
-        return api.post(API_ENDPOINTS.MODERATE_USER, { action, reason }, { params: { id: userId } });
+    async getUsers(filters = {}) {
+        return api.get(API_ENDPOINTS.ADMIN_USERS, { queryParams: filters });
     },
 
-    async moderateRide(rideId, action, reason) {
-        return api.post(API_ENDPOINTS.MODERATE_RIDE, { action, reason }, { params: { id: rideId } });
+    async toggleUser(userId) {
+        return api.put(API_ENDPOINTS.ADMIN_TOGGLE_USER, {}, { params: { id: userId } });
+    },
+
+    async getActivity() {
+        return api.get(API_ENDPOINTS.ADMIN_ACTIVITY);
+    },
+
+    async getRides(filters = {}) {
+        return handleAPIError(api.get(API_ENDPOINTS.ADMIN_RIDES, { queryParams: filters }));
     },
 };

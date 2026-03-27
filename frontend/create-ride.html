@@ -3,27 +3,30 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Post a Ride — CampusRide</title>
+    <title>Post a Ride — Campus Rideshare</title>
     <link rel="stylesheet" href="css/base.css" />
     <link rel="stylesheet" href="css/components.css" />
     <link rel="stylesheet" href="css/pages.css" />
   </head>
   <body>
-    <!-- NAVBAR -->
     <nav class="navbar solid" id="navbar">
       <div class="container nav-inner">
         <a href="index.html" class="nav-logo">
-          <div class="nav-logo-icon">🚗</div>
+          <div class="nav-logo-icon">
+            <svg class="icon icon-md">
+              <use href="assets/icons.svg#icon-car"></use>
+            </svg>
+          </div>
           CampusRide
         </a>
         <div class="nav-links" id="navLinks">
-          <a href="dashboard.html" class="nav-link">Dashboard</a>
+          <a href="home.html" class="nav-link">Home</a>
           <a href="find-ride.html" class="nav-link">Find a Ride</a>
           <a href="create-ride.html" class="nav-link active">Post a Ride</a>
           <a href="ai-assistant.html" class="nav-link">AI Assistant</a>
         </div>
         <div class="nav-actions">
-          <a href="profile.html" class="nav-avatar">MJ</a>
+          <a href="profile.html" class="nav-avatar" id="navAvatar"></a>
           <button class="nav-toggle" id="navToggle">
             <span></span><span></span><span></span>
           </button>
@@ -31,135 +34,51 @@
       </div>
     </nav>
 
-    <div
-      style="
-        padding-top: var(--nav-h);
-        background: var(--gray-50);
-        min-height: 100vh;
-        padding-bottom: 80px;
-      "
-    >
-      <div class="container" style="max-width: 860px">
-        <!-- Page Header -->
-        <div
-          style="text-align: center; padding: var(--space-8) 0 var(--space-6)"
-        >
+    <div class="page-body">
+      <div class="container page-center">
+        <div class="page-header" style="text-align: center">
           <p class="section-eyebrow">Driver Portal</p>
-          <h1 style="font-family: var(--font-display); color: var(--navy)">
-            Post a New Ride
-          </h1>
-          <p style="color: var(--gray-500); margin-top: var(--space-2)">
+          <h1 class="page-title">Post a New Ride</h1>
+          <p class="page-subtitle">
             Fill in your trip details and let students book seats instantly.
           </p>
         </div>
 
-        <!-- Progress Steps -->
-        <div
-          style="
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin-bottom: var(--space-8);
-          "
-        >
-          <div style="display: flex; align-items: center; gap: var(--space-2)">
-            <div
-              style="
-                width: 32px;
-                height: 32px;
-                border-radius: 50%;
-                background: var(--gold);
-                color: var(--navy);
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                font-weight: 700;
-                font-size: 14px;
-              "
-            >
-              1
-            </div>
-            <span style="font-size: 14px; font-weight: 600; color: var(--navy)"
-              >Route</span
-            >
+        <div class="wizard-steps">
+          <div class="wizard-step">
+            <div class="wizard-step-circle active" id="step1circle">1</div>
+            <span class="wizard-step-label active" id="step1label">Route</span>
           </div>
-          <div
-            style="
-              width: 60px;
-              height: 2px;
-              background: var(--gray-200);
-              margin: 0 12px;
-            "
-          ></div>
-          <div style="display: flex; align-items: center; gap: var(--space-2)">
-            <div
-              id="step2circle"
-              style="
-                width: 32px;
-                height: 32px;
-                border-radius: 50%;
-                background: var(--gray-200);
-                color: var(--gray-500);
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                font-weight: 700;
-                font-size: 14px;
-              "
-            >
-              2
-            </div>
-            <span
-              id="step2label"
-              style="font-size: 14px; font-weight: 600; color: var(--gray-400)"
-              >Schedule</span
-            >
+          <div class="wizard-divider"></div>
+          <div class="wizard-step">
+            <div class="wizard-step-circle" id="step2circle">2</div>
+            <span class="wizard-step-label" id="step2label">Schedule</span>
           </div>
-          <div
-            style="
-              width: 60px;
-              height: 2px;
-              background: var(--gray-200);
-              margin: 0 12px;
-            "
-          ></div>
-          <div style="display: flex; align-items: center; gap: var(--space-2)">
-            <div
-              id="step3circle"
-              style="
-                width: 32px;
-                height: 32px;
-                border-radius: 50%;
-                background: var(--gray-200);
-                color: var(--gray-500);
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                font-weight: 700;
-                font-size: 14px;
-              "
-            >
-              3
-            </div>
-            <span
-              id="step3label"
-              style="font-size: 14px; font-weight: 600; color: var(--gray-400)"
-              >Details</span
-            >
+          <div class="wizard-divider"></div>
+          <div class="wizard-step">
+            <div class="wizard-step-circle" id="step3circle">3</div>
+            <span class="wizard-step-label" id="step3label">Details</span>
           </div>
         </div>
 
         <!-- STEP 1: Route -->
         <div class="form-card animate-fade-up" id="step1">
-          <p class="form-section-title">📍 Route Information</p>
-
+          <p class="form-section-title">
+            <svg class="icon icon-md">
+              <use href="assets/icons.svg#icon-map-pin"></use>
+            </svg>
+            Route Information
+          </p>
           <div class="form-row">
             <div class="form-group">
-              <label class="form-label" for="pickupLocation">
-                Pickup Location <span class="required">*</span>
-              </label>
+              <label class="form-label" for="pickupLocation"
+                >Pickup Location <span class="required">*</span></label
+              >
               <div class="input-wrapper">
-                <span class="input-icon">📍</span>
+                <span class="input-icon"
+                  ><svg class="icon icon-md">
+                    <use href="assets/icons.svg#icon-map-pin"></use></svg
+                ></span>
                 <input
                   type="text"
                   id="pickupLocation"
@@ -169,11 +88,14 @@
               </div>
             </div>
             <div class="form-group">
-              <label class="form-label" for="dropoffLocation">
-                Drop-off Location <span class="required">*</span>
-              </label>
+              <label class="form-label" for="dropoffLocation"
+                >Drop-off Location <span class="required">*</span></label
+              >
               <div class="input-wrapper">
-                <span class="input-icon">🏁</span>
+                <span class="input-icon"
+                  ><svg class="icon icon-md">
+                    <use href="assets/icons.svg#icon-flag"></use></svg
+                ></span>
                 <input
                   type="text"
                   id="dropoffLocation"
@@ -183,13 +105,15 @@
               </div>
             </div>
           </div>
-
           <div class="form-group">
             <label class="form-label" for="stopover"
               >Stopover / Waypoints</label
             >
             <div class="input-wrapper">
-              <span class="input-icon">📌</span>
+              <span class="input-icon"
+                ><svg class="icon icon-md">
+                  <use href="assets/icons.svg#icon-navigation"></use></svg
+              ></span>
               <input
                 type="text"
                 id="stopover"
@@ -201,66 +125,63 @@
               >Add any stops along the route where passengers can board</span
             >
           </div>
-
-          <!-- Map Placeholder -->
           <div class="form-group">
             <label class="form-label">Route Preview</label>
             <div class="map-container">
-              <div class="map-placeholder">
-                <div style="font-size: 2.5rem">🗺️</div>
-                <p style="font-weight: 600; color: var(--gray-600)">
-                  Map loads here
-                </p>
-                <p style="font-size: var(--text-xs)">
-                  Member 3 connects Google Maps API
-                </p>
+              <div class="map-placeholder" id="routeMap">
+                <svg class="icon icon-3xl">
+                  <use href="assets/icons.svg#icon-map"></use>
+                </svg>
+                <p>Map loads here</p>
               </div>
             </div>
           </div>
-
-          <div
-            style="
-              display: flex;
-              justify-content: flex-end;
-              margin-top: var(--space-4);
-            "
-          >
+          <div class="form-actions-end">
             <button class="btn btn-primary btn-lg" id="toStep2">
-              Next — Schedule →
+              Next &mdash; Schedule &rarr;
             </button>
           </div>
         </div>
 
         <!-- STEP 2: Schedule -->
-        <div class="form-card animate-fade-up" id="step2" style="display: none">
-          <p class="form-section-title">📅 Schedule & Seats</p>
-
+        <div class="form-card animate-fade-up hidden" id="step2">
+          <p class="form-section-title">
+            <svg class="icon icon-md">
+              <use href="assets/icons.svg#icon-calendar"></use>
+            </svg>
+            Schedule &amp; Seats
+          </p>
           <div class="form-row">
             <div class="form-group">
-              <label class="form-label" for="departureDate">
-                Departure Date <span class="required">*</span>
-              </label>
+              <label class="form-label" for="departureDate"
+                >Departure Date <span class="required">*</span></label
+              >
               <div class="input-wrapper">
-                <span class="input-icon">📅</span>
+                <span class="input-icon"
+                  ><svg class="icon icon-md">
+                    <use href="assets/icons.svg#icon-calendar"></use></svg
+                ></span>
                 <input type="date" id="departureDate" class="form-input" />
               </div>
             </div>
             <div class="form-group">
-              <label class="form-label" for="departureTime">
-                Departure Time <span class="required">*</span>
-              </label>
+              <label class="form-label" for="departureTime"
+                >Departure Time <span class="required">*</span></label
+              >
               <div class="input-wrapper">
-                <span class="input-icon">🕐</span>
+                <span class="input-icon"
+                  ><svg class="icon icon-md">
+                    <use href="assets/icons.svg#icon-clock"></use></svg
+                ></span>
                 <input type="time" id="departureTime" class="form-input" />
               </div>
             </div>
           </div>
-
           <div class="form-row">
             <div class="form-group">
-              <label class="form-label" for="availableSeats">
-                Available Seats <span class="required">*</span>
-              </label>
+              <label class="form-label" for="availableSeats"
+                >Available Seats <span class="required">*</span></label
+              >
               <select id="availableSeats" class="form-select">
                 <option value="">Select seats</option>
                 <option value="1">1 seat</option>
@@ -279,72 +200,53 @@
               </select>
             </div>
           </div>
-
-          <!-- Seat Visual -->
           <div class="form-group">
             <label class="form-label">Seat Layout Preview</label>
-            <div
-              style="
-                background: var(--gray-50);
-                border: 1px solid var(--gray-200);
-                border-radius: var(--radius);
-                padding: var(--space-6);
-                text-align: center;
-              "
-            >
-              <div
-                style="
-                  font-size: var(--text-xs);
-                  color: var(--gray-400);
-                  margin-bottom: var(--space-4);
-                "
-              >
-                🚗 Driver seat (you)
+            <div class="seat-preview">
+              <div class="seat-preview-label">
+                <svg class="icon icon-sm">
+                  <use href="assets/icons.svg#icon-car"></use>
+                </svg>
+                Driver seat (you)
               </div>
-              <div class="seat-grid" style="justify-content: center">
+              <div class="seat-grid" id="seatGrid">
                 <div class="seat selected">A1</div>
                 <div class="seat selected">A2</div>
                 <div class="seat selected">B1</div>
                 <div class="seat selected">B2</div>
                 <div class="seat selected">B3</div>
               </div>
-              <p
-                style="
-                  font-size: var(--text-xs);
-                  color: var(--gray-400);
-                  margin-top: var(--space-3);
-                "
-              >
-                Gold = available for booking
-              </p>
+              <div class="seat-preview-hint">Gold = available for booking</div>
             </div>
           </div>
-
-          <div
-            style="
-              display: flex;
-              justify-content: space-between;
-              margin-top: var(--space-4);
-            "
-          >
-            <button class="btn btn-secondary" id="backToStep1">← Back</button>
+          <div class="form-actions">
+            <button class="btn btn-secondary" id="backToStep1">
+              &larr; Back
+            </button>
             <button class="btn btn-primary btn-lg" id="toStep3">
-              Next — Pricing →
+              Next &mdash; Pricing &rarr;
             </button>
           </div>
         </div>
 
         <!-- STEP 3: Pricing & Details -->
-        <div class="form-card animate-fade-up" id="step3" style="display: none">
-          <p class="form-section-title">💰 Pricing & Details</p>
-
+        <div class="form-card animate-fade-up hidden" id="step3">
+          <p class="form-section-title">
+            <svg class="icon icon-md">
+              <use href="assets/icons.svg#icon-dollar"></use>
+            </svg>
+            Pricing &amp; Details
+          </p>
           <div class="form-row">
             <div class="form-group">
-              <label class="form-label" for="pricePerSeat">
-                Price Per Seat (KSh) <span class="required">*</span>
-              </label>
+              <label class="form-label" for="pricePerSeat"
+                >Price Per Seat (KSh) <span class="required">*</span></label
+              >
               <div class="input-wrapper">
-                <span class="input-icon">💰</span>
+                <span class="input-icon"
+                  ><svg class="icon icon-md">
+                    <use href="assets/icons.svg#icon-dollar"></use></svg
+                ></span>
                 <input
                   type="number"
                   id="pricePerSeat"
@@ -355,32 +257,26 @@
                 />
               </div>
               <span class="form-hint"
-                >Suggested: KSh 200–600 for campus routes</span
+                >Suggested: KSh 200-600 for campus routes</span
               >
             </div>
             <div class="form-group">
               <label class="form-label">Estimated Earnings</label>
               <div class="price-display">
                 <div class="price-large" id="earningsDisplay">KSh 0</div>
-                <div
-                  style="
-                    font-size: var(--text-xs);
-                    color: rgba(255, 255, 255, 0.6);
-                    margin-top: var(--space-2);
-                  "
-                >
-                  if all seats filled
-                </div>
+                <div class="price-hint">if all seats filled</div>
               </div>
             </div>
           </div>
-
           <div class="form-group">
             <label class="form-label" for="vehicleInfo"
               >Vehicle Information</label
             >
             <div class="input-wrapper">
-              <span class="input-icon">🚗</span>
+              <span class="input-icon"
+                ><svg class="icon icon-md">
+                  <use href="assets/icons.svg#icon-car"></use></svg
+              ></span>
               <input
                 type="text"
                 id="vehicleInfo"
@@ -389,7 +285,6 @@
               />
             </div>
           </div>
-
           <div class="form-group">
             <label class="form-label" for="rideNotes">Additional Notes</label>
             <textarea
@@ -398,49 +293,62 @@
               placeholder="e.g. No eating in the car. Music allowed. Luggage space available."
             ></textarea>
           </div>
-
           <div class="form-group">
             <label class="form-label">Ride Preferences</label>
-            <div
-              style="display: flex; flex-direction: column; gap: var(--space-3)"
-            >
+            <div class="form-check-group">
               <label class="form-check">
                 <input type="checkbox" checked />
-                <span class="form-check-label">🎵 Music allowed</span>
+                <span class="form-check-label">
+                  <svg class="icon icon-sm">
+                    <use href="assets/icons.svg#icon-activity"></use>
+                  </svg>
+                  Music allowed
+                </span>
               </label>
               <label class="form-check">
                 <input type="checkbox" />
-                <span class="form-check-label">🧳 Extra luggage space</span>
+                <span class="form-check-label">
+                  <svg class="icon icon-sm">
+                    <use href="assets/icons.svg#icon-bookmark"></use>
+                  </svg>
+                  Extra luggage space
+                </span>
               </label>
               <label class="form-check">
                 <input type="checkbox" checked />
-                <span class="form-check-label"
-                  >💬 Chat with passengers before confirming</span
-                >
+                <span class="form-check-label">
+                  <svg class="icon icon-sm">
+                    <use href="assets/icons.svg#icon-chat"></use>
+                  </svg>
+                  Chat with passengers before confirming
+                </span>
               </label>
               <label class="form-check">
                 <input type="checkbox" />
-                <span class="form-check-label">🐾 Pets allowed</span>
+                <span class="form-check-label">
+                  <svg class="icon icon-sm">
+                    <use href="assets/icons.svg#icon-leaf"></use>
+                  </svg>
+                  Pets allowed
+                </span>
               </label>
             </div>
           </div>
 
-          <!-- Summary -->
-          <div
-            style="
-              background: var(--cream);
-              border: 1px solid var(--gray-200);
-              border-radius: var(--radius);
-              padding: var(--space-6);
-              margin-top: var(--space-4);
-            "
-          >
-            <p class="form-section-title" style="margin-bottom: var(--space-4)">
-              📋 Ride Summary
+          <div class="ride-summary">
+            <p class="form-section-title">
+              <svg class="icon icon-md">
+                <use href="assets/icons.svg#icon-clipboard"></use>
+              </svg>
+              Ride Summary
             </p>
-            <div class="grid-2" style="gap: var(--space-4)">
-              <div class="info-row" style="padding: var(--space-2) 0">
-                <div class="info-icon">📍</div>
+            <div class="grid-2">
+              <div class="info-row">
+                <div class="info-icon">
+                  <svg class="icon icon-md">
+                    <use href="assets/icons.svg#icon-map-pin"></use>
+                  </svg>
+                </div>
                 <div>
                   <div class="info-label">Route</div>
                   <div class="info-value" id="summaryRoute">
@@ -448,113 +356,64 @@
                   </div>
                 </div>
               </div>
-              <div class="info-row" style="padding: var(--space-2) 0">
-                <div class="info-icon">📅</div>
+              <div class="info-row">
+                <div class="info-icon">
+                  <svg class="icon icon-md">
+                    <use href="assets/icons.svg#icon-calendar"></use>
+                  </svg>
+                </div>
                 <div>
-                  <div class="info-label">Date & Time</div>
+                  <div class="info-label">Date &amp; Time</div>
                   <div class="info-value" id="summaryDateTime">
                     Fill in schedule above
                   </div>
                 </div>
               </div>
-              <div class="info-row" style="padding: var(--space-2) 0">
-                <div class="info-icon">💺</div>
+              <div class="info-row">
+                <div class="info-icon">
+                  <svg class="icon icon-md">
+                    <use href="assets/icons.svg#icon-users"></use>
+                  </svg>
+                </div>
                 <div>
                   <div class="info-label">Available Seats</div>
-                  <div class="info-value" id="summarySeats">—</div>
+                  <div class="info-value" id="summarySeats">&mdash;</div>
                 </div>
               </div>
-              <div class="info-row" style="padding: var(--space-2) 0">
-                <div class="info-icon">💰</div>
+              <div class="info-row">
+                <div class="info-icon">
+                  <svg class="icon icon-md">
+                    <use href="assets/icons.svg#icon-dollar"></use>
+                  </svg>
+                </div>
                 <div>
                   <div class="info-label">Price Per Seat</div>
-                  <div class="info-value" id="summaryPrice">—</div>
+                  <div class="info-value" id="summaryPrice">&mdash;</div>
                 </div>
               </div>
             </div>
           </div>
 
-          <div
-            style="
-              display: flex;
-              justify-content: space-between;
-              margin-top: var(--space-6);
-            "
-          >
-            <button class="btn btn-secondary" id="backToStep2">← Back</button>
+          <div class="form-actions">
+            <button class="btn btn-secondary" id="backToStep2">
+              &larr; Back
+            </button>
             <button class="btn btn-primary btn-lg" id="submitRide">
-              🚗 Post My Ride
+              <svg class="icon icon-md">
+                <use href="assets/icons.svg#icon-car"></use>
+              </svg>
+              Post My Ride
             </button>
           </div>
         </div>
       </div>
     </div>
 
-    <script>
-      // Mobile nav
-      document.getElementById("navToggle").addEventListener("click", () => {
-        document.getElementById("navLinks").classList.toggle("open");
-      });
-
-      // Step 1 → 2
-      document.getElementById("toStep2").addEventListener("click", () => {
-        document.getElementById("step1").style.display = "none";
-        document.getElementById("step2").style.display = "block";
-        document.getElementById("step2circle").style.background = "var(--gold)";
-        document.getElementById("step2circle").style.color = "var(--navy)";
-        document.getElementById("step2label").style.color = "var(--navy)";
-      });
-
-      // Step 2 → 3
-      document.getElementById("toStep3").addEventListener("click", () => {
-        document.getElementById("step2").style.display = "none";
-        document.getElementById("step3").style.display = "block";
-        document.getElementById("step3circle").style.background = "var(--gold)";
-        document.getElementById("step3circle").style.color = "var(--navy)";
-        document.getElementById("step3label").style.color = "var(--navy)";
-        // Fill summary from previous steps
-        const from =
-          document.getElementById("pickupLocation").value || "Not set";
-        const to =
-          document.getElementById("dropoffLocation").value || "Not set";
-        const date =
-          document.getElementById("departureDate").value || "Not set";
-        const time =
-          document.getElementById("departureTime").value || "Not set";
-        const seats = document.getElementById("availableSeats").value || "—";
-        document.getElementById("summaryRoute").textContent = from + " → " + to;
-        document.getElementById("summaryDateTime").textContent =
-          date + " · " + time;
-        document.getElementById("summarySeats").textContent = seats + " seats";
-      });
-
-      // Back buttons
-      document.getElementById("backToStep1").addEventListener("click", () => {
-        document.getElementById("step2").style.display = "none";
-        document.getElementById("step1").style.display = "block";
-      });
-      document.getElementById("backToStep2").addEventListener("click", () => {
-        document.getElementById("step3").style.display = "none";
-        document.getElementById("step2").style.display = "block";
-      });
-
-      // Live earnings calculator
-      document
-        .getElementById("pricePerSeat")
-        .addEventListener("input", function () {
-          const price = Number(this.value) || 0;
-          const seats =
-            Number(document.getElementById("availableSeats").value) || 0;
-          document.getElementById("earningsDisplay").textContent =
-            "KSh " + (price * seats).toLocaleString();
-          document.getElementById("summaryPrice").textContent =
-            "KSh " + price.toLocaleString();
-        });
-
-      // Submit — Member 3 handles this
-      document.getElementById("submitRide").addEventListener("click", () => {
-        console.log("Submit ride — rides.js will handle this");
-      });
-    </script>
+    <script src="js/config.js"></script>
+    <script src="js/api.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/app.js"></script>
+    <script src="js/createRide.js"></script>
   </body>
 </html>
+>

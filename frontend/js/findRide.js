@@ -9,112 +9,114 @@ class FindRideManager {
             destination: '',
             date: '',
             minSeats: 1,
-            maxPrice: APP_CONSTANTS.MAX_PRICE,
+            maxPrice: 2000,
         };
     }
 
     async init() {
-        // Require authentication
-        if (!authManager.requireAuth()) {
-            return;
-        }
+        if (!(await authManager.requireAuth())) return;
 
-        this.setupSearchForm();
+        this.setupSearch();
         this.setupFilters();
         await this.loadRides();
     }
 
-    setupSearchForm() {
-        const searchForm = document.getElementById('searchForm');
-        if (!searchForm) return;
+    /* ---- Search ---- */
 
-        searchForm.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            await this.handleSearch();
-        });
+    setupSearch() {
+        const searchBtn = document.getElementById('searchBtn');
+        if (searchBtn) {
+            searchBtn.addEventListener('click', () => this.handleSearch());
+        }
 
-        // Set minimum date to today
-        const dateInput = searchForm.elements['date'];
+        const dateInput = document.getElementById('searchDate');
         if (dateInput) {
-            const today = new Date().toISOString().split('T')[0];
-            dateInput.setAttribute('min', today);
+            dateInput.setAttribute('min', new Date().toISOString().split('T')[0]);
         }
     }
+
+    /* ---- Filters ---- */
 
     setupFilters() {
-        // Price filter
-        const priceFilter = document.getElementById('maxPriceFilter');
-        const priceDisplay = document.getElementById('priceDisplay');
-        if (priceFilter) {
-            priceFilter.addEventListener('input', (e) => {
-                this.filters.maxPrice = parseFloat(e.target.value);
-                if (priceDisplay) priceDisplay.textContent = `$${this.filters.maxPrice}`;
-                this.applyFilters();
+        const priceRange = document.getElementById('priceRange');
+        const priceValue = document.getElementById('priceValue');
+        if (priceRange) {
+            priceRange.addEventListener('input', () => {
+                this.filters.maxPrice = Number(priceRange.value);
+                if (priceValue) priceValue.textContent = 'KSh ' + Number(priceRange.value).toLocaleString();
             });
         }
 
-        // Seats filter
-        const seatsFilter = document.getElementById('minSeatsFilter');
+        const seatsFilter = document.getElementById('seatsFilter');
         if (seatsFilter) {
-            seatsFilter.addEventListener('change', (e) => {
-                this.filters.minSeats = parseInt(e.target.value);
-                this.applyFilters();
+            seatsFilter.addEventListener('change', () => {
+                this.filters.minSeats = Number(seatsFilter.value) || 0;
             });
         }
 
-        // Sort options
-        const sortSelect = document.getElementById('sortBy');
-        if (sortSelect) {
-            sortSelect.addEventListener('change', () => {
-                this.applyFilters();
-            });
+        const sortBy = document.getElementById('sortBy');
+        if (sortBy) {
+            sortBy.addEventListener('change', () => this.applyFilters());
+        }
+
+        const applyBtn = document.getElementById('applyFilters');
+        if (applyBtn) {
+            applyBtn.addEventListener('click', () => this.applyFilters());
+        }
+
+        const clearBtn = document.getElementById('clearFilters');
+        if (clearBtn) {
+            clearBtn.addEventListener('click', () => this.clearFilters());
         }
     }
+
+    clearFilters() {
+        this.filters.maxPrice = 2000;
+        this.filters.minSeats = 0;
+        const priceRange = document.getElementById('priceRange');
+        const priceValue = document.getElementById('priceValue');
+        if (priceRange) priceRange.value = 2000;
+        if (priceValue) priceValue.textContent = 'KSh 2,000';
+        const seatsFilter = document.getElementById('seatsFilter');
+        if (seatsFilter) seatsFilter.value = '0';
+        this.applyFilters();
+    }
+
+    /* ---- Load & Search ---- */
 
     async loadRides() {
         this.showLoading();
-
         try {
-            const response = await RideAPI.getRides({ status: 'active' });
-            
+            const response = await RideAPI.getRides();
             if (response.success && response.data) {
                 this.rides = response.data;
-                this.filteredRides = [...this.rides];
-                this.renderRides();
+                this.applyFilters();
             } else {
-                this.showError('Failed to load rides');
+                this.showEmpty('No rides available right now.');
             }
         } catch (error) {
             console.error('Failed to load rides:', error);
             this.showError(error.message || ERROR_MESSAGES.SERVER);
-        } finally {
-            this.hideLoading();
         }
     }
 
     async handleSearch() {
-        const form = document.getElementById('searchForm');
-        const formData = new FormData(form);
+        const origin = document.getElementById('searchFrom')?.value.trim();
+        const destination = document.getElementById('searchTo')?.value.trim();
+        const date = document.getElementById('searchDate')?.value;
 
-        const searchParams = {
-            origin: formData.get('origin')?.trim(),
-            destination: formData.get('destination')?.trim(),
-            date: formData.get('date'),
-        };
-
-        // Update filters
-        Object.assign(this.filters, searchParams);
+        const searchParams = {};
+        if (origin) searchParams.origin = origin;
+        if (destination) searchParams.destination = destination;
+        if (date) searchParams.date = date;
 
         this.showLoading();
-
         try {
-            const response = await RideAPI.searchRides(searchParams);
-            
+            const response = await RideAPI.getRides(searchParams);
             if (response.success && response.data) {
                 this.rides = response.data;
                 this.applyFilters();
             } else {
-                showNotification('No rides found', 'info');
                 this.rides = [];
                 this.filteredRides = [];
                 this.renderRides();
@@ -122,32 +124,24 @@ class FindRideManager {
         } catch (error) {
             console.error('Search failed:', error);
             showNotification(error.message || 'Search failed', 'error');
-        } finally {
-            this.hideLoading();
         }
     }
+
+    /* ---- Filter + Sort ---- */
 
     applyFilters() {
         let filtered = [...this.rides];
 
-        // Apply price filter
-        filtered = filtered.filter(ride => ride.price_per_seat <= this.filters.maxPrice);
+        filtered = filtered.filter(r => r.price_per_seat <= this.filters.maxPrice);
+        filtered = filtered.filter(r => (r.seats_left || r.seats_remaining || 0) >= this.filters.minSeats);
 
-        // Apply seats filter
-        filtered = filtered.filter(ride => ride.available_seats >= this.filters.minSeats);
-
-        // Apply sorting
         const sortBy = document.getElementById('sortBy')?.value || 'time';
-        
         switch (sortBy) {
-            case 'price-low':
+            case 'price':
                 filtered.sort((a, b) => a.price_per_seat - b.price_per_seat);
                 break;
-            case 'price-high':
-                filtered.sort((a, b) => b.price_per_seat - a.price_per_seat);
-                break;
-            case 'seats':
-                filtered.sort((a, b) => b.available_seats - a.available_seats);
+            case 'rating':
+                filtered.sort((a, b) => (b.driver_rating || 0) - (a.driver_rating || 0));
                 break;
             case 'time':
             default:
@@ -159,165 +153,153 @@ class FindRideManager {
         this.renderRides();
     }
 
+    /* ---- Render ---- */
+
     renderRides() {
-        const container = document.getElementById('ridesContainer');
-        const countDisplay = document.getElementById('ridesCount');
+        const grid = document.getElementById('ridesGrid');
+        const countEl = document.getElementById('ridesCount');
+        if (!grid) return;
 
-        if (!container) return;
-
-        // Update count
-        if (countDisplay) {
-            countDisplay.textContent = `${this.filteredRides.length} ride(s) found`;
+        if (countEl) {
+            countEl.innerHTML = this.filteredRides.length
+                ? `Showing <strong>${this.filteredRides.length} ride${this.filteredRides.length > 1 ? 's' : ''}</strong> available`
+                : 'No rides found';
         }
 
         if (this.filteredRides.length === 0) {
-            container.innerHTML = `
+            grid.innerHTML = `
                 <div class="empty-state">
-                    <i class="icon-search"></i>
+                    <svg class="icon icon-3xl"><use href="assets/icons.svg#icon-search"></use></svg>
                     <h3>No rides found</h3>
-                    <p>Try adjusting your search criteria or check back later</p>
-                </div>
-            `;
+                    <p>Try adjusting your search criteria or check back later.</p>
+                </div>`;
             return;
         }
 
-        container.innerHTML = this.filteredRides.map(ride => `
+        grid.innerHTML = this.filteredRides.map(ride => this.buildRideCard(ride)).join('');
+    }
+
+    buildRideCard(ride) {
+        const seatsLeft = ride.seats_left || ride.seats_remaining || 0;
+        const badgeClass = seatsLeft <= 1 ? 'badge-danger' : 'badge-gold';
+        const initials = this.getInitials(ride.driver_name || 'DR');
+        const dt = this.formatDateTime(ride.departure_time);
+
+        return `
             <div class="ride-card" data-ride-id="${ride.id}">
-                <div class="ride-header">
-                    <div class="ride-route">
-                        <h3>${ride.origin}</h3>
-                        <i class="icon-arrow-right"></i>
-                        <h3>${ride.destination}</h3>
+                <div class="ride-card-header">
+                    <div class="route-display">
+                        <span class="route-label">${this.escapeHtml(ride.origin)}</span>
+                        <div class="route-line"></div>
+                        <span class="route-label">${this.escapeHtml(ride.destination)}</span>
                     </div>
-                    <div class="ride-price-badge">
-                        $${ride.price_per_seat}/seat
+                    <div class="ride-card-header-meta">
+                        <span class="ride-card-date">
+                            <svg class="icon icon-sm"><use href="assets/icons.svg#icon-calendar"></use></svg>
+                            ${dt}
+                        </span>
+                        <span class="badge ${badgeClass}">${seatsLeft} seat${seatsLeft !== 1 ? 's' : ''} left</span>
                     </div>
                 </div>
-                
-                <div class="ride-info">
-                    <div class="info-item">
-                        <i class="icon-clock"></i>
-                        <span>${this.formatDateTime(ride.departure_time)}</span>
-                    </div>
-                    <div class="info-item">
-                        <i class="icon-users"></i>
-                        <span>${ride.available_seats} seat(s) available</span>
-                    </div>
-                    <div class="info-item">
-                        <i class="icon-user"></i>
-                        <span>Driver: ${ride.driver_name}</span>
-                    </div>
-                    ${ride.driver_rating ? `
-                        <div class="info-item">
-                            <i class="icon-star"></i>
-                            <span>${ride.driver_rating.toFixed(1)}</span>
+                <div class="ride-card-body">
+                    <div class="ride-card-driver">
+                        <div class="avatar avatar-md">${initials}</div>
+                        <div class="ride-card-driver-name">
+                            <strong>${this.escapeHtml(ride.driver_name || 'Driver')}</strong>
+                            ${ride.driver_rating ? `<span class="stars">${this.renderStars(ride.driver_rating)}</span>` : ''}
                         </div>
-                    ` : ''}
-                </div>
-
-                ${ride.description ? `
-                    <div class="ride-description">
-                        <p>${ride.description}</p>
                     </div>
-                ` : ''}
-
-                <div class="ride-actions">
-                    <button class="btn btn-primary" onclick="findRideManager.bookRide('${ride.id}')">
-                        Book Now
-                    </button>
-                    <button class="btn btn-secondary" onclick="findRideManager.viewDetails('${ride.id}')">
-                        View Details
-                    </button>
+                    <div class="ride-card-info">
+                        <span class="ride-card-info-item">
+                            <svg class="icon icon-sm"><use href="assets/icons.svg#icon-clock"></use></svg>
+                            ${this.formatTime(ride.departure_time)}
+                        </span>
+                        <span class="ride-card-info-item">
+                            <svg class="icon icon-sm"><use href="assets/icons.svg#icon-car"></use></svg>
+                            ${this.escapeHtml(ride.vehicle || '')}
+                        </span>
+                    </div>
+                    <div class="ride-card-price">
+                        <span class="price-large-text">KSh ${Number(ride.price_per_seat).toLocaleString()}</span>
+                        <span class="price-hint">per seat</span>
+                    </div>
                 </div>
-            </div>
-        `).join('');
+                <div class="ride-card-footer">
+                    <a href="ride-details.html?id=${ride.id}" class="btn btn-primary btn-sm btn-block">View &amp; Book</a>
+                </div>
+            </div>`;
     }
 
-    viewDetails(rideId) {
-        window.location.href = `/ride-details.html?id=${rideId}`;
+    /* ---- Helpers ---- */
+
+    getInitials(name) {
+        return name.split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2);
     }
 
-    async bookRide(rideId) {
-        // Open booking modal or redirect
-        const seatsInput = prompt('How many seats do you need?', '1');
-        
-        if (!seatsInput) return;
-        
-        const seats = parseInt(seatsInput);
-        const ride = this.filteredRides.find(r => r.id === rideId);
+    renderStars(rating) {
+        const full = Math.floor(rating);
+        const half = rating - full >= 0.5 ? 1 : 0;
+        return '\u2605'.repeat(full) + (half ? '\u2606' : '') + ` <small>${rating.toFixed(1)}</small>`;
+    }
 
-        if (!ride) {
-            showNotification('Ride not found', 'error');
-            return;
-        }
-
-        if (seats < 1 || seats > ride.available_seats) {
-            showNotification(`Please enter between 1 and ${ride.available_seats} seats`, 'error');
-            return;
-        }
-
-        try {
-            const response = await BookingAPI.createBooking(rideId, { seats });
-            
-            if (response.success) {
-                showNotification(SUCCESS_MESSAGES.BOOKING_CREATED, 'success');
-                
-                // Redirect to ride details
-                setTimeout(() => {
-                    window.location.href = `/ride-details.html?id=${rideId}`;
-                }, 1500);
-            } else {
-                showNotification(response.message || 'Booking failed', 'error');
-            }
-        } catch (error) {
-            console.error('Booking failed:', error);
-            showNotification(error.message || 'Booking failed', 'error');
-        }
+    escapeHtml(str) {
+        const d = document.createElement('div');
+        d.textContent = str;
+        return d.innerHTML;
     }
 
     formatDateTime(dateTimeStr) {
         const date = new Date(dateTimeStr);
-        const options = {
-            weekday: 'short',
-            month: 'short',
-            day: 'numeric',
-            hour: '2-digit',
-            minute: '2-digit',
-        };
-        return date.toLocaleString('en-US', options);
+        return date.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+    }
+
+    formatTime(dateTimeStr) {
+        const date = new Date(dateTimeStr);
+        return date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
     }
 
     showLoading() {
-        const loadingEl = document.getElementById('loadingIndicator');
-        if (loadingEl) loadingEl.style.display = 'block';
+        const grid = document.getElementById('ridesGrid');
+        if (grid) {
+            grid.innerHTML = `
+                <div class="empty-state">
+                    <svg class="icon icon-3xl spin"><use href="assets/icons.svg#icon-loader"></use></svg>
+                    <p>Searching rides&hellip;</p>
+                </div>`;
+        }
     }
 
-    hideLoading() {
-        const loadingEl = document.getElementById('loadingIndicator');
-        if (loadingEl) loadingEl.style.display = 'none';
+    showEmpty(msg) {
+        const grid = document.getElementById('ridesGrid');
+        if (grid) {
+            grid.innerHTML = `
+                <div class="empty-state">
+                    <svg class="icon icon-3xl"><use href="assets/icons.svg#icon-search"></use></svg>
+                    <h3>No rides yet</h3>
+                    <p>${msg}</p>
+                </div>`;
+        }
     }
 
     showError(message) {
-        const container = document.getElementById('ridesContainer');
-        if (container) {
-            container.innerHTML = `
-                <div class="error-state">
-                    <i class="icon-alert"></i>
-                    <h3>Error</h3>
-                    <p>${message}</p>
-                    <button class="btn" onclick="findRideManager.loadRides()">Retry</button>
-                </div>
-            `;
+        const grid = document.getElementById('ridesGrid');
+        if (grid) {
+            grid.innerHTML = `
+                <div class="empty-state">
+                    <svg class="icon icon-3xl"><use href="assets/icons.svg#icon-alert-circle"></use></svg>
+                    <h3>Something went wrong</h3>
+                    <p>${this.escapeHtml(message)}</p>
+                    <button class="btn btn-secondary" onclick="findRideManager.loadRides()">Retry</button>
+                </div>`;
         }
     }
 }
 
 // Initialize when page loads
 let findRideManager;
-
 if (window.location.pathname.includes('find-ride.html')) {
-    document.addEventListener('DOMContentLoaded', () => {
+    document.addEventListener('DOMContentLoaded', async () => {
         findRideManager = new FindRideManager();
-        findRideManager.init();
+        await findRideManager.init();
     });
 }

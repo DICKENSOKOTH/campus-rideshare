@@ -26,10 +26,8 @@ def match_rides(origin: str, destination: str, departure_time: str = None, seats
     # Score each ride (higher = better match)
     for ride in rides:
         score = 0
-        # Prefer higher rated drivers
-        score += float(ride.get("driver_rating") or 0) * 10
         # Prefer rides with more available seats (more reliable driver)
-        seats_left = ride.get("available_seats", 0) - ride.get("booked_seats", 0)
+        seats_left = ride.get("seats_left", 0)
         score += min(seats_left, 4) * 5
         # Prefer free or cheap rides
         price = float(ride.get("price_per_seat") or 0)

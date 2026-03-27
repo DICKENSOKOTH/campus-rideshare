@@ -1,6 +1,6 @@
-#  RideU — Ride Sharing App
+#  Campus Rideshare
 
-RideU is a ride sharing app we built as a group project. 
+Campus Rideshare is a ride sharing app we built as a group project. 
 It connects drivers and riders, lets them book trips, 
 and has a built in AI assistant to help users.
 
@@ -20,37 +20,42 @@ and has a built in AI assistant to help users.
 
 ##  Tech We Used
 
-- Backend: Django 5 + Django REST Framework
-- Database: PostgreSQL
-- Login System: JWT Tokens
-- Live Updates: Django Channels + Redis
+- Backend: Python Flask
+- Database: PostgreSQL (psycopg2)
+- Login System: JWT Tokens (Flask-JWT-Extended)
+- Password Hashing: Flask-Bcrypt
 - AI Chat: OpenAI API
 - Frontend: HTML, CSS and JavaScript
+- Config: python-dotenv (.env file)
 
 ---
 
 ##  How To Run The Project
 
 1. Clone the repo
-2. Install everything: pip install -r requirements.txt
-3. Copy .env.example to .env and fill in your details
-4. Set up the database: python run.py migrate
-5. Start the server: python run.py runserver
+2. Install everything: `pip install -r requirements.txt`
+3. Copy `.env.example` to `.env` and fill in your details
+4. Run the database schema: execute `backend/database/schema.sql` in your PostgreSQL client
+5. Start the server: `python run.py`
 
 ---
 
 ## Project Structure
 
-RideU/
+Campus-Rideshare/
 ├── run.py              # Starts the server
+├── main.py             # Alternative entry point
 ├── requirements.txt    # All packages we need
 ├── .env.example        # Template for environment variables
 ├── backend/
-│   ├── app.py          # Sets up the app
-│   ├── config.py       # All settings live here
+│   ├── app.py          # Flask app factory, blueprints, extensions
+│   ├── config.py       # All settings (reads from .env)
 │   ├── database/
-│   │   ├── database.py # Handles database queries
+│   │   ├── database.py # psycopg2 connection pool & query helpers
 │   │   └── schema.sql  # Creates all our tables
+│   ├── models/         # Data access (user, ride, booking, rating)
+│   ├── routes/         # Flask Blueprints (auth, rides, users, admin, ai)
+│   ├── services/       # Business logic layer
 │   └── utils/
 │       ├── validators.py # Checks user input
 │       └── response.py   # Formats API responses

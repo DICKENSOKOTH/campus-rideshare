@@ -3,17 +3,18 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Campus Ride-Share — Smarter Student Travel</title>
+    <title>Campus Rideshare — Smarter Student Travel</title>
     <link rel="stylesheet" href="css/base.css" />
     <link rel="stylesheet" href="css/components.css" />
     <link rel="stylesheet" href="css/pages.css" />
   </head>
   <body>
-    <!-- NAVBAR -->
     <nav class="navbar transparent" id="navbar">
       <div class="container nav-inner">
         <a href="index.html" class="nav-logo">
-          <div class="nav-logo-icon">🚗</div>
+          <div class="nav-logo-icon">
+            <svg class="icon icon-lg"><use href="assets/icons.svg#icon-car"></use></svg>
+          </div>
           CampusRide
         </a>
         <div class="nav-links" id="navLinks">
@@ -24,18 +25,18 @@
         <div class="nav-actions">
           <a href="login.html" class="btn btn-ghost btn-sm">Sign In</a>
           <a href="register.html" class="btn btn-primary btn-sm">Get Started</a>
-          <button class="nav-toggle" id="navToggle">
+          <button class="nav-toggle" id="navToggle" aria-label="Toggle menu">
             <span></span><span></span><span></span>
           </button>
         </div>
       </div>
     </nav>
 
-    <!-- HERO SECTION -->
     <section class="hero">
       <div class="container hero-content">
         <div class="hero-eyebrow animate-fade-up">
-          🎓 Built for University Students
+          <svg class="icon icon-sm"><use href="assets/icons.svg#icon-award"></use></svg>
+          Built for University Students
         </div>
 
         <h1 class="animate-fade-up delay-1">
@@ -48,18 +49,14 @@
           the cost, and arrive safely — every trip, every semester.
         </p>
 
-        <div class="hero-actions animate-fade-up delay-3">
-          <a href="find-ride.html" class="btn btn-primary btn-lg"
-            >Find a Ride</a
-          >
-          <a href="create-ride.html" class="btn btn-ghost btn-lg"
-            >Post Your Ride</a
-          >
+        <div class="hero-actions animate-fade-up">
+          <a href="find-ride.html" class="btn btn-primary btn-lg">Find a Ride</a>
+          <a href="create-ride.html" class="btn btn-ghost btn-lg">Post Your Ride</a>
         </div>
 
-        <div class="hero-stats animate-fade-up delay-4">
+        <div class="hero-stats animate-fade-up">
           <div class="hero-stat">
-            <span class="hero-stat-num">40%</span>
+            <span class="hero-stat-num" id="statSavings">40%</span>
             <span class="hero-stat-label">Average cost saving</span>
           </div>
           <div class="hero-stat">
@@ -67,200 +64,42 @@
             <span class="hero-stat-label">Verified students only</span>
           </div>
           <div class="hero-stat">
-            <span class="hero-stat-num">5 tons</span>
-            <span class="hero-stat-label">CO₂ saved per semester</span>
+            <span class="hero-stat-num" id="statCo2">5 tons</span>
+            <span class="hero-stat-label">CO&#8322; saved per semester</span>
           </div>
         </div>
       </div>
 
-      <!-- Floating preview cards (right side) -->
       <div class="hero-visual">
-        <div class="hero-card">
-          <div
-            style="
-              display: flex;
-              align-items: center;
-              gap: 12px;
-              margin-bottom: 12px;
-            "
-          >
-            <div
-              style="
-                width: 36px;
-                height: 36px;
-                background: linear-gradient(135deg, #c9973a, #e5b95a);
-                border-radius: 50%;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                font-weight: 700;
-                color: #0b1a3b;
-                font-size: 14px;
-              "
-            >
-              JK
-            </div>
-            <div>
-              <div style="font-weight: 600; color: #fff; font-size: 14px">
-                John K.
-              </div>
-              <div style="font-size: 12px; color: rgba(255, 255, 255, 0.5)">
-                ★★★★★ 4.9
-              </div>
-            </div>
-            <span
-              style="
-                margin-left: auto;
-                background: rgba(201, 151, 58, 0.2);
-                color: #e5b95a;
-                font-size: 11px;
-                font-weight: 700;
-                padding: 3px 10px;
-                border-radius: 99px;
-              "
-              >3 seats</span
-            >
-          </div>
-          <div style="display: flex; align-items: center; gap: 10px">
-            <span style="font-size: 13px; font-weight: 600; color: #fff"
-              >Campus</span
-            >
-            <div
-              style="
-                flex: 1;
-                height: 2px;
-                background: repeating-linear-gradient(
-                  90deg,
-                  rgba(255, 255, 255, 0.3) 0,
-                  rgba(255, 255, 255, 0.3) 4px,
-                  transparent 4px,
-                  transparent 8px
-                );
-              "
-            ></div>
-            <span style="font-size: 13px; font-weight: 600; color: #fff"
-              >CBD Nairobi</span
-            >
-          </div>
-          <div
-            style="
-              margin-top: 10px;
-              font-size: 12px;
-              color: rgba(255, 255, 255, 0.5);
-            "
-          >
-            Friday · 2:30 PM · KSh 350/seat
-          </div>
-        </div>
-
-        <div class="hero-card">
-          <div
-            style="
-              font-size: 12px;
-              color: rgba(255, 255, 255, 0.5);
-              margin-bottom: 8px;
-            "
-          >
-            🤖 AI Assistant
-          </div>
-          <div
-            style="
-              background: rgba(255, 255, 255, 0.06);
-              border-radius: 8px;
-              padding: 10px 12px;
-              font-size: 13px;
-              color: rgba(255, 255, 255, 0.8);
-              margin-bottom: 8px;
-            "
-          >
-            "I need a cheap ride to Westlands Friday afternoon"
-          </div>
-          <div style="font-size: 13px; color: #e5b95a">
-            Found 4 matching rides for you! ✨
-          </div>
-        </div>
-
-        <div class="hero-card">
-          <div
-            style="
-              font-size: 12px;
-              color: rgba(255, 255, 255, 0.5);
-              margin-bottom: 10px;
-            "
-          >
-            📊 This Month
-          </div>
-          <div style="display: flex; gap: 20px">
-            <div style="text-align: center">
-              <div
-                style="
-                  font-family: &quot;Playfair Display&quot;, serif;
-                  font-size: 22px;
-                  font-weight: 700;
-                  color: #e5b95a;
-                "
-              >
-                KSh 4,200
-              </div>
-              <div style="font-size: 11px; color: rgba(255, 255, 255, 0.45)">
-                Saved
-              </div>
-            </div>
-            <div style="text-align: center">
-              <div
-                style="
-                  font-family: &quot;Playfair Display&quot;, serif;
-                  font-size: 22px;
-                  font-weight: 700;
-                  color: #e5b95a;
-                "
-              >
-                8
-              </div>
-              <div style="font-size: 11px; color: rgba(255, 255, 255, 0.45)">
-                Trips
-              </div>
-            </div>
-            <div style="text-align: center">
-              <div
-                style="
-                  font-family: &quot;Playfair Display&quot;, serif;
-                  font-size: 22px;
-                  font-weight: 700;
-                  color: #e5b95a;
-                "
-              >
-                24 kg
-              </div>
-              <div style="font-size: 11px; color: rgba(255, 255, 255, 0.45)">
-                CO₂ Saved
-              </div>
-            </div>
-          </div>
-        </div>
+        <div class="hero-card" id="heroPreviewRide"></div>
+        <div class="hero-card" id="heroPreviewAI"></div>
+        <div class="hero-card" id="heroPreviewStats"></div>
       </div>
     </section>
 
-    <!-- FEATURES SECTION -->
     <section class="features-section" id="features">
       <div class="container">
         <div class="section-header">
-          <p class="section-eyebrow">Why CampusRide</p>
+          <p class="section-eyebrow">Why Campus Rideshare</p>
           <h2>Everything You Need for Safe, Affordable Campus Travel</h2>
-          <hr class="divider-gold" style="margin: 16px auto 0" />
+          <hr class="divider-gold" />
         </div>
 
-        <div class="grid-3">
+        <div class="grid-3" id="featuresGrid">
           <div class="feature-card animate-fade-up">
-            <div class="feature-icon">🔒</div>
+            <div class="feature-icon">
+              <svg class="icon icon-xl" style="color:var(--gold-light)"><use href="assets/icons.svg#icon-shield"></use></svg>
+            </div>
             <h3>Verified Community</h3>
             <p>
               University email verification ensures every user is a real
-              student. Driver's license checks and rating systems keep you safe.
+              student. Driver license checks and rating systems keep you safe.
             </p>
           </div>
           <div class="feature-card animate-fade-up delay-1">
-            <div class="feature-icon">🤖</div>
+            <div class="feature-icon">
+              <svg class="icon icon-xl" style="color:var(--gold-light)"><use href="assets/icons.svg#icon-sparkle"></use></svg>
+            </div>
             <h3>AI-Powered Matching</h3>
             <p>
               Just describe your trip in plain English. Our AI assistant
@@ -268,31 +107,39 @@
             </p>
           </div>
           <div class="feature-card animate-fade-up delay-2">
-            <div class="feature-icon">💰</div>
+            <div class="feature-icon">
+              <svg class="icon icon-xl" style="color:var(--gold-light)"><use href="assets/icons.svg#icon-dollar"></use></svg>
+            </div>
             <h3>Fair Price Splitting</h3>
             <p>
               Transparent cost calculator splits fuel costs fairly. Save up to
               60% compared to taxis and commercial bus services.
             </p>
           </div>
-          <div class="feature-card animate-fade-up delay-3">
-            <div class="feature-icon">🗺️</div>
+          <div class="feature-card animate-fade-up">
+            <div class="feature-icon">
+              <svg class="icon icon-xl" style="color:var(--gold-light)"><use href="assets/icons.svg#icon-map"></use></svg>
+            </div>
             <h3>Live Route Maps</h3>
             <p>
-              Interactive Google Maps integration shows exact routes, pickup
+              Interactive maps show exact routes, pickup
               points, and estimated travel times before you book.
             </p>
           </div>
-          <div class="feature-card animate-fade-up delay-4">
-            <div class="feature-icon">💬</div>
+          <div class="feature-card animate-fade-up delay-1">
+            <div class="feature-icon">
+              <svg class="icon icon-xl" style="color:var(--gold-light)"><use href="assets/icons.svg#icon-chat"></use></svg>
+            </div>
             <h3>In-App Messaging</h3>
             <p>
               Coordinate directly with your driver or passengers. Share updates
               and stay connected in real-time.
             </p>
           </div>
-          <div class="feature-card animate-fade-up">
-            <div class="feature-icon">🌱</div>
+          <div class="feature-card animate-fade-up delay-2">
+            <div class="feature-icon">
+              <svg class="icon icon-xl" style="color:var(--gold-light)"><use href="assets/icons.svg#icon-leaf"></use></svg>
+            </div>
             <h3>Eco Impact Tracking</h3>
             <p>
               Every shared ride reduces your carbon footprint. Track your
@@ -303,51 +150,42 @@
       </div>
     </section>
 
-    <!-- HOW IT WORKS -->
     <section class="how-section" id="how">
       <div class="container">
         <div class="section-header">
           <p class="section-eyebrow">Simple Process</p>
           <h2>From Registration to Ride in Minutes</h2>
-          <hr class="divider-gold" style="margin: 16px auto 0" />
+          <hr class="divider-gold" />
         </div>
 
         <div class="grid-4">
-          <div style="text-align: center" class="animate-fade-up">
-            <div class="step-number" style="margin: 0 auto var(--space-4)">
-              1
-            </div>
+          <div class="step-item animate-fade-up">
+            <div class="step-number">1</div>
             <h4>Register with Campus Email</h4>
             <p>
               Sign up with your university email for instant verification.
               Drivers upload their license for extra trust.
             </p>
           </div>
-          <div style="text-align: center" class="animate-fade-up delay-1">
-            <div class="step-number" style="margin: 0 auto var(--space-4)">
-              2
-            </div>
+          <div class="step-item animate-fade-up delay-1">
+            <div class="step-number">2</div>
             <h4>Find or Post a Ride</h4>
             <p>
-              Search by destination and date, or just tell our AI where you're
+              Search by destination and date, or just tell our AI where you are
               headed. Drivers post available seats with pricing.
             </p>
           </div>
-          <div style="text-align: center" class="animate-fade-up delay-2">
-            <div class="step-number" style="margin: 0 auto var(--space-4)">
-              3
-            </div>
-            <h4>Book & Coordinate</h4>
+          <div class="step-item animate-fade-up delay-2">
+            <div class="step-number">3</div>
+            <h4>Book &amp; Coordinate</h4>
             <p>
               Request a seat, get confirmation from your driver, and use in-app
               chat to arrange pickup details.
             </p>
           </div>
-          <div style="text-align: center" class="animate-fade-up delay-3">
-            <div class="step-number" style="margin: 0 auto var(--space-4)">
-              4
-            </div>
-            <h4>Ride & Rate</h4>
+          <div class="step-item animate-fade-up">
+            <div class="step-number">4</div>
+            <h4>Ride &amp; Rate</h4>
             <p>
               Enjoy your trip! After arrival, rate your experience to help build
               a trusted community for everyone.
@@ -357,46 +195,29 @@
       </div>
     </section>
 
-    <!-- CALL TO ACTION -->
     <section class="cta-section">
-      <div class="container" style="position: relative; z-index: 1">
-        <p class="section-eyebrow" style="color: var(--gold-light)">
-          Join the Community
-        </p>
-        <h2 style="margin-bottom: var(--space-4)">Ready to Ride Smarter?</h2>
-        <p
-          style="
-            font-size: var(--text-lg);
-            max-width: 480px;
-            margin: 0 auto var(--space-8);
-          "
-        >
+      <div class="container cta-content">
+        <p class="section-eyebrow cta-eyebrow">Join the Community</p>
+        <h2>Ready to Ride Smarter?</h2>
+        <p class="cta-desc">
           Hundreds of students are already sharing rides and saving money. Your
           next trip starts here.
         </p>
-        <div
-          style="
-            display: flex;
-            gap: var(--space-4);
-            justify-content: center;
-            flex-wrap: wrap;
-          "
-        >
-          <a href="register.html" class="btn btn-primary btn-lg"
-            >Create Free Account</a
-          >
+        <div class="cta-actions">
+          <a href="register.html" class="btn btn-primary btn-lg">Create Free Account</a>
           <a href="find-ride.html" class="btn btn-ghost btn-lg">Browse Rides</a>
         </div>
       </div>
     </section>
 
-    <!-- FOOTER -->
     <footer class="footer">
       <div class="container">
         <div class="footer-grid">
           <div class="footer-brand">
             <a href="index.html" class="nav-logo">
-              <div class="nav-logo-icon">🚗</div>
+              <div class="nav-logo-icon">
+                <svg class="icon icon-lg"><use href="assets/icons.svg#icon-car"></use></svg>
+              </div>
               CampusRide
             </a>
             <p>
@@ -409,7 +230,7 @@
             <a href="find-ride.html">Find a Ride</a>
             <a href="create-ride.html">Post a Ride</a>
             <a href="ai-assistant.html">AI Assistant</a>
-            <a href="dashboard.html">Dashboard</a>
+            <a href="home.html">Home</a>
           </div>
           <div class="footer-col">
             <h4>Account</h4>
@@ -424,24 +245,16 @@
             <a href="#">Contact Us</a>
           </div>
         </div>
-        <div class="footer-bottom">
-          <span>© 2024 CampusRide. All rights reserved.</span>
-          <span>Privacy Policy · Terms of Service</span>
+        <div class="footer-bottom flex-between">
+          <span>&copy; 2026 Campus Rideshare. All rights reserved.</span>
+          <span>Privacy Policy &middot; Terms of Service</span>
         </div>
       </div>
     </footer>
 
-    <script>
-      // Navbar becomes solid when you scroll down
-      const navbar = document.getElementById("navbar");
-      window.addEventListener("scroll", () => {
-        navbar.classList.toggle("scrolled", window.scrollY > 50);
-        navbar.classList.toggle("transparent", window.scrollY <= 50);
-      });
-      // Mobile menu open/close
-      document.getElementById("navToggle").addEventListener("click", () => {
-        document.getElementById("navLinks").classList.toggle("open");
-      });
-    </script>
+    <script src="js/config.js"></script>
+    <script src="js/api.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/home.js"></script>
   </body>
 </html>

@@ -83,9 +83,9 @@ class MapManager {
      */
     showMapPlaceholder(container) {
         container.innerHTML = `
-            <div style="width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; background: #e0e0e0;">
-                <div style="text-align: center;">
-                    <i class="icon-map" style="font-size: 48px; color: #999;"></i>
+            <div class="map-placeholder">
+                <div class="map-placeholder-inner">
+                    <svg class="icon icon-xl"><use href="assets/icons.svg#icon-map-pin"></use></svg>
                     <p>Map view unavailable</p>
                 </div>
             </div>

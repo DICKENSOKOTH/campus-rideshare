@@ -1,584 +1,362 @@
-// Admin Panel Logic - Manage users, rides, and platform statistics
+// Admin Panel — Manage users, rides, and platform statistics
 
 class AdminPanel {
     constructor() {
         this.users = [];
         this.rides = [];
         this.stats = {};
-        this.currentView = 'dashboard';
-        this.filters = {
-            userStatus: 'all',
-            rideStatus: 'all',
-            searchQuery: '',
-        };
+        this.activeTab = 'Users';
+        this.usersPage = 1;
+        this.ridesPage = 1;
+        this.pageSize = 20;
     }
 
     async init() {
-        // Require admin authentication
-        if (!authManager.requireAdmin()) {
-            return;
-        }
+        if (!(await authManager.requireAdmin())) return;
 
-        this.setupNavigation();
-        await this.loadDashboard();
-        this.setupEventHandlers();
+        this.setupTabs();
+        this.setupFilters();
+        await this.loadStats();
+        await this.loadUsers();
     }
 
-    setupNavigation() {
-        const navButtons = document.querySelectorAll('.admin-nav-btn');
-        
-        navButtons.forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                const view = e.target.dataset.view;
-                if (view) {
-                    this.switchView(view);
-                }
+    /* ─── Tabs ─── */
+
+    setupTabs() {
+        const tabs = {
+            tabUsers: 'panelUsers',
+            tabRides: 'panelRides',
+            tabReports: 'panelReports',
+            tabVerifications: 'panelVerifications',
+        };
+
+        Object.entries(tabs).forEach(([btnId, panelId]) => {
+            const btn = document.getElementById(btnId);
+            if (!btn) return;
+            btn.addEventListener('click', () => {
+                // deactivate all
+                Object.entries(tabs).forEach(([bId, pId]) => {
+                    document.getElementById(bId).classList.remove('active');
+                    document.getElementById(pId).classList.add('hidden');
+                });
+                btn.classList.add('active');
+                document.getElementById(panelId).classList.remove('hidden');
+
+                const label = btnId.replace('tab', '');
+                this.activeTab = label;
+                this.onTabActivated(label);
             });
         });
     }
 
-    setupEventHandlers() {
-        // Search functionality
-        const searchInput = document.getElementById('adminSearch');
-        if (searchInput) {
-            searchInput.addEventListener('input', (e) => {
-                this.filters.searchQuery = e.target.value.toLowerCase();
-                this.applyFilters();
+    async onTabActivated(label) {
+        switch (label) {
+            case 'Users':
+                if (!this.users.length) await this.loadUsers();
+                break;
+            case 'Rides':
+                if (!this.rides.length) await this.loadRides();
+                break;
+            case 'Reports':
+                this.renderReportsPlaceholder();
+                break;
+            case 'Verifications':
+                this.renderVerificationsPlaceholder();
+                break;
+        }
+    }
+
+    /* ─── Filters & Search ─── */
+
+    setupFilters() {
+        const userSearch = document.getElementById('userSearch');
+        if (userSearch) {
+            userSearch.addEventListener('input', () => {
+                this.usersPage = 1;
+                this.renderUsers();
             });
         }
 
-        // Filter dropdowns
-        const userStatusFilter = document.getElementById('userStatusFilter');
-        if (userStatusFilter) {
-            userStatusFilter.addEventListener('change', (e) => {
-                this.filters.userStatus = e.target.value;
-                this.applyFilters();
+        const userRoleFilter = document.getElementById('userRoleFilter');
+        if (userRoleFilter) {
+            userRoleFilter.addEventListener('change', () => {
+                this.usersPage = 1;
+                this.renderUsers();
             });
         }
 
         const rideStatusFilter = document.getElementById('rideStatusFilter');
         if (rideStatusFilter) {
-            rideStatusFilter.addEventListener('change', (e) => {
-                this.filters.rideStatus = e.target.value;
-                this.applyFilters();
+            rideStatusFilter.addEventListener('change', () => {
+                this.ridesPage = 1;
+                this.renderRides();
             });
         }
 
-        // Refresh button
-        const refreshBtn = document.getElementById('refreshBtn');
-        if (refreshBtn) {
-            refreshBtn.addEventListener('click', () => {
-                this.refreshCurrentView();
-            });
-        }
+        // Pagination buttons
+        this.wire('usersPrev', 'click', () => { if (this.usersPage > 1) { this.usersPage--; this.renderUsers(); } });
+        this.wire('usersNext', 'click', () => { this.usersPage++; this.renderUsers(); });
+        this.wire('ridesPrev', 'click', () => { if (this.ridesPage > 1) { this.ridesPage--; this.renderRides(); } });
+        this.wire('ridesNext', 'click', () => { this.ridesPage++; this.renderRides(); });
     }
 
-    async switchView(view) {
-        this.currentView = view;
-
-        // Update active nav button
-        document.querySelectorAll('.admin-nav-btn').forEach(btn => {
-            btn.classList.remove('active');
-            if (btn.dataset.view === view) {
-                btn.classList.add('active');
-            }
-        });
-
-        // Load appropriate view
-        switch (view) {
-            case 'dashboard':
-                await this.loadDashboard();
-                break;
-            case 'users':
-                await this.loadUsers();
-                break;
-            case 'rides':
-                await this.loadRides();
-                break;
-            case 'reports':
-                await this.loadReports();
-                break;
-            default:
-                console.error('Unknown view:', view);
-        }
+    wire(id, event, handler) {
+        const el = document.getElementById(id);
+        if (el) el.addEventListener(event, handler);
     }
 
-    async loadDashboard() {
-        this.showLoading();
+    /* ─── Stats ─── */
 
+    async loadStats() {
         try {
-            const response = await AdminAPI.getStats();
-            
-            if (response.success && response.data) {
-                this.stats = response.data;
-                this.renderDashboard();
-            } else {
-                this.showError('Failed to load dashboard');
+            const res = await AdminAPI.getStats();
+            if (res.success && res.data) {
+                this.stats = res.data;
+                this.renderStats();
             }
-        } catch (error) {
-            console.error('Failed to load dashboard:', error);
-            this.showError(error.message || ERROR_MESSAGES.SERVER);
-        } finally {
-            this.hideLoading();
+        } catch (err) {
+            console.error('Failed to load stats:', err);
         }
     }
 
-    renderDashboard() {
-        const container = document.getElementById('adminContent');
-        if (!container) return;
+    renderStats() {
+        const s = this.stats;
+        this.setText('statUsers', s.total_users ?? '–');
+        this.setText('statActiveRides', s.active_rides ?? '–');
+        this.setText('statCompleted', s.completed_rides ?? '–');
+        this.setText('statReports', s.pending_reports ?? '–');
 
-        container.innerHTML = `
-            <div class="admin-dashboard">
-                <h2>Platform Overview</h2>
-                
-                <div class="stats-grid">
-                    <div class="stat-card">
-                        <div class="stat-icon">👥</div>
-                        <div class="stat-value">${this.stats.total_users || 0}</div>
-                        <div class="stat-label">Total Users</div>
-                        <div class="stat-change ${this.stats.users_change >= 0 ? 'positive' : 'negative'}">
-                            ${this.stats.users_change > 0 ? '+' : ''}${this.stats.users_change || 0}% this month
-                        </div>
-                    </div>
-
-                    <div class="stat-card">
-                        <div class="stat-icon">🚗</div>
-                        <div class="stat-value">${this.stats.total_rides || 0}</div>
-                        <div class="stat-label">Total Rides</div>
-                        <div class="stat-change ${this.stats.rides_change >= 0 ? 'positive' : 'negative'}">
-                            ${this.stats.rides_change > 0 ? '+' : ''}${this.stats.rides_change || 0}% this month
-                        </div>
-                    </div>
-
-                    <div class="stat-card">
-                        <div class="stat-icon">📅</div>
-                        <div class="stat-value">${this.stats.active_rides || 0}</div>
-                        <div class="stat-label">Active Rides</div>
-                    </div>
-
-                    <div class="stat-card">
-                        <div class="stat-icon">💰</div>
-                        <div class="stat-value">$${this.stats.total_revenue || 0}</div>
-                        <div class="stat-label">Total Revenue</div>
-                    </div>
-
-                    <div class="stat-card">
-                        <div class="stat-icon">✅</div>
-                        <div class="stat-value">${this.stats.completed_rides || 0}</div>
-                        <div class="stat-label">Completed Rides</div>
-                    </div>
-
-                    <div class="stat-card">
-                        <div class="stat-icon">⭐</div>
-                        <div class="stat-value">${this.stats.average_rating?.toFixed(1) || 'N/A'}</div>
-                        <div class="stat-label">Average Rating</div>
-                    </div>
-                </div>
-
-                <div class="dashboard-sections">
-                    <div class="dashboard-section">
-                        <h3>Recent Activity</h3>
-                        <div id="recentActivity">
-                            ${this.renderRecentActivity()}
-                        </div>
-                    </div>
-
-                    <div class="dashboard-section">
-                        <h3>Platform Health</h3>
-                        <div class="health-metrics">
-                            <div class="metric">
-                                <span class="metric-label">User Engagement</span>
-                                <div class="metric-bar">
-                                    <div class="metric-fill" style="width: ${this.stats.user_engagement || 0}%"></div>
-                                </div>
-                                <span class="metric-value">${this.stats.user_engagement || 0}%</span>
-                            </div>
-                            <div class="metric">
-                                <span class="metric-label">Ride Completion Rate</span>
-                                <div class="metric-bar">
-                                    <div class="metric-fill" style="width: ${this.stats.completion_rate || 0}%"></div>
-                                </div>
-                                <span class="metric-value">${this.stats.completion_rate || 0}%</span>
-                            </div>
-                            <div class="metric">
-                                <span class="metric-label">Customer Satisfaction</span>
-                                <div class="metric-bar">
-                                    <div class="metric-fill" style="width: ${(this.stats.average_rating / 5 * 100) || 0}%"></div>
-                                </div>
-                                <span class="metric-value">${this.stats.average_rating?.toFixed(1) || 'N/A'}/5</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        `;
+        this.setChange('statUsersChange', s.users_change);
+        this.setChange('statRidesChange', s.rides_change);
+        this.setChange('statCompletedChange', s.completed_change);
+        this.setChange('statReportsChange', s.reports_change);
     }
 
-    renderRecentActivity() {
-        if (!this.stats.recent_activity || this.stats.recent_activity.length === 0) {
-            return '<p class="empty-state">No recent activity</p>';
-        }
-
-        return `
-            <div class="activity-list">
-                ${this.stats.recent_activity.map(activity => `
-                    <div class="activity-item">
-                        <div class="activity-icon">${this.getActivityIcon(activity.type)}</div>
-                        <div class="activity-details">
-                            <p>${activity.description}</p>
-                            <span class="activity-time">${this.formatTime(activity.timestamp)}</span>
-                        </div>
-                    </div>
-                `).join('')}
-            </div>
-        `;
+    setText(id, value) {
+        const el = document.getElementById(id);
+        if (el) el.textContent = value;
     }
+
+    setChange(id, value) {
+        const el = document.getElementById(id);
+        if (!el || value == null) return;
+        const up = value >= 0;
+        el.classList.remove('up', 'down');
+        el.classList.add(up ? 'up' : 'down');
+        el.textContent = `${up ? '+' : ''}${value}% this month`;
+    }
+
+    /* ─── Users ─── */
 
     async loadUsers() {
-        this.showLoading();
-
         try {
-            const response = await AdminAPI.getAllUsers(this.filters);
-            
-            if (response.success && response.data) {
-                this.users = response.data;
+            const res = await AdminAPI.getUsers();
+            if (res.success && res.data) {
+                this.users = Array.isArray(res.data) ? res.data : [];
                 this.renderUsers();
-            } else {
-                this.showError('Failed to load users');
             }
-        } catch (error) {
-            console.error('Failed to load users:', error);
-            this.showError(error.message || ERROR_MESSAGES.SERVER);
-        } finally {
-            this.hideLoading();
+        } catch (err) {
+            console.error('Failed to load users:', err);
+            showNotification(err.message || ERROR_MESSAGES.SERVER, 'error');
         }
+    }
+
+    getFilteredUsers() {
+        let list = this.users;
+        const q = (document.getElementById('userSearch')?.value || '').toLowerCase();
+        const role = document.getElementById('userRoleFilter')?.value || '';
+
+        if (q) {
+            list = list.filter(u =>
+                (u.full_name || '').toLowerCase().includes(q) ||
+                (u.email || '').toLowerCase().includes(q)
+            );
+        }
+        if (role) {
+            list = list.filter(u => u.role === role);
+        }
+        return list;
     }
 
     renderUsers() {
-        const container = document.getElementById('adminContent');
-        if (!container) return;
+        const tbody = document.getElementById('usersTableBody');
+        if (!tbody) return;
 
-        container.innerHTML = `
-            <div class="admin-users">
-                <div class="section-header">
-                    <h2>User Management</h2>
-                    <div class="section-actions">
-                        <input type="text" id="adminSearch" placeholder="Search users..." value="${this.filters.searchQuery}">
-                        <select id="userStatusFilter">
-                            <option value="all">All Status</option>
-                            <option value="active">Active</option>
-                            <option value="suspended">Suspended</option>
-                            <option value="banned">Banned</option>
-                        </select>
-                    </div>
-                </div>
+        const filtered = this.getFilteredUsers();
+        const start = (this.usersPage - 1) * this.pageSize;
+        const page = filtered.slice(start, start + this.pageSize);
 
-                <div class="users-table">
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>User</th>
-                                <th>Email</th>
-                                <th>Joined</th>
-                                <th>Rides</th>
-                                <th>Rating</th>
-                                <th>Status</th>
-                                <th>Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            ${this.users.map(user => `
-                                <tr>
-                                    <td>
-                                        <div class="user-cell">
-                                            <div class="user-avatar">${user.name.charAt(0).toUpperCase()}</div>
-                                            <span>${user.name}</span>
-                                        </div>
-                                    </td>
-                                    <td>${user.email}</td>
-                                    <td>${this.formatDate(user.created_at)}</td>
-                                    <td>${user.total_rides || 0}</td>
-                                    <td>
-                                        ${user.rating ? `
-                                            <span class="rating">⭐ ${user.rating.toFixed(1)}</span>
-                                        ` : 'N/A'}
-                                    </td>
-                                    <td>
-                                        <span class="status-badge status-${user.status || 'active'}">
-                                            ${user.status || 'active'}
-                                        </span>
-                                    </td>
-                                    <td>
-                                        <div class="action-buttons">
-                                            <button class="btn-icon" onclick="adminPanel.viewUser('${user.id}')" title="View">
-                                                👁️
-                                            </button>
-                                            <button class="btn-icon" onclick="adminPanel.moderateUser('${user.id}')" title="Moderate">
-                                                ⚙️
-                                            </button>
-                                        </div>
-                                    </td>
-                                </tr>
-                            `).join('')}
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        `;
-
-        this.setupEventHandlers();
-    }
-
-    async loadRides() {
-        this.showLoading();
-
-        try {
-            const response = await AdminAPI.getAllRides(this.filters);
-            
-            if (response.success && response.data) {
-                this.rides = response.data;
-                this.renderRides();
-            } else {
-                this.showError('Failed to load rides');
-            }
-        } catch (error) {
-            console.error('Failed to load rides:', error);
-            this.showError(error.message || ERROR_MESSAGES.SERVER);
-        } finally {
-            this.hideLoading();
+        if (!page.length) {
+            tbody.innerHTML = `<tr><td colspan="6" class="text-center text-muted">No users found</td></tr>`;
+        } else {
+            tbody.innerHTML = page.map(u => `
+                <tr>
+                    <td>
+                        <div class="table-user-cell">
+                            <div class="avatar avatar-sm">${this.getInitials(u.full_name)}</div>
+                            <span>${this.esc(u.full_name || 'Unknown')}</span>
+                        </div>
+                    </td>
+                    <td>${this.esc(u.email)}</td>
+                    <td><span class="badge badge-${u.role === 'admin' ? 'danger' : u.role === 'driver' ? 'gold' : 'info'}">${this.esc(u.role || 'rider')}</span></td>
+                    <td>${this.formatDate(u.created_at)}</td>
+                    <td><span class="badge badge-${u.is_active ? 'success' : 'danger'}">${u.is_active ? 'Active' : 'Disabled'}</span></td>
+                    <td>
+                        <div class="table-actions">
+                            <button class="btn btn-sm btn-ghost" data-action="view-user" data-id="${u.id}" title="View profile">
+                                <svg class="icon icon-sm"><use href="assets/icons.svg#icon-eye"></use></svg>
+                            </button>
+                            <button class="btn btn-sm btn-ghost" data-action="toggle-user" data-id="${u.id}" title="Toggle status">
+                                <svg class="icon icon-sm"><use href="assets/icons.svg#icon-settings"></use></svg>
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+            `).join('');
         }
-    }
 
-    renderRides() {
-        const container = document.getElementById('adminContent');
-        if (!container) return;
+        // Pagination info
+        this.setText('usersCount', `Showing ${start + 1}–${Math.min(start + this.pageSize, filtered.length)} of ${filtered.length}`);
 
-        container.innerHTML = `
-            <div class="admin-rides">
-                <div class="section-header">
-                    <h2>Ride Management</h2>
-                    <div class="section-actions">
-                        <input type="text" id="adminSearch" placeholder="Search rides..." value="${this.filters.searchQuery}">
-                        <select id="rideStatusFilter">
-                            <option value="all">All Status</option>
-                            <option value="active">Active</option>
-                            <option value="completed">Completed</option>
-                            <option value="cancelled">Cancelled</option>
-                        </select>
-                    </div>
-                </div>
-
-                <div class="rides-table">
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>Route</th>
-                                <th>Driver</th>
-                                <th>Date</th>
-                                <th>Seats</th>
-                                <th>Price</th>
-                                <th>Status</th>
-                                <th>Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            ${this.rides.map(ride => `
-                                <tr>
-                                    <td>
-                                        <div class="route-cell">
-                                            ${ride.origin} → ${ride.destination}
-                                        </div>
-                                    </td>
-                                    <td>${ride.driver_name}</td>
-                                    <td>${this.formatDate(ride.departure_time)}</td>
-                                    <td>${ride.available_seats}/${ride.total_seats}</td>
-                                    <td>$${ride.price_per_seat}</td>
-                                    <td>
-                                        <span class="status-badge status-${ride.status}">
-                                            ${ride.status}
-                                        </span>
-                                    </td>
-                                    <td>
-                                        <div class="action-buttons">
-                                            <button class="btn-icon" onclick="adminPanel.viewRide('${ride.id}')" title="View">
-                                                👁️
-                                            </button>
-                                            <button class="btn-icon" onclick="adminPanel.moderateRide('${ride.id}')" title="Moderate">
-                                                ⚙️
-                                            </button>
-                                        </div>
-                                    </td>
-                                </tr>
-                            `).join('')}
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        `;
-
-        this.setupEventHandlers();
-    }
-
-    async loadReports() {
-        const container = document.getElementById('adminContent');
-        if (container) {
-            container.innerHTML = `
-                <div class="admin-reports">
-                    <h2>Reports & Analytics</h2>
-                    <p>Reports and analytics features coming soon...</p>
-                </div>
-            `;
-        }
-    }
-
-    applyFilters() {
-        if (this.currentView === 'users') {
-            this.renderUsers();
-        } else if (this.currentView === 'rides') {
-            this.renderRides();
-        }
-    }
-
-    async refreshCurrentView() {
-        switch (this.currentView) {
-            case 'dashboard':
-                await this.loadDashboard();
-                break;
-            case 'users':
-                await this.loadUsers();
-                break;
-            case 'rides':
-                await this.loadRides();
-                break;
-            case 'reports':
-                await this.loadReports();
-                break;
-        }
-    }
-
-    viewUser(userId) {
-        // Open user details modal or navigate
-        window.open(`/profile.html?id=${userId}`, '_blank');
-    }
-
-    async moderateUser(userId) {
-        const action = prompt('Enter action (suspend/unsuspend/ban/unban):');
-        if (!action) return;
-
-        const reason = prompt('Enter reason for moderation:');
-        if (!reason) return;
-
-        try {
-            const response = await AdminAPI.moderateUser(userId, action, reason);
-            
-            if (response.success) {
-                showNotification('User moderated successfully', 'success');
-                await this.loadUsers();
-            } else {
-                showNotification(response.message || 'Moderation failed', 'error');
-            }
-        } catch (error) {
-            console.error('Moderation failed:', error);
-            showNotification(error.message || 'Moderation failed', 'error');
-        }
-    }
-
-    viewRide(rideId) {
-        window.open(`/ride-details.html?id=${rideId}`, '_blank');
-    }
-
-    async moderateRide(rideId) {
-        const action = prompt('Enter action (approve/cancel/delete):');
-        if (!action) return;
-
-        const reason = prompt('Enter reason for moderation:');
-        if (!reason) return;
-
-        try {
-            const response = await AdminAPI.moderateRide(rideId, action, reason);
-            
-            if (response.success) {
-                showNotification('Ride moderated successfully', 'success');
-                await this.loadRides();
-            } else {
-                showNotification(response.message || 'Moderation failed', 'error');
-            }
-        } catch (error) {
-            console.error('Moderation failed:', error);
-            showNotification(error.message || 'Moderation failed', 'error');
-        }
-    }
-
-    getActivityIcon(type) {
-        const icons = {
-            user_registered: '👤',
-            ride_created: '🚗',
-            ride_completed: '✅',
-            booking_made: '📅',
-            rating_submitted: '⭐',
-        };
-        return icons[type] || '📌';
-    }
-
-    formatDate(dateStr) {
-        const date = new Date(dateStr);
-        return date.toLocaleDateString('en-US', { 
-            month: 'short', 
-            day: 'numeric',
-            year: 'numeric'
+        // Delegate action clicks
+        tbody.querySelectorAll('[data-action]').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const action = e.currentTarget.dataset.action;
+                const id = e.currentTarget.dataset.id;
+                if (action === 'view-user') this.viewUser(id);
+                if (action === 'toggle-user') this.toggleUser(id);
+            });
         });
     }
 
-    formatTime(timestamp) {
-        const date = new Date(timestamp);
-        const now = new Date();
-        const diffInMs = now - date;
-        const diffInMinutes = Math.floor(diffInMs / 60000);
-        
-        if (diffInMinutes < 1) return 'Just now';
-        if (diffInMinutes < 60) return `${diffInMinutes}m ago`;
-        
-        const diffInHours = Math.floor(diffInMinutes / 60);
-        if (diffInHours < 24) return `${diffInHours}h ago`;
-        
-        const diffInDays = Math.floor(diffInHours / 24);
-        if (diffInDays < 7) return `${diffInDays}d ago`;
-        
-        return this.formatDate(timestamp);
+    viewUser(userId) {
+        window.open(`profile.html?id=${userId}`, '_blank');
     }
 
-    showLoading() {
-        const loadingEl = document.getElementById('loadingIndicator');
-        if (loadingEl) loadingEl.style.display = 'block';
-    }
+    async toggleUser(userId) {
+        if (!confirm('Toggle this user\'s active status?')) return;
 
-    hideLoading() {
-        const loadingEl = document.getElementById('loadingIndicator');
-        if (loadingEl) loadingEl.style.display = 'none';
-    }
-
-    showError(message) {
-        const container = document.getElementById('adminContent');
-        if (container) {
-            container.innerHTML = `
-                <div class="error-state">
-                    <i class="icon-alert"></i>
-                    <h3>Error</h3>
-                    <p>${message}</p>
-                    <button class="btn" onclick="adminPanel.refreshCurrentView()">Retry</button>
-                </div>
-            `;
+        try {
+            const res = await AdminAPI.toggleUser(userId);
+            if (res.success) {
+                showNotification('User status updated', 'success');
+                await this.loadUsers();
+            } else {
+                showNotification(res.message || 'Action failed', 'error');
+            }
+        } catch (err) {
+            console.error('Toggle user failed:', err);
+            showNotification(err.message || ERROR_MESSAGES.SERVER, 'error');
         }
-        this.hideLoading();
+    }
+
+    /* ─── Rides ─── */
+
+    async loadRides() {
+        try {
+            const res = await AdminAPI.getRides();
+            if (res.success && res.data) {
+                this.rides = Array.isArray(res.data) ? res.data : [];
+                this.renderRides();
+            }
+        } catch (err) {
+            console.error('Failed to load rides:', err);
+            showNotification(err.message || ERROR_MESSAGES.SERVER, 'error');
+        }
+    }
+
+    getFilteredRides() {
+        let list = this.rides;
+        const status = document.getElementById('rideStatusFilter')?.value || '';
+        if (status) {
+            list = list.filter(r => r.status === status);
+        }
+        return list;
+    }
+
+    renderRides() {
+        const tbody = document.getElementById('ridesTableBody');
+        if (!tbody) return;
+
+        const filtered = this.getFilteredRides();
+        const start = (this.ridesPage - 1) * this.pageSize;
+        const page = filtered.slice(start, start + this.pageSize);
+
+        if (!page.length) {
+            tbody.innerHTML = `<tr><td colspan="7" class="text-center text-muted">No rides found</td></tr>`;
+        } else {
+            tbody.innerHTML = page.map(r => `
+                <tr>
+                    <td>${this.esc(r.origin)} &rarr; ${this.esc(r.destination)}</td>
+                    <td>${this.esc(r.driver_name || '–')}</td>
+                    <td>${this.formatDate(r.departure_time)}</td>
+                    <td>${r.seats_remaining ?? 0}/${r.seats_total ?? 0}</td>
+                    <td>$${Number(r.price_per_seat || 0).toFixed(2)}</td>
+                    <td><span class="badge badge-${this.rideStatusBadge(r.status)}">${this.esc(r.status)}</span></td>
+                    <td>
+                        <div class="table-actions">
+                            <button class="btn btn-sm btn-ghost" data-action="view-ride" data-id="${r.id}" title="View ride">
+                                <svg class="icon icon-sm"><use href="assets/icons.svg#icon-eye"></use></svg>
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        this.setText('ridesCount', `Showing ${start + 1}–${Math.min(start + this.pageSize, filtered.length)} of ${filtered.length}`);
+
+        tbody.querySelectorAll('[data-action="view-ride"]').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                window.open(`ride-details.html?id=${e.currentTarget.dataset.id}`, '_blank');
+            });
+        });
+    }
+
+    rideStatusBadge(status) {
+        const map = { scheduled: 'info', completed: 'success', cancelled: 'danger', active: 'gold' };
+        return map[status] || 'info';
+    }
+
+    /* ─── Reports & Verifications (placeholder) ─── */
+
+    renderReportsPlaceholder() {
+        const tbody = document.getElementById('reportsTableBody');
+        if (tbody) {
+            tbody.innerHTML = `<tr><td colspan="6" class="text-center text-muted">No reports to display</td></tr>`;
+        }
+    }
+
+    renderVerificationsPlaceholder() {
+        const tbody = document.getElementById('verificationsTableBody');
+        if (tbody) {
+            tbody.innerHTML = `<tr><td colspan="6" class="text-center text-muted">No pending verifications</td></tr>`;
+        }
+    }
+
+    /* ─── Utilities ─── */
+
+    formatDate(dateStr) {
+        if (!dateStr) return '–';
+        return new Date(dateStr).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+    }
+
+    getInitials(name) {
+        if (!name) return '?';
+        return name.split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2);
+    }
+
+    esc(str) {
+        if (!str) return '';
+        const d = document.createElement('div');
+        d.textContent = str;
+        return d.innerHTML;
     }
 }
 
-// Initialize admin panel when page loads
+// Initialize
 let adminPanel;
-
-if (window.location.pathname.includes('admin.html')) {
-    document.addEventListener('DOMContentLoaded', () => {
-        adminPanel = new AdminPanel();
-        adminPanel.init();
-    });
-}
+document.addEventListener('DOMContentLoaded', async () => {
+    adminPanel = new AdminPanel();
+    await adminPanel.init();
+});

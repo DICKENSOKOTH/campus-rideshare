@@ -4,9 +4,8 @@ backend/services/ride_service.py
 Business logic for rides: create, search, manage.
 """
 
-from backend.models.ride import create_ride, get_ride_by_id, search_rides, update_ride_status
-from backend.models.booking import (create_booking, check_existing_booking,
-                                     get_ride_passengers, cancel_booking)
+from backend.models.ride import create_ride, get_ride_by_id, update_ride_status
+from backend.models.booking import create_booking, check_existing_booking
 
 def create_new_ride(driver_id: str, data: dict):
     """Create a ride and return it."""
@@ -40,7 +39,7 @@ def book_ride(ride_id: str, passenger_id: str, data: dict):
         return None, "You already have a booking for this ride"
 
     seats_requested = int(data.get("seats_booked", 1))
-    seats_available = ride["available_seats"] - ride["booked_seats"]
+    seats_available = ride.get("seats_remaining", 0)
     if seats_requested > seats_available:
         return None, f"Only {seats_available} seat(s) available"
 

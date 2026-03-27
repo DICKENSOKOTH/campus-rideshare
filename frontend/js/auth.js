@@ -3,332 +3,319 @@
 class AuthManager {
     constructor() {
         this.currentUser = this.getCurrentUser();
+        this._accessToken = null;
+        this._refreshToken = null;
+        this._redirecting = false;
+        this._verifyPromise = null;
+        this._lastVerifyAt = 0;
+        this._lastVerifyOk = null;
     }
 
-    // Get current user from localStorage
     getCurrentUser() {
-        const userStr = localStorage.getItem(STORAGE_KEYS.USER);
-        if (userStr) {
-            try {
-                return JSON.parse(userStr);
-            } catch (e) {
-                console.error('Failed to parse user data:', e);
-                return null;
-            }
-        }
+        // Always null initially; will be set after backend verification
         return null;
     }
 
-    // Check if user is logged in
     isAuthenticated() {
-        const token = localStorage.getItem(STORAGE_KEYS.TOKEN);
-        return !!token;
+        // Only authenticated if currentUser is set after backend verification
+        return !!this.currentUser;
     }
 
-    // Check if user is admin
     isAdmin() {
         return this.currentUser && this.currentUser.role === 'admin';
     }
 
-    // Save auth data
-    saveAuthData(token, user) {
-        localStorage.setItem(STORAGE_KEYS.TOKEN, token);
-        localStorage.setItem(STORAGE_KEYS.USER, JSON.stringify(user));
+    saveAuthData(token, user, refreshToken = null) {
+        // Store tokens and user only in memory
+        this._accessToken = token;
+        this._refreshToken = refreshToken;
         this.currentUser = user;
     }
 
-    // Clear auth data
     clearAuthData() {
-        localStorage.removeItem(STORAGE_KEYS.TOKEN);
-        localStorage.removeItem(STORAGE_KEYS.USER);
         this.currentUser = null;
+        this._accessToken = null;
+        this._refreshToken = null;
     }
 
-    // Login
     async login(email, password) {
         try {
             const response = await AuthAPI.login(email, password);
-            
+
             if (response.success && response.data) {
-                this.saveAuthData(response.data.token, response.data.user);
+                this.saveAuthData(response.data.access_token, response.data.user, response.data.refresh_token);
                 return { success: true, user: response.data.user };
             }
-            
+
             return { success: false, message: response.message || 'Login failed' };
         } catch (error) {
-            console.error('Login error:', error);
-            return { success: false, message: error.message || ERROR_MESSAGES.SERVER };
+            const detail = error.data?.errors;
+            const msg = Array.isArray(detail) ? detail.join(', ') : (error.message || ERROR_MESSAGES.SERVER);
+            return { success: false, message: msg };
         }
     }
 
-    // Register
     async register(userData) {
         try {
             const response = await AuthAPI.register(userData);
-            
+
             if (response.success) {
                 return { success: true, message: response.message || SUCCESS_MESSAGES.REGISTER };
             }
-            
-            return { success: false, message: response.message || 'Registration failed' };
+
+            const msg = response.errors?.join(', ') || response.message || 'Registration failed';
+            return { success: false, message: msg };
         } catch (error) {
-            console.error('Register error:', error);
-            return { success: false, message: error.message || ERROR_MESSAGES.SERVER };
+            const detail = error.data?.errors;
+            const msg = Array.isArray(detail) ? detail.join(', ') : (error.message || ERROR_MESSAGES.SERVER);
+            return { success: false, message: msg };
         }
     }
 
-    // Logout
-    async logout() {
-        try {
-            await AuthAPI.logout();
-        } catch (error) {
-            console.error('Logout error:', error);
-        } finally {
-            this.clearAuthData();
-            window.location.href = '/login.html';
-        }
+    logout() {
+        this.clearAuthData();
+        this._redirectTo('login.html');
     }
 
-    // Verify token validity
     async verifyToken() {
-        if (!this.isAuthenticated()) {
-            return false;
-        }
-
-        try {
-            const response = await AuthAPI.verifyToken();
-            return response.success;
-        } catch (error) {
-            console.error('Token verification failed:', error);
-            this.clearAuthData();
-            return false;
-        }
+        // Coalesce concurrent verification calls and rate-limit repeated checks
+        if (this._verifyPromise) return this._verifyPromise;
+        this._verifyPromise = (async () => {
+            try {
+                const now = Date.now();
+                // If we recently verified less than 1.5s ago, reuse the previous result
+                if (now - this._lastVerifyAt < 1500 && this._lastVerifyOk !== null) {
+                    return this._lastVerifyOk;
+                }
+                const response = await AuthAPI.getMe();
+                if (response.success && response.data) {
+                    this.currentUser = response.data;
+                    this._lastVerifyAt = Date.now();
+                    this._lastVerifyOk = true;
+                    return true;
+                }
+                this.clearAuthData();
+                this._lastVerifyAt = Date.now();
+                this._lastVerifyOk = false;
+                return false;
+            } catch (error) {
+                this.clearAuthData();
+                this._lastVerifyAt = Date.now();
+                this._lastVerifyOk = false;
+                return false;
+            } finally {
+                this._verifyPromise = null;
+            }
+        })();
+        return this._verifyPromise;
     }
 
-    // Protect page - redirect if not authenticated
-    requireAuth() {
-        if (!this.isAuthenticated()) {
-            window.location.href = '/login.html';
+    async requireAuth() {
+        // Always verify user exists in DB
+        const ok = await this.verifyToken();
+        if (!ok) {
+            this._redirectTo('login.html');
             return false;
         }
         return true;
     }
 
-    // Protect admin page
-    requireAdmin() {
-        if (!this.isAuthenticated()) {
-            window.location.href = '/login.html';
-            return false;
-        }
+    async requireAdmin() {
+        if (!(await this.requireAuth())) return false;
         if (!this.isAdmin()) {
-            window.location.href = '/dashboard.html';
+            this._redirectTo('home.html');
             return false;
         }
         return true;
     }
 
-    // Redirect if already logged in
-    redirectIfAuthenticated() {
-        if (this.isAuthenticated()) {
-            window.location.href = '/dashboard.html';
+    async redirectIfAuthenticated() {
+        if (await this.requireAuth()) {
+            this._redirectTo('home.html');
             return true;
         }
         return false;
+    }
+
+    _redirectTo(path) {
+        if (this._redirecting) return;
+        this._redirecting = true;
+        window.location.href = path;
     }
 }
 
 // Create singleton instance
 const authManager = new AuthManager();
 
-// Login Page Logic
+// Global: verify user on every page except login/register
+if (!window.location.pathname.includes('login.html') && !window.location.pathname.includes('register.html')) {
+    (async () => {
+        await authManager.requireAuth();
+    })();
+}
+
+// ── Login Page Logic ────────────────────────────────────
 if (window.location.pathname.includes('login.html')) {
-    // Redirect if already logged in
-    authManager.redirectIfAuthenticated();
+    // Only redirect if user exists in DB
+    (async () => {
+        await authManager.redirectIfAuthenticated();
+    })();
 
     document.addEventListener('DOMContentLoaded', () => {
         const loginForm = document.getElementById('loginForm');
+        const loginBtn = document.getElementById('loginBtn');
         const emailInput = document.getElementById('email');
         const passwordInput = document.getElementById('password');
-        const submitBtn = document.getElementById('submitBtn');
-        const errorMessage = document.getElementById('errorMessage');
+        const errorBanner = document.getElementById('errorBanner');
+        const errorText = document.getElementById('errorBannerText');
+        const emailError = document.getElementById('emailError');
+        const passwordError = document.getElementById('passwordError');
 
-        if (loginForm) {
-            loginForm.addEventListener('submit', async (e) => {
-                e.preventDefault();
-                
-                // Clear previous errors
-                if (errorMessage) errorMessage.textContent = '';
-                
-                // Get form values
-                const email = emailInput?.value.trim();
-                const password = passwordInput?.value;
-
-                // Basic validation
-                if (!email || !password) {
-                    if (errorMessage) errorMessage.textContent = 'Please fill in all fields';
-                    return;
-                }
-
-                // Disable submit button
-                if (submitBtn) {
-                    submitBtn.disabled = true;
-                    submitBtn.textContent = 'Logging in...';
-                }
-
-                // Attempt login
-                const result = await authManager.login(email, password);
-
-                if (result.success) {
-                    // Show success message
-                    showNotification(SUCCESS_MESSAGES.LOGIN, 'success');
-                    
-                    // Redirect to dashboard
-                    setTimeout(() => {
-                        window.location.href = '/dashboard.html';
-                    }, 500);
-                } else {
-                    // Show error
-                    if (errorMessage) errorMessage.textContent = result.message;
-                    
-                    // Re-enable submit button
-                    if (submitBtn) {
-                        submitBtn.disabled = false;
-                        submitBtn.textContent = 'Login';
-                    }
-                }
-            });
+        function showLoginError(msg) {
+            if (errorBanner) {
+                errorBanner.classList.remove('hidden');
+                if (errorText) errorText.textContent = msg;
+            }
         }
-    });
-}
 
-// Register Page Logic
-if (window.location.pathname.includes('register.html')) {
-    // Redirect if already logged in
-    authManager.redirectIfAuthenticated();
-
-    document.addEventListener('DOMContentLoaded', () => {
-        const registerForm = document.getElementById('registerForm');
-        const submitBtn = document.getElementById('submitBtn');
-        const errorMessage = document.getElementById('errorMessage');
-
-        if (registerForm) {
-            registerForm.addEventListener('submit', async (e) => {
-                e.preventDefault();
-                
-                // Clear previous errors
-                if (errorMessage) errorMessage.textContent = '';
-                
-                // Get form values
-                const formData = new FormData(registerForm);
-                const userData = {
-                    name: formData.get('name')?.trim(),
-                    email: formData.get('email')?.trim(),
-                    password: formData.get('password'),
-                    confirmPassword: formData.get('confirmPassword'),
-                    phone: formData.get('phone')?.trim(),
-                    studentId: formData.get('studentId')?.trim(),
-                };
-
-                // Basic validation
-                if (!userData.name || !userData.email || !userData.password || !userData.confirmPassword) {
-                    if (errorMessage) errorMessage.textContent = 'Please fill in all required fields';
-                    return;
-                }
-
-                if (userData.password !== userData.confirmPassword) {
-                    if (errorMessage) errorMessage.textContent = 'Passwords do not match';
-                    return;
-                }
-
-                if (userData.password.length < 6) {
-                    if (errorMessage) errorMessage.textContent = 'Password must be at least 6 characters';
-                    return;
-                }
-
-                // Remove confirmPassword before sending
-                delete userData.confirmPassword;
-
-                // Disable submit button
-                if (submitBtn) {
-                    submitBtn.disabled = true;
-                    submitBtn.textContent = 'Creating Account...';
-                }
-
-                // Attempt registration
-                const result = await authManager.register(userData);
-
-                if (result.success) {
-                    // Show success message
-                    showNotification(result.message, 'success');
-                    
-                    // Redirect to login
-                    setTimeout(() => {
-                        window.location.href = '/login.html';
-                    }, 1500);
-                } else {
-                    // Show error
-                    if (errorMessage) errorMessage.textContent = result.message;
-                    
-                    // Re-enable submit button
-                    if (submitBtn) {
-                        submitBtn.disabled = false;
-                        submitBtn.textContent = 'Create Account';
-                    }
-                }
-            });
+        function hideLoginError() {
+            if (errorBanner) errorBanner.classList.add('hidden');
         }
-    });
-}
 
-// Logout functionality (available on all pages)
-document.addEventListener('DOMContentLoaded', () => {
-    const logoutBtns = document.querySelectorAll('.logout-btn, [data-action="logout"]');
-    
-    logoutBtns.forEach(btn => {
-        btn.addEventListener('click', async (e) => {
-            e.preventDefault();
-            
-            const confirmed = confirm('Are you sure you want to logout?');
-            if (confirmed) {
-                await authManager.logout();
+        function setFieldError(input, errorEl, msg) {
+            if (input) input.classList.add('error');
+            if (errorEl) { errorEl.textContent = msg; errorEl.classList.remove('hidden'); }
+        }
+
+        function clearFieldError(input, errorEl) {
+            if (input) input.classList.remove('error');
+            if (errorEl) errorEl.classList.add('hidden');
+        }
+
+        function clearAllErrors() {
+            hideLoginError();
+            clearFieldError(emailInput, emailError);
+            clearFieldError(passwordInput, passwordError);
+        }
+
+        // Clear field error on input
+        if (emailInput) emailInput.addEventListener('input', () => { clearFieldError(emailInput, emailError); hideLoginError(); });
+        if (passwordInput) passwordInput.addEventListener('input', () => { clearFieldError(passwordInput, passwordError); hideLoginError(); });
+
+        function validateLoginForm() {
+            let valid = true;
+            const email = emailInput?.value.trim();
+            const password = passwordInput?.value;
+
+            if (!email) {
+                setFieldError(emailInput, emailError, 'Email is required.');
+                valid = false;
+            } else if (!/^[\w.+-]+@[\w.-]+\.[a-zA-Z]{2,}$/.test(email)) {
+                setFieldError(emailInput, emailError, 'Please enter a valid email address.');
+                valid = false;
+            }
+
+            if (!password) {
+                setFieldError(passwordInput, passwordError, 'Password is required.');
+                valid = false;
+            }
+
+            return valid;
+        }
+
+        async function handleLogin(e) {
+            if (e) e.preventDefault();
+            clearAllErrors();
+
+            if (!validateLoginForm()) return;
+
+            loginBtn.disabled = true;
+            loginBtn.textContent = 'Signing in\u2026';
+
+            try {
+                const result = await authManager.login(
+                    emailInput.value.trim(),
+                    passwordInput.value
+                );
+                if (result.success) {
+                    // Immediately verify user exists in DB
+                    const ok = await authManager.verifyToken();
+                    if (ok) {
+                        showNotification(SUCCESS_MESSAGES.LOGIN, 'success');
+                        window.location.href = 'home.html';
+                    } else {
+                        showLoginError('Account not found. Please sign in again.');
+                        authManager.clearAuthData();
+                        loginBtn.disabled = false;
+                        loginBtn.textContent = 'Sign In';
+                    }
+                } else {
+                    showLoginError(result.message);
+                    loginBtn.disabled = false;
+                    loginBtn.textContent = 'Sign In';
+                }
+            } catch (err) {
+                showLoginError(err.message || ERROR_MESSAGES.SERVER);
+                loginBtn.disabled = false;
+                loginBtn.textContent = 'Sign In';
+            }
+        }
+    })();
+
+    // ── Register Page Logic ─────────────────────────────────
+    // Registration form/UI logic is in register.js (loaded separately on register page).
+    if (window.location.pathname.includes('register.html')) {
+        authManager.redirectIfAuthenticated();
+    }
+
+    // ── Logout + nav avatar are handled by app.js on authenticated pages ──
+
+    // Utility function to show notifications (uses toast styles from components.css)
+    function showNotification(message, type = 'info') {
+        let container = document.querySelector('.toast-container');
+        if (!container) {
+            container = document.createElement('div');
+            container.className = 'toast-container';
+            document.body.appendChild(container);
+        }
+
+        const typeClass = type === 'success' ? 'toast-success' : type === 'error' ? 'toast-error' : 'toast-info';
+        const toast = document.createElement('div');
+        toast.className = `toast ${typeClass}`;
+        toast.textContent = message;
+        container.appendChild(toast);
+
+        const duration = type === 'error' ? 6000 : 3000;
+        setTimeout(() => {
+            toast.style.opacity = '0';
+            toast.style.transform = 'translateY(10px)';
+            toast.style.transition = 'all 0.3s ease';
+            setTimeout(() => toast.remove(), 300);
+        }, duration);
+    }
+
+    // Utility: password visibility toggle
+    function initPasswordToggle(toggleId, inputId) {
+        const toggle = document.getElementById(toggleId);
+        const input  = document.getElementById(inputId);
+        if (!toggle || !input) return;
+
+        toggle.addEventListener('click', () => {
+            const showing = input.type === 'text';
+            input.type = showing ? 'password' : 'text';
+            const useEl = toggle.querySelector('use');
+            if (useEl) {
+                useEl.setAttribute('href', showing ? 'assets/icons.svg#icon-eye' : 'assets/icons.svg#icon-eye-off');
             }
         });
-    });
-
-    // Update user display in navbar/header
-    const userNameDisplay = document.getElementById('userName');
-    const userEmailDisplay = document.getElementById('userEmail');
-    
-    if (authManager.isAuthenticated() && authManager.currentUser) {
-        if (userNameDisplay) userNameDisplay.textContent = authManager.currentUser.name;
-        if (userEmailDisplay) userEmailDisplay.textContent = authManager.currentUser.email;
     }
-});
 
-// Utility function to show notifications
-function showNotification(message, type = 'info') {
-    // Create notification element
-    const notification = document.createElement('div');
-    notification.className = `notification notification-${type}`;
-    notification.textContent = message;
-    notification.style.cssText = `
-        position: fixed;
-        top: 20px;
-        right: 20px;
-        padding: 15px 20px;
-        background: ${type === 'success' ? '#4CAF50' : type === 'error' ? '#f44336' : '#2196F3'};
-        color: white;
-        border-radius: 4px;
-        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-        z-index: 10000;
-        animation: slideIn 0.3s ease-out;
-    `;
-    
-    document.body.appendChild(notification);
-    
-    // Auto remove after 3 seconds
-    setTimeout(() => {
-        notification.style.animation = 'slideOut 0.3s ease-out';
-        setTimeout(() => notification.remove(), 300);
-    }, 3000);
+    // Utility: populate nav avatar with user initials
+    function updateNavAvatar() {
+        const avatar = document.getElementById('navAvatar');
+        if (avatar && authManager.currentUser) {
+            const parts = authManager.currentUser.full_name.split(' ');
+            avatar.textContent = parts.map(p => p[0]).join('').substring(0, 2).toUpperCase();
+        }
+    }
 }

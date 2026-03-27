@@ -15,8 +15,8 @@ from backend.database.database import (
     get_user_chat_count_last_minute,
     log_chat_interaction,
 )
-from ai.prompts import SYSTEM_PROMPT_TEMPLATE
-from ai.context import get_current_date, build_rides_context
+from .prompts import SYSTEM_PROMPT_TEMPLATE
+from .context import get_current_date, build_rides_context
 
 
 class RideShareChatbot:
@@ -78,6 +78,7 @@ class RideShareChatbot:
 
         for msg in conversation_history[-10:]:
             role = msg.get("role", "user")
+            # Gemini uses "user" and "model" roles (not "assistant")
             if role == "assistant":
                 role = "model"
             contents.append({

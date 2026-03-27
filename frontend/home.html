@@ -1,0 +1,209 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Home — Campus Rideshare</title>
+    <link rel="stylesheet" href="css/base.css" />
+    <link rel="stylesheet" href="css/components.css" />
+    <link rel="stylesheet" href="css/pages.css" />
+  </head>
+  <body>
+    <nav class="navbar solid" id="navbar">
+      <div class="container nav-inner">
+        <a href="index.html" class="nav-logo">
+          <div class="nav-logo-icon">
+            <svg class="icon icon-md"><use href="assets/icons.svg#icon-car"></use></svg>
+          </div>
+          CampusRide
+        </a>
+        <div class="nav-links" id="navLinks">
+          <a href="home.html" class="nav-link active">Home</a>
+          <a href="find-ride.html" class="nav-link">Find a Ride</a>
+          <a href="create-ride.html" class="nav-link">Post a Ride</a>
+          <a href="ai-assistant.html" class="nav-link">AI Assistant</a>
+        </div>
+        <div class="nav-actions">
+          <a href="profile.html" class="nav-avatar" id="navAvatar"></a>
+          <button class="nav-toggle" id="navToggle">
+            <span></span><span></span><span></span>
+          </button>
+        </div>
+      </div>
+    </nav>
+
+    <div class="page-body">
+      <div class="dashboard-layout">
+        <aside class="sidebar">
+          <div class="sidebar-section">
+            <div class="sidebar-user">
+              <div class="avatar avatar-md" id="sidebarAvatar"></div>
+              <div>
+                <div class="sidebar-user-name" id="sidebarName"></div>
+                <div class="sidebar-user-role" id="sidebarRole"></div>
+              </div>
+            </div>
+
+            <p class="sidebar-label">Main Menu</p>
+            <a href="home.html" class="sidebar-link active">
+              <span class="sidebar-icon"><svg class="icon icon-sm"><use href="assets/icons.svg#icon-home"></use></svg></span> Home
+            </a>
+            <a href="find-ride.html" class="sidebar-link">
+              <span class="sidebar-icon"><svg class="icon icon-sm"><use href="assets/icons.svg#icon-search"></use></svg></span> Find a Ride
+            </a>
+            <a href="create-ride.html" class="sidebar-link">
+              <span class="sidebar-icon"><svg class="icon icon-sm"><use href="assets/icons.svg#icon-plus"></use></svg></span> Post a Ride
+            </a>
+            <a href="ai-assistant.html" class="sidebar-link">
+              <span class="sidebar-icon"><svg class="icon icon-sm"><use href="assets/icons.svg#icon-sparkle"></use></svg></span> AI Assistant
+              <span class="sidebar-badge">New</span>
+            </a>
+          </div>
+
+          <div class="sidebar-section mt-4">
+            <p class="sidebar-label">Account</p>
+            <a href="profile.html" class="sidebar-link">
+              <span class="sidebar-icon"><svg class="icon icon-sm"><use href="assets/icons.svg#icon-user"></use></svg></span> My Profile
+            </a>
+            <a href="ride-details.html" class="sidebar-link">
+              <span class="sidebar-icon"><svg class="icon icon-sm"><use href="assets/icons.svg#icon-map"></use></svg></span> My Rides
+            </a>
+            <a href="#" class="sidebar-link">
+              <span class="sidebar-icon"><svg class="icon icon-sm"><use href="assets/icons.svg#icon-settings"></use></svg></span> Settings
+            </a>
+            <a href="#" class="sidebar-link" data-action="logout">
+              <span class="sidebar-icon"><svg class="icon icon-sm"><use href="assets/icons.svg#icon-logout"></use></svg></span> Sign Out
+            </a>
+          </div>
+        </aside>
+
+        <main class="main-content">
+          <div class="page-header">
+            <h1 class="page-title" id="pageGreeting">Good morning</h1>
+            <p class="page-subtitle">Here's what's happening with your rides today.</p>
+          </div>
+
+          <div class="stats-row" id="statsRow">
+            <div class="stat-card animate-fade-up">
+              <div class="stat-card-icon gold">
+                <svg class="icon icon-lg"><use href="assets/icons.svg#icon-car"></use></svg>
+              </div>
+              <div>
+                <div class="stat-number" id="statRides">--</div>
+                <div class="stat-label">Total Rides</div>
+              </div>
+            </div>
+            <div class="stat-card animate-fade-up delay-1">
+              <div class="stat-card-icon green">
+                <svg class="icon icon-lg"><use href="assets/icons.svg#icon-dollar"></use></svg>
+              </div>
+              <div>
+                <div class="stat-number" id="statSaved">--</div>
+                <div class="stat-label">Total Saved</div>
+              </div>
+            </div>
+            <div class="stat-card animate-fade-up delay-2">
+              <div class="stat-card-icon navy">
+                <svg class="icon icon-lg"><use href="assets/icons.svg#icon-star"></use></svg>
+              </div>
+              <div>
+                <div class="stat-number" id="statRating">--</div>
+                <div class="stat-label">Your Rating</div>
+              </div>
+            </div>
+            <div class="stat-card animate-fade-up delay-3">
+              <div class="stat-card-icon blue">
+                <svg class="icon icon-lg"><use href="assets/icons.svg#icon-leaf"></use></svg>
+              </div>
+              <div>
+                <div class="stat-number" id="statCO2">--</div>
+                <div class="stat-label">CO2 Saved</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="quick-actions">
+            <a href="find-ride.html" class="quick-action-btn animate-fade-up">
+              <span class="quick-action-icon">
+                <svg class="icon icon-xl"><use href="assets/icons.svg#icon-search"></use></svg>
+              </span>
+              Find a Ride
+            </a>
+            <a href="create-ride.html" class="quick-action-btn animate-fade-up delay-1">
+              <span class="quick-action-icon">
+                <svg class="icon icon-xl"><use href="assets/icons.svg#icon-plus"></use></svg>
+              </span>
+              Post a Ride
+            </a>
+            <a href="ai-assistant.html" class="quick-action-btn animate-fade-up delay-2">
+              <span class="quick-action-icon">
+                <svg class="icon icon-xl"><use href="assets/icons.svg#icon-sparkle"></use></svg>
+              </span>
+              Ask AI Assistant
+            </a>
+          </div>
+
+          <div class="grid-2 mb-6">
+            <div class="card animate-fade-up">
+              <div class="card-header">
+                <h3 class="card-title">Upcoming Rides</h3>
+                <a href="find-ride.html" class="btn btn-primary btn-sm">+ Book New</a>
+              </div>
+              <div class="card-body" id="upcomingRides">
+                <div class="empty-state">
+                  <div class="empty-state-icon">
+                    <svg class="icon icon-2xl"><use href="assets/icons.svg#icon-car"></use></svg>
+                  </div>
+                  <h3>No upcoming rides</h3>
+                  <p>Book a ride to see it here.</p>
+                </div>
+              </div>
+            </div>
+
+            <div class="card animate-fade-up delay-1">
+              <div class="card-header">
+                <h3 class="card-title">Recent Activity</h3>
+              </div>
+              <div class="card-body" id="recentActivity">
+                <div class="empty-state">
+                  <div class="empty-state-icon">
+                    <svg class="icon icon-2xl"><use href="assets/icons.svg#icon-activity"></use></svg>
+                  </div>
+                  <h3>No recent activity</h3>
+                  <p>Your activity will show up here.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="card animate-fade-up">
+            <div class="card-header">
+              <h3 class="card-title">
+                <svg class="icon icon-md"><use href="assets/icons.svg#icon-sparkle"></use></svg>
+                AI Recommended Rides
+              </h3>
+              <a href="find-ride.html" class="btn btn-primary btn-sm">View All</a>
+            </div>
+            <div class="card-body">
+              <div class="grid-3" id="recommendedRides">
+                <div class="empty-state">
+                  <div class="empty-state-icon">
+                    <svg class="icon icon-2xl"><use href="assets/icons.svg#icon-sparkle"></use></svg>
+                  </div>
+                  <h3>No recommendations yet</h3>
+                  <p>Take a few rides and our AI will suggest matches.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </main>
+      </div>
+    </div>
+
+    <script src="js/config.js"></script>
+    <script src="js/api.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/app.js"></script>
+    <script src="js/home.js"></script>
+  </body>
+</html>
