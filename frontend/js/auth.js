@@ -114,7 +114,11 @@ class AuthManager {
         // Always verify user exists in DB
         const ok = await this.verifyToken();
         if (!ok) {
-            this._redirectTo('login.html');
+            // Don't redirect to login if already on login/register pages
+            const path = window.location.pathname;
+            if (!path.includes('login.html') && !path.includes('register.html')) {
+                this._redirectTo('login.html');
+            }
             return false;
         }
         return true;
@@ -147,21 +151,22 @@ class AuthManager {
 // Create singleton instance
 const authManager = new AuthManager();
 
-// Global: verify user on every page except login/register
-if (!window.location.pathname.includes('login.html') && !window.location.pathname.includes('register.html')) {
-    (async () => {
-        await authManager.requireAuth();
-    })();
-}
+// Wait for DOM before running auth checks
+document.addEventListener('DOMContentLoaded', () => {
+    // Global: verify user on every page except login/register
+    if (!window.location.pathname.includes('login.html') && !window.location.pathname.includes('register.html')) {
+        (async () => {
+            await authManager.requireAuth();
+        })();
+    }
 
-// ── Login Page Logic ────────────────────────────────────
-if (window.location.pathname.includes('login.html')) {
-    // Only redirect if user exists in DB
-    (async () => {
-        await authManager.redirectIfAuthenticated();
-    })();
+    // ── Login Page Logic ────────────────────────────────────
+    if (window.location.pathname.includes('login.html')) {
+        // Only redirect if user exists in DB
+        (async () => {
+            await authManager.redirectIfAuthenticated();
+        })();
 
-    document.addEventListener('DOMContentLoaded', () => {
         const loginForm = document.getElementById('loginForm');
         const loginBtn = document.getElementById('loginBtn');
         const emailInput = document.getElementById('email');
@@ -260,7 +265,10 @@ if (window.location.pathname.includes('login.html')) {
                 loginBtn.textContent = 'Sign In';
             }
         }
-    })();
+
+        if (loginForm) loginForm.addEventListener('submit', handleLogin);
+        initPasswordToggle('togglePassword', 'password');
+    }
 
     // ── Register Page Logic ─────────────────────────────────
     // Registration form/UI logic is in register.js (loaded separately on register page).
@@ -318,4 +326,4 @@ if (window.location.pathname.includes('login.html')) {
             avatar.textContent = parts.map(p => p[0]).join('').substring(0, 2).toUpperCase();
         }
     }
-}
+});
