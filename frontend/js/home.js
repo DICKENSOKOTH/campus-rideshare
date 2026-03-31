@@ -166,6 +166,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (path.includes('home')) {
         const dashboard = new Dashboard();
         await dashboard.init();
-        setInterval(async () => { await dashboard.init(); }, 30000);
+        // Removed aggressive 30-second polling that caused excessive API requests.
+        // Dashboard now loads once on page load; use WebSocket for real-time updates
+        // or manual refresh if needed.
     }
 });

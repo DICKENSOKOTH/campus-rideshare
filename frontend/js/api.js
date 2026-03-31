@@ -123,14 +123,14 @@ class APIClient {
                         credentials: 'include',
                     });
                     if (!res.ok) {
-                        // put a short cooldown (5s) on further refresh attempts
-                        this._refreshFailedUntil = Date.now() + 5000;
+                        // Cooldown of 30 seconds to prevent hammering the server on repeated failures
+                        this._refreshFailedUntil = Date.now() + 30000;
                         return false;
                     }
                     const body = await res.json();
                     return body.success === true;
                 } catch {
-                    this._refreshFailedUntil = Date.now() + 5000;
+                    this._refreshFailedUntil = Date.now() + 30000;
                     return false;
                 } finally {
                     this._refreshing = null;
@@ -145,7 +145,13 @@ class APIClient {
         try { if (typeof authManager !== 'undefined') authManager.clearAuthData(); } catch(_){}
         if (this._redirecting) return;
         const path = window.location.pathname;
-        if (!path.includes('login.html') && !path.includes('register.html') && !path.includes('index.html')) {
+        // Don't redirect if already on a public page (login, register, index, or root)
+        const isPublicPage = path.includes('login.html') || 
+                             path.includes('register.html') || 
+                             path.includes('index.html') ||
+                             path === '/' ||
+                             path.endsWith('/');
+        if (!isPublicPage) {
             this._redirecting = true;
             window.location.href = 'login.html';
         }

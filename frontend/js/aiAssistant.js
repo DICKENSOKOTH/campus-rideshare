@@ -178,8 +178,10 @@ class AIAssistant {
 
         try {
             // Build clean history for the backend: only role + content
+            // Limit to last 10 messages to reduce request payload size
             const history = this.messages
                 .filter(m => m.role === 'user' || m.role === 'assistant')
+                .slice(-10)
                 .map(m => ({ role: m.role, content: m.content }));
 
             const response = await AIAPI.chat(text, history);

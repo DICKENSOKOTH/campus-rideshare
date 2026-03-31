@@ -1,10 +1,7 @@
-#  Campus Rideshare
+# Campus Rideshare
 
-Campus Rideshare is a ride sharing app we built as a group project. 
-It connects drivers and riders, lets them book trips, 
-and has a built in AI assistant to help users.
-
----
+Campus Rideshare
+--
 
 ## Our Team
 
@@ -18,7 +15,7 @@ and has a built in AI assistant to help users.
 
 ---
 
-##  Tech We Used
+## Tech We Used
 
 - Backend: Python Flask
 - Database: PostgreSQL (psycopg2)
@@ -30,7 +27,7 @@ and has a built in AI assistant to help users.
 
 ---
 
-##  How To Run The Project
+## How To Run The Project
 
 1. Clone the repo
 2. Install everything: `pip install -r requirements.txt`
@@ -80,8 +77,9 @@ Campus-Rideshare/
 
 ---
 
-##  Notes
+## Notes
 
 - Make sure you never push your .env file to GitHub
 - Each team member works on their own branch
 - All PRs go through Member 1 for review before merging
+

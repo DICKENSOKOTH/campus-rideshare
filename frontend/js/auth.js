@@ -130,7 +130,10 @@ class AuthManager {
     }
 
     async redirectIfAuthenticated() {
-        if (await this.requireAuth()) {
+        // Don't use requireAuth here - it redirects to login on failure which causes loops
+        // Instead, just check if user is authenticated without redirecting
+        const ok = await this.verifyToken();
+        if (ok) {
             this._redirectTo('home.html');
             return true;
         }
@@ -147,8 +150,12 @@ class AuthManager {
 // Create singleton instance
 const authManager = new AuthManager();
 
-// Global: verify user on every page except login/register
-if (!window.location.pathname.includes('login.html') && !window.location.pathname.includes('register.html')) {
+// Global: verify user on every page except public pages (login/register/index/landing)
+const publicPages = ['login.html', 'register.html', 'index.html'];
+const isPublicPage = publicPages.some(page => window.location.pathname.includes(page)) || 
+                     window.location.pathname === '/' || 
+                     window.location.pathname.endsWith('/');
+if (!isPublicPage) {
     (async () => {
         await authManager.requireAuth();
     })();

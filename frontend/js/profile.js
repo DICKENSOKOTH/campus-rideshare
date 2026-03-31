@@ -5,6 +5,7 @@ class ProfileManager {
         this.profile = null;
         this.ratings = [];
         this.isEditMode = false;
+        this.rideHistoryLoaded = false; // Track if ride history has been loaded
     }
 
     async init() {
@@ -12,7 +13,7 @@ class ProfileManager {
         this.setupTabs();
         this.setupEditToggle();
         await this.loadProfile();
-        await this.loadRideHistory();
+        // Ride history is now loaded lazily when user clicks the tabs
     }
 
     /* ── Data Loading ── */
@@ -113,7 +114,7 @@ class ProfileManager {
         tabs.forEach(({ btn, panel }) => {
             const btnEl = document.getElementById(btn);
             if (!btnEl) return;
-            btnEl.addEventListener('click', () => {
+            btnEl.addEventListener('click', async () => {
                 tabs.forEach(t => {
                     const b = document.getElementById(t.btn);
                     const p = document.getElementById(t.panel);
@@ -123,6 +124,12 @@ class ProfileManager {
                 btnEl.classList.add('active');
                 const panelEl = document.getElementById(panel);
                 if (panelEl) panelEl.classList.remove('hidden');
+                
+                // Lazy load ride history when user clicks Passenger or Driver tabs
+                if ((btn === 'tabPassenger' || btn === 'tabDriver') && !this.rideHistoryLoaded) {
+                    this.rideHistoryLoaded = true;
+                    await this.loadRideHistory();
+                }
             });
         });
     }
