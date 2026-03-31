@@ -42,14 +42,18 @@ class APIClient {
     async request(method, endpoint, options = {}) {
         const { data, params, includeAuth = true, queryParams } = options;
 
-        const url = this.buildURL(endpoint, params);
+        let url = this.buildURL(endpoint, params);
         
         // Add query parameters
-        const urlObj = new URL(url);
         if (queryParams) {
+            const searchParams = new URLSearchParams();
             Object.keys(queryParams).forEach(key => {
-                urlObj.searchParams.append(key, queryParams[key]);
+                searchParams.append(key, queryParams[key]);
             });
+            const queryString = searchParams.toString();
+            if (queryString) {
+                url += (url.includes('?') ? '&' : '?') + queryString;
+            }
         }
 
         const config = {
@@ -69,7 +73,7 @@ class APIClient {
             // Send cookies for auth (httpOnly cookies set by backend)
             config.credentials = 'include';
 
-            const response = await fetch(urlObj.toString(), config);
+            const response = await fetch(url, config);
             clearTimeout(timeoutId);
 
             const responseData = await response.json();

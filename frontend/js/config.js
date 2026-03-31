@@ -1,6 +1,6 @@
 // API Configuration
 const API_CONFIG = {
-    BASE_URL: 'http://localhost:5000/api',
+    BASE_URL: '/api',  // Use relative URL to avoid cross-origin cookie issues
     WEBSOCKET_URL: 'ws://localhost:8765',
     TIMEOUT: 30000, // 30 seconds
 };

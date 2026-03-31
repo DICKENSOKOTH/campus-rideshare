@@ -150,6 +150,47 @@ class AuthManager {
 // Create singleton instance
 const authManager = new AuthManager();
 
+// Utility function to show notifications (uses toast styles from components.css)
+// Defined globally so it's available on all pages
+function showNotification(message, type = 'info') {
+    let container = document.querySelector('.toast-container');
+    if (!container) {
+        container = document.createElement('div');
+        container.className = 'toast-container';
+        document.body.appendChild(container);
+    }
+
+    const typeClass = type === 'success' ? 'toast-success' : type === 'error' ? 'toast-error' : 'toast-info';
+    const toast = document.createElement('div');
+    toast.className = `toast ${typeClass}`;
+    toast.textContent = message;
+    container.appendChild(toast);
+
+    const duration = type === 'error' ? 6000 : 3000;
+    setTimeout(() => {
+        toast.style.opacity = '0';
+        toast.style.transform = 'translateY(10px)';
+        toast.style.transition = 'all 0.3s ease';
+        setTimeout(() => toast.remove(), 300);
+    }, duration);
+}
+
+// Utility: password visibility toggle (global)
+function initPasswordToggle(toggleId, inputId) {
+    const toggle = document.getElementById(toggleId);
+    const input  = document.getElementById(inputId);
+    if (!toggle || !input) return;
+
+    toggle.addEventListener('click', () => {
+        const showing = input.type === 'text';
+        input.type = showing ? 'password' : 'text';
+        const useEl = toggle.querySelector('use');
+        if (useEl) {
+            useEl.setAttribute('href', showing ? 'assets/icons.svg#icon-eye' : 'assets/icons.svg#icon-eye-off');
+        }
+    });
+}
+
 // Global: verify user on every page except public pages (login/register/index/landing)
 const publicPages = ['login.html', 'register.html', 'index.html'];
 const isPublicPage = publicPages.some(page => window.location.pathname.includes(page)) || 
@@ -267,55 +308,12 @@ if (window.location.pathname.includes('login.html')) {
                 loginBtn.textContent = 'Sign In';
             }
         }
-    })();
 
-    // ── Register Page Logic ─────────────────────────────────
-    // Registration form/UI logic is in register.js (loaded separately on register page).
-    if (window.location.pathname.includes('register.html')) {
-        authManager.redirectIfAuthenticated();
-    }
-
-    // ── Logout + nav avatar are handled by app.js on authenticated pages ──
-
-    // Utility function to show notifications (uses toast styles from components.css)
-    function showNotification(message, type = 'info') {
-        let container = document.querySelector('.toast-container');
-        if (!container) {
-            container = document.createElement('div');
-            container.className = 'toast-container';
-            document.body.appendChild(container);
+        // Attach the submit handler to the login form
+        if (loginForm) {
+            loginForm.addEventListener('submit', handleLogin);
         }
-
-        const typeClass = type === 'success' ? 'toast-success' : type === 'error' ? 'toast-error' : 'toast-info';
-        const toast = document.createElement('div');
-        toast.className = `toast ${typeClass}`;
-        toast.textContent = message;
-        container.appendChild(toast);
-
-        const duration = type === 'error' ? 6000 : 3000;
-        setTimeout(() => {
-            toast.style.opacity = '0';
-            toast.style.transform = 'translateY(10px)';
-            toast.style.transition = 'all 0.3s ease';
-            setTimeout(() => toast.remove(), 300);
-        }, duration);
-    }
-
-    // Utility: password visibility toggle
-    function initPasswordToggle(toggleId, inputId) {
-        const toggle = document.getElementById(toggleId);
-        const input  = document.getElementById(inputId);
-        if (!toggle || !input) return;
-
-        toggle.addEventListener('click', () => {
-            const showing = input.type === 'text';
-            input.type = showing ? 'password' : 'text';
-            const useEl = toggle.querySelector('use');
-            if (useEl) {
-                useEl.setAttribute('href', showing ? 'assets/icons.svg#icon-eye' : 'assets/icons.svg#icon-eye-off');
-            }
-        });
-    }
+    })();
 
     // Utility: populate nav avatar with user initials
     function updateNavAvatar() {
