@@ -347,7 +347,7 @@ class MapManager {
     /**
      * Geocode address to coordinates
      */
-    async geocodeAddress(address, callback) {
+    async geocodeAddress(address) {
         if (!address) {
             console.error('No address provided');
             return null;
@@ -355,19 +355,19 @@ class MapManager {
 
         try {
             if (typeof google !== 'undefined' && google.maps && this.geocoder) {
-                this.geocoder.geocode({ address: address }, (results, status) => {
-                    if (status === 'OK' && results[0]) {
-                        const location = {
-                            lat: results[0].geometry.location.lat(),
-                            lng: results[0].geometry.location.lng(),
-                        };
-                        if (callback) callback(location);
-                        return location;
-                    } else {
-                        console.error('Geocoding failed:', status);
-                        if (callback) callback(null);
-                        return null;
-                    }
+                return new Promise((resolve) => {
+                    this.geocoder.geocode({ address: address }, (results, status) => {
+                        if (status === 'OK' && results[0]) {
+                            const location = {
+                                lat: results[0].geometry.location.lat(),
+                                lng: results[0].geometry.location.lng(),
+                            };
+                            resolve(location);
+                        } else {
+                            console.error('Geocoding failed:', status);
+                            resolve(null);
+                        }
+                    });
                 });
             } else {
                 // Fallback: use Nominatim (OpenStreetMap)
@@ -381,16 +381,13 @@ class MapManager {
                         lat: parseFloat(data[0].lat),
                         lng: parseFloat(data[0].lon),
                     };
-                    if (callback) callback(location);
                     return location;
                 } else {
-                    if (callback) callback(null);
                     return null;
                 }
             }
         } catch (error) {
             console.error('Geocoding error:', error);
-            if (callback) callback(null);
             return null;
         }
     }

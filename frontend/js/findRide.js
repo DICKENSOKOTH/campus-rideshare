@@ -132,6 +132,12 @@ class FindRideManager {
     applyFilters() {
         let filtered = [...this.rides];
 
+        // Filter out rides where current user is the driver
+        const currentUserId = String(authManager.currentUser?.id);
+        if (currentUserId) {
+            filtered = filtered.filter(r => String(r.driver_id) !== currentUserId);
+        }
+
         filtered = filtered.filter(r => r.price_per_seat <= this.filters.maxPrice);
         filtered = filtered.filter(r => (r.seats_left || r.seats_remaining || 0) >= this.filters.minSeats);
 

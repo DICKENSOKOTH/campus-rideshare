@@ -49,6 +49,8 @@ class Dashboard {
             this.updateStats();
             this.renderUpcomingRides();
             this.renderRecentActivity();
+            this.setupRatingModal();
+            this.checkForUnratedRides();
         } catch (error) {
             console.error('Dashboard load error:', error);
         }
@@ -197,7 +199,9 @@ class Dashboard {
                     ? `Cancelled booking to ${b.destination}` 
                     : `Ride to ${b.destination}`,
                 time: new Date(b.departure_time),
-                icon: b.status === 'confirmed' ? 'check-circle' : (b.status === 'cancelled' ? 'x-circle' : 'clock')
+                icon: b.status === 'confirmed' ? 'check-circle' : (b.status === 'cancelled' ? 'x-circle' : 'clock'),
+                booking: b,
+                canRate: b.status === 'confirmed' && !b.has_rating && new Date(b.departure_time) < now
             }));
 
         // Add recent confirmed bookings as activity
@@ -230,6 +234,9 @@ class Dashboard {
 
         container.innerHTML = activities.map(activity => {
             const timeAgo = this.getTimeAgo(activity.time);
+            const rateBtn = activity.canRate 
+                ? `<button class="btn btn-outline btn-xs rate-ride-btn" data-booking='${JSON.stringify(activity.booking)}'>Rate</button>` 
+                : '';
             return `
                 <div class="activity-item">
                     <div class="activity-icon ${activity.type.includes('cancelled') ? 'error' : (activity.type.includes('completed') || activity.type.includes('confirmed') ? 'success' : '')}">
@@ -239,8 +246,17 @@ class Dashboard {
                         <p class="activity-message">${activity.message}</p>
                         <span class="activity-time">${timeAgo}</span>
                     </div>
+                    ${rateBtn}
                 </div>`;
         }).join('');
+
+        // Attach rate button handlers
+        container.querySelectorAll('.rate-ride-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const booking = JSON.parse(e.target.dataset.booking);
+                this.showRatingModal(booking);
+            });
+        });
     }
 
     getTimeAgo(date) {
@@ -272,6 +288,158 @@ class Dashboard {
             }
         } catch (error) {
             showNotification(error.message || 'Failed to cancel booking', 'error');
+        }
+    }
+
+    // ── Rating Modal ────────────────────────────────────────────
+    setupRatingModal() {
+        this.ratingModal = document.getElementById('ratingModal');
+        this.selectedRating = 0;
+        this.currentBookingToRate = null;
+
+        if (!this.ratingModal) return;
+
+        // Hide modal initially
+        this.ratingModal.classList.add('hidden');
+
+        // Star rating interaction
+        const starsContainer = document.getElementById('ratingStarsInput');
+        const ratingLabel = document.getElementById('ratingLabel');
+        const submitBtn = document.getElementById('submitRatingBtn');
+        const labels = ['', 'Poor', 'Fair', 'Good', 'Very Good', 'Excellent'];
+
+        if (starsContainer) {
+            const stars = starsContainer.querySelectorAll('.star');
+            
+            stars.forEach(star => {
+                star.addEventListener('mouseenter', () => {
+                    const val = parseInt(star.dataset.value);
+                    stars.forEach(s => {
+                        s.classList.toggle('hovered', parseInt(s.dataset.value) <= val);
+                    });
+                    if (ratingLabel) ratingLabel.textContent = labels[val];
+                });
+
+                star.addEventListener('mouseleave', () => {
+                    stars.forEach(s => s.classList.remove('hovered'));
+                    if (ratingLabel) ratingLabel.textContent = this.selectedRating ? labels[this.selectedRating] : 'Select a rating';
+                });
+
+                star.addEventListener('click', () => {
+                    this.selectedRating = parseInt(star.dataset.value);
+                    stars.forEach(s => {
+                        s.classList.toggle('active', parseInt(s.dataset.value) <= this.selectedRating);
+                    });
+                    if (ratingLabel) ratingLabel.textContent = labels[this.selectedRating];
+                    if (submitBtn) submitBtn.disabled = false;
+                });
+            });
+        }
+
+        // Close modal
+        document.getElementById('closeRatingModal')?.addEventListener('click', () => this.closeRatingModal());
+        document.getElementById('skipRatingBtn')?.addEventListener('click', () => this.closeRatingModal());
+
+        // Submit rating
+        submitBtn?.addEventListener('click', () => this.submitRating());
+
+        // Close on overlay click
+        this.ratingModal.addEventListener('click', (e) => {
+            if (e.target === this.ratingModal) this.closeRatingModal();
+        });
+    }
+
+    checkForUnratedRides() {
+        const now = new Date();
+        
+        // Find completed rides that might need rating (past departure time, confirmed status)
+        const completedBookings = this.userBookings.filter(b => {
+            const departed = new Date(b.departure_time) < now;
+            const isConfirmed = b.status === 'confirmed';
+            const notRated = !b.has_rating; // Backend should include this field
+            return departed && isConfirmed && notRated;
+        });
+
+        // Show rating prompt for the most recent unrated ride
+        if (completedBookings.length > 0) {
+            // Sort by departure time descending (most recent first)
+            completedBookings.sort((a, b) => new Date(b.departure_time) - new Date(a.departure_time));
+            const bookingToRate = completedBookings[0];
+            
+            // Wait a moment then show the modal
+            setTimeout(() => this.showRatingModal(bookingToRate), 1000);
+        }
+    }
+
+    showRatingModal(booking) {
+        if (!this.ratingModal) return;
+        
+        this.currentBookingToRate = booking;
+        this.selectedRating = 0;
+
+        // Reset stars
+        const stars = document.querySelectorAll('#ratingStarsInput .star');
+        stars.forEach(s => s.classList.remove('active', 'hovered'));
+
+        // Reset form
+        const ratingLabel = document.getElementById('ratingLabel');
+        const commentInput = document.getElementById('ratingComment');
+        const submitBtn = document.getElementById('submitRatingBtn');
+        const rideInfo = document.getElementById('ratingRideInfo');
+
+        if (ratingLabel) ratingLabel.textContent = 'Select a rating';
+        if (commentInput) commentInput.value = '';
+        if (submitBtn) submitBtn.disabled = true;
+        if (rideInfo) {
+            rideInfo.textContent = `How was your ride from ${booking.origin} to ${booking.destination}?`;
+        }
+
+        this.ratingModal.classList.remove('hidden');
+    }
+
+    closeRatingModal() {
+        if (this.ratingModal) {
+            this.ratingModal.classList.add('hidden');
+        }
+        this.currentBookingToRate = null;
+        this.selectedRating = 0;
+    }
+
+    async submitRating() {
+        if (!this.currentBookingToRate || !this.selectedRating) return;
+
+        const submitBtn = document.getElementById('submitRatingBtn');
+        const comment = document.getElementById('ratingComment')?.value || '';
+
+        if (submitBtn) {
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Submitting...';
+        }
+
+        try {
+            const response = await UserAPI.rateUser(this.currentBookingToRate.booking_id || this.currentBookingToRate.id, {
+                score: this.selectedRating,
+                rated_id: this.currentBookingToRate.driver_id,
+                comment: comment.trim()
+            });
+
+            if (response.success) {
+                showNotification('Thank you for your rating!', 'success');
+                this.closeRatingModal();
+                // Reload bookings to update has_rating status and refresh activity
+                await this.loadUserBookings();
+                this.renderRecentActivity();
+            } else {
+                showNotification(response.message || 'Failed to submit rating', 'error');
+            }
+        } catch (error) {
+            console.error('Rating submission error:', error);
+            showNotification(error.message || 'Failed to submit rating', 'error');
+        } finally {
+            if (submitBtn) {
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Submit Rating';
+            }
         }
     }
 }

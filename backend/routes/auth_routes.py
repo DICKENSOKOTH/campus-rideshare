@@ -79,11 +79,14 @@ def refresh():
     return response
 
 @auth_bp.route("/logout", methods=["POST"])
-@jwt_required(refresh=True)
+@jwt_required(refresh=True, optional=True)
 def logout():
-    # Get the jti (JWT ID) claim to identify this token
-    jti = get_jwt().get("jti")
-    delete_refresh_token(jti)
+    # Get the jti (JWT ID) claim to identify this token if present
+    jwt_data = get_jwt()
+    if jwt_data:
+        jti = jwt_data.get("jti")
+        if jti:
+            delete_refresh_token(jti)
     response = make_response(success_response({}, "Logged out"))
     unset_jwt_cookies(response)
     return response

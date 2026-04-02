@@ -40,7 +40,7 @@ class APIClient {
 
     // Generic request method
     async request(method, endpoint, options = {}) {
-        const { data, params, includeAuth = true, queryParams } = options;
+        const { data, params, includeAuth = true, queryParams, skipRetry = false } = options;
 
         let url = this.buildURL(endpoint, params);
         
@@ -94,7 +94,7 @@ class APIClient {
 
             if (error.status) {
                 // Error from server
-                if (error.status === 401 && options.includeAuth !== false && !options._retried) {
+                if (error.status === 401 && options.includeAuth !== false && !options._retried && !skipRetry) {
                     // Try to refresh the token (server uses httpOnly refresh cookie)
                     const refreshed = await this._tryRefreshToken();
                     if (refreshed) {
@@ -219,6 +219,10 @@ const AuthAPI = {
 
     async getMe() {
         return handleAPIError(api.get(API_ENDPOINTS.ME));
+    },
+
+    async logout() {
+        return handleAPIError(api.post(API_ENDPOINTS.LOGOUT, {}, { skipRetry: true }));
     },
 };
 

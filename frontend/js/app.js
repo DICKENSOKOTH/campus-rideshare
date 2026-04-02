@@ -45,10 +45,10 @@ function initSidebarActive() {
 /** Wire up all logout links/buttons */
 function initLogoutLinks() {
     document.querySelectorAll('[data-action="logout"]').forEach(el => {
-        el.addEventListener('click', e => {
+        el.addEventListener('click', async e => {
             e.preventDefault();
             if (confirm('Are you sure you want to logout?')) {
-                if (typeof authManager !== 'undefined') authManager.logout();
+                if (typeof authManager !== 'undefined') await authManager.logout();
             }
         });
     });

@@ -3,6 +3,7 @@
 class CreateRideManager {
     constructor() {
         this.currentStep = 1;
+        this.map = null;
     }
 
     async init() {
@@ -17,6 +18,8 @@ class CreateRideManager {
 
         this.initWizard();
         this.initEarningsCalculator();
+        this.initMap();
+        this.initLocationInputs();
 
         const submitBtn = document.getElementById('submitRide');
         if (submitBtn) {
@@ -27,6 +30,66 @@ class CreateRideManager {
         const dateInput = document.getElementById('departureDate');
         if (dateInput) {
             dateInput.setAttribute('min', new Date().toISOString().split('T')[0]);
+        }
+    }
+
+    /* ---- Map Initialization ---- */
+
+    initMap() {
+        if (typeof mapManager !== 'undefined') {
+            this.map = mapManager;
+            this.map.initMap('routeMap', {
+                center: MAP_CONFIG.DEFAULT_CENTER,
+                zoom: MAP_CONFIG.DEFAULT_ZOOM
+            });
+        }
+    }
+
+    /* ---- Location Input Handlers ---- */
+
+    initLocationInputs() {
+        const pickupInput = document.getElementById('pickupLocation');
+        const dropoffInput = document.getElementById('dropoffLocation');
+
+        if (pickupInput && dropoffInput) {
+            const updateRoute = async () => {
+                const pickup = pickupInput.value.trim();
+                const dropoff = dropoffInput.value.trim();
+
+                if (pickup && dropoff && this.map) {
+                    await this.updateRoutePreview(pickup, dropoff);
+                }
+            };
+
+            // Update map when user finishes typing (debounced)
+            let debounceTimer;
+            const debouncedUpdate = () => {
+                clearTimeout(debounceTimer);
+                debounceTimer = setTimeout(updateRoute, 800);
+            };
+
+            pickupInput.addEventListener('input', debouncedUpdate);
+            dropoffInput.addEventListener('input', debouncedUpdate);
+        }
+    }
+
+    async updateRoutePreview(pickup, dropoff) {
+        try {
+            // Clear existing markers and route
+            this.map.clearMarkers();
+            this.map.clearRoute();
+
+            // Geocode addresses
+            const pickupLocation = await this.map.geocodeAddress(pickup);
+            const dropoffLocation = await this.map.geocodeAddress(dropoff);
+
+            if (pickupLocation && dropoffLocation) {
+                await this.map.showRoute(pickupLocation, dropoffLocation);
+            } else {
+                console.warn('Could not geocode one or both addresses');
+            }
+        } catch (error) {
+            console.error('Error updating route preview:', error);
         }
     }
 

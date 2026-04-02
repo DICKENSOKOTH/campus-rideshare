@@ -32,8 +32,17 @@ class RideDetailsManager {
             const response = await RideAPI.getRide(this.rideId);
             if (response.success && response.data) {
                 this.ride = response.data;
-                this.isOwner = authManager.currentUser &&
-                    authManager.currentUser.id === this.ride.driver_id;
+                const currentUserId = String(authManager.currentUser?.id);
+                const driverId = String(this.ride.driver_id);
+                this.isOwner = authManager.currentUser && currentUserId === driverId;
+                
+                console.log('Driver check:', {
+                    currentUserId,
+                    driverId,
+                    isOwner: this.isOwner,
+                    currentUser: authManager.currentUser
+                });
+                
                 this.populatePage();
                 this.initMap();
             } else {
@@ -154,10 +163,44 @@ class RideDetailsManager {
         this.renderSeats(seatsLeft, seatsTotal);
         this.renderPricing(r.price_per_seat);
         this.renderReviews(r.reviews || []);
-        this.checkExistingBooking();
+        
+        // Hide booking section if user is the driver
+        if (this.isOwner) {
+            this.hideBookingSection();
+        } else {
+            this.checkExistingBooking();
+        }
 
         el('bookingPrice', 'KSh ' + Number(r.price_per_seat).toLocaleString());
         el('bookingSeatsLabel', seatsLeft + ' seat' + (seatsLeft !== 1 ? 's' : '') + ' available');
+    }
+
+    hideBookingSection() {
+        console.log('hideBookingSection called - driver viewing their own ride');
+        const bookingSidebar = document.querySelector('.booking-sidebar');
+        if (bookingSidebar) {
+            bookingSidebar.innerHTML = `
+                <div class="booking-price-header">
+                    <div class="route-label-sm">YOUR RIDE</div>
+                    <div class="booking-price" id="bookingPrice">KSh ${Number(this.ride.price_per_seat).toLocaleString()}</div>
+                </div>
+                <div class="booking-body">
+                    <div class="info-box info-box-primary">
+                        <svg class="icon icon-md"><use href="assets/icons.svg#icon-car"></use></svg>
+                        <div>
+                            <strong>You're the driver</strong>
+                            <p>Manage this ride from your dashboard. You cannot book your own ride.</p>
+                        </div>
+                    </div>
+                    <a href="home.html" class="btn btn-secondary btn-block mt-3">
+                        <svg class="icon icon-sm"><use href="assets/icons.svg#icon-arrow-left"></use></svg>
+                        Back to Dashboard
+                    </a>
+                </div>
+            `;
+        } else {
+            console.warn('Booking sidebar not found');
+        }
     }
 
     checkExistingBooking() {

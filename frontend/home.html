@@ -65,12 +65,6 @@
             <a href="profile.html" class="sidebar-link">
               <span class="sidebar-icon"><svg class="icon icon-sm"><use href="assets/icons.svg#icon-user"></use></svg></span> My Profile
             </a>
-            <a href="ride-details.html" class="sidebar-link">
-              <span class="sidebar-icon"><svg class="icon icon-sm"><use href="assets/icons.svg#icon-map"></use></svg></span> My Rides
-            </a>
-            <a href="#" class="sidebar-link">
-              <span class="sidebar-icon"><svg class="icon icon-sm"><use href="assets/icons.svg#icon-settings"></use></svg></span> Settings
-            </a>
             <a href="#" class="sidebar-link" data-action="logout">
               <span class="sidebar-icon"><svg class="icon icon-sm"><use href="assets/icons.svg#icon-logout"></use></svg></span> Sign Out
             </a>
@@ -205,5 +199,36 @@
     <script src="js/auth.js"></script>
     <script src="js/app.js"></script>
     <script src="js/home.js"></script>
+
+    <!-- Rating Modal -->
+    <div class="modal-overlay" id="ratingModal">
+      <div class="modal">
+        <div class="modal-header">
+          <h3 class="modal-title">Rate Your Ride</h3>
+          <button class="modal-close" id="closeRatingModal">&times;</button>
+        </div>
+        <div class="modal-body">
+          <p class="modal-subtitle" id="ratingRideInfo">How was your ride?</p>
+          
+          <div class="rating-stars-input" id="ratingStarsInput">
+            <span class="star" data-value="1">★</span>
+            <span class="star" data-value="2">★</span>
+            <span class="star" data-value="3">★</span>
+            <span class="star" data-value="4">★</span>
+            <span class="star" data-value="5">★</span>
+          </div>
+          <p class="rating-label" id="ratingLabel">Select a rating</p>
+          
+          <div class="form-group mt-3">
+            <label class="form-label">Comment (optional)</label>
+            <textarea class="form-input" id="ratingComment" rows="3" placeholder="Tell us about your experience..."></textarea>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-ghost" id="skipRatingBtn">Skip</button>
+          <button class="btn btn-primary" id="submitRatingBtn" disabled>Submit Rating</button>
+        </div>
+      </div>
+    </div>
   </body>
 </html>

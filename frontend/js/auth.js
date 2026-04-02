@@ -72,7 +72,12 @@ class AuthManager {
         }
     }
 
-    logout() {
+    async logout() {
+        try {
+            await AuthAPI.logout();
+        } catch (e) {
+            // Proceed with local cleanup even if backend call fails
+        }
         this.clearAuthData();
         this._redirectTo('login.html');
     }

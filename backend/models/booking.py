@@ -28,10 +28,12 @@ def create_booking(ride_id, passenger_id, seats_booked=1, pickup_location=None):
 def get_user_bookings(user_id):
     return execute_query(
         """SELECT b.*, r.origin, r.destination, r.departure_time, r.price_per_seat,
-                  u.full_name as driver_name, u.phone as driver_phone
+                  r.driver_id, u.full_name as driver_name, u.phone as driver_phone,
+                  CASE WHEN rat.id IS NOT NULL THEN 1 ELSE 0 END as has_rating
            FROM bookings b
            JOIN rides r ON b.ride_id = r.id
            JOIN users u ON r.driver_id = u.id
+           LEFT JOIN ratings rat ON rat.booking_id = b.id
            WHERE b.rider_id = %s
            ORDER BY r.departure_time DESC""",
         (user_id,)
