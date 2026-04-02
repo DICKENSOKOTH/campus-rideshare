@@ -36,6 +36,9 @@ ride_bp = Blueprint("rides", __name__, url_prefix="/api/rides")
 def create():
     user = require_user_exists()
     if isinstance(user, dict):
+        # Only users with driver role can offer rides
+        if user.get("role") != "driver":
+            return error_response("Only users registered as drivers can offer rides", 403)
         data = request.get_json()
         errors = validate_ride(data)
         if errors:
