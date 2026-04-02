@@ -501,6 +501,159 @@
 .empty-state-icon { font-size: 3rem; margin-bottom: var(--space-4); opacity: 0.5; }
 .empty-state h3   { color: var(--gray-600); margin-bottom: var(--space-2); }
 
+/* ── Ride Item (Dashboard) ─────────────────────────────────── */
+.ride-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-4);
+  border-bottom: 1px solid var(--gray-200);
+  gap: var(--space-4);
+}
+
+.ride-item:last-child { border-bottom: none; }
+
+.ride-item-info { flex: 1; min-width: 0; }
+
+.ride-item-route {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--text-sm);
+  color: var(--gray-800);
+  flex-wrap: wrap;
+}
+
+.ride-item-route svg { color: var(--gold); }
+
+.ride-item-meta {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  margin-top: var(--space-2);
+  font-size: var(--text-xs);
+  color: var(--gray-500);
+}
+
+/* ── Activity Item (Dashboard) ─────────────────────────────── */
+.activity-item {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+  padding: var(--space-3) 0;
+  border-bottom: 1px solid var(--gray-100);
+}
+
+.activity-item:last-child { border-bottom: none; }
+
+.activity-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--gray-100);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  color: var(--gray-600);
+}
+
+.activity-icon.success { background: var(--success-bg, #d4edda); color: var(--success); }
+.activity-icon.error { background: var(--danger-bg, #f8d7da); color: var(--danger); }
+
+.activity-content { flex: 1; min-width: 0; }
+
+.activity-message {
+  font-size: var(--text-sm);
+  color: var(--gray-700);
+  margin: 0;
+}
+
+.activity-time {
+  font-size: var(--text-xs);
+  color: var(--gray-400);
+}
+
+/* ── Booking Confirmation Banner ───────────────────────────── */
+.booking-confirmed-banner {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+  padding: var(--space-4);
+  background: var(--success-bg, #d4edda);
+  border: 1px solid var(--success);
+  border-radius: var(--radius);
+  margin-bottom: var(--space-4);
+  color: var(--success);
+}
+
+.booking-confirmed-banner svg { flex-shrink: 0; margin-top: 2px; }
+.booking-confirmed-banner strong { display: block; color: var(--gray-800); }
+.booking-confirmed-banner p { margin: 0; font-size: var(--text-sm); color: var(--gray-600); }
+
+.btn-success {
+  background: var(--success) !important;
+  border-color: var(--success) !important;
+  color: var(--white) !important;
+}
+
+/* ── Review Cards ──────────────────────────────────────────── */
+.review-card {
+  padding: var(--space-4);
+  border-bottom: 1px solid var(--gray-100);
+}
+
+.review-card:last-child { border-bottom: none; }
+
+.review-header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  margin-bottom: var(--space-2);
+}
+
+.review-author {
+  flex: 1;
+  min-width: 0;
+}
+
+.review-author strong {
+  display: block;
+  font-size: var(--text-sm);
+  color: var(--gray-800);
+}
+
+.review-time {
+  font-size: var(--text-xs);
+  color: var(--gray-400);
+}
+
+.review-rating {
+  color: var(--gold);
+  font-size: var(--text-sm);
+}
+
+.review-rating small {
+  color: var(--gray-500);
+  margin-left: var(--space-1);
+}
+
+.review-text {
+  font-size: var(--text-sm);
+  color: var(--gray-600);
+  margin: 0;
+  line-height: 1.5;
+}
+
+.empty-state-sm {
+  text-align: center;
+  padding: var(--space-8) var(--space-4);
+  color: var(--gray-400);
+}
+
+.empty-state-sm svg { margin-bottom: var(--space-2); opacity: 0.5; }
+.empty-state-sm p { margin: 0; font-size: var(--text-sm); }
+
 /* ── Skeleton ───────────────────────────────────────────────── */
 .skeleton {
   background: linear-gradient(90deg, var(--gray-200) 25%, var(--gray-100) 50%, var(--gray-200) 75%);
@@ -642,6 +795,35 @@
   gap: var(--space-3);
   color: var(--gray-400);
   font-size: var(--text-sm);
+}
+
+/* ── Leaflet Map Markers ───────────────────────────────────── */
+.custom-marker { background: transparent; border: none; }
+
+.marker-dot {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  border: 3px solid var(--white);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+}
+
+.marker-dot.origin {
+  background: var(--success, #28a745);
+}
+
+.marker-dot.destination {
+  background: var(--danger, #dc3545);
+}
+
+.leaflet-popup-content-wrapper {
+  border-radius: var(--radius, 8px);
+  font-family: var(--font-body, 'DM Sans', sans-serif);
+}
+
+.leaflet-popup-content {
+  margin: 12px 16px;
+  font-size: 14px;
 }
 
 /* ── Seat Selector ──────────────────────────────────────────── */

@@ -1,12 +1,16 @@
 """
 Campus Ride-Share Platform - AI Assistant (Chatbot).
 
-Professional, secure AI assistant using Google Gemini API.
-Security-first design: Never sends personal data (names, phones, emails) to Gemini.
+Professional, secure AI assistant supporting multiple providers:
+- Groq (FREE tier, blazing fast - recommended)
+- Google Gemini API (cloud, requires API key)
+
+Security-first design: Never sends personal data (names, phones, emails) to AI.
 Only sanitized ride data (IDs, routes, dates, times, prices) is included in prompts.
 """
 
 import logging
+import requests
 from typing import Optional, List, Dict, Any
 
 from backend.config import config
@@ -24,29 +28,45 @@ class RideShareChatbot:
     Secure AI Assistant for the Campus Rideshare platform.
 
     Security Features:
-    - NEVER sends driver names to Gemini
-    - NEVER sends phone numbers to Gemini
-    - NEVER sends email addresses to Gemini
-    - NEVER sends license plates to Gemini
+    - NEVER sends driver names to AI
+    - NEVER sends phone numbers to AI
+    - NEVER sends email addresses to AI
+    - NEVER sends license plates to AI
     - Only sends: Ride IDs, routes, dates, times, prices, seat counts
+    
+    Supports:
+    - Groq (FREE, fast) - recommended
+    - Google Gemini (cloud API)
     """
 
     def __init__(self):
-        """Initialize the chatbot with Google Gemini client if configured."""
-        self.enabled = config.is_gemini_enabled()
-        if self.enabled:
-            try:
-                from google import genai
-                self.client = genai.Client(api_key=config.GEMINI_API_KEY)
-            except Exception as e:
-                logging.getLogger(__name__).warning('Gemini client init failed: %s', e)
-                self.client = None
-                self.enabled = False
-        else:
-            self.client = None
-        self.model = config.GEMINI_MODEL
+        """Initialize the chatbot with the configured AI provider."""
+        self.provider = config.AI_PROVIDER
+        self.enabled = False
+        self.client = None
+        
+        if config.is_groq_enabled():
+            self.enabled = True
+            logging.getLogger(__name__).info(
+                'Groq initialized with model: %s', config.GROQ_MODEL
+            )
+        elif config.is_gemini_enabled():
+            self.enabled = self._init_gemini()
+        
         self.max_tokens = config.GEMINI_MAX_TOKENS
         self.rate_limit = config.CHATBOT_RATE_LIMIT
+    
+    def _init_gemini(self) -> bool:
+        """Initialize Google Gemini client."""
+        try:
+            from google import genai
+            self.client = genai.Client(api_key=config.GEMINI_API_KEY)
+            self.model = config.GEMINI_MODEL
+            logging.getLogger(__name__).info('Gemini client initialized')
+            return True
+        except Exception as e:
+            logging.getLogger(__name__).warning('Gemini client init failed: %s', e)
+            return False
 
     def _build_system_prompt(self) -> str:
         """
@@ -68,26 +88,101 @@ class RideShareChatbot:
             rides_section=ctx['rides_section'],
         )
 
-    def _build_contents(
+    def _call_groq(
         self,
         user_message: str,
         conversation_history: List[Dict[str, str]],
-    ) -> List[Dict[str, str]]:
-        """Build the contents array for the Gemini API call."""
-        contents = []
-
+    ) -> Dict[str, Any]:
+        """Call Groq API (FREE tier, blazing fast)."""
+        system_prompt = self._build_system_prompt()
+        
+        # Build messages for Groq (OpenAI-compatible format)
+        messages = [{"role": "system", "content": system_prompt}]
+        
         for msg in conversation_history[-10:]:
             role = msg.get("role", "user")
-            # Gemini uses "user" and "model" roles (not "assistant")
+            messages.append({
+                "role": role,
+                "content": msg.get("content", "")
+            })
+        
+        messages.append({"role": "user", "content": user_message})
+        
+        try:
+            response = requests.post(
+                "https://api.groq.com/openai/v1/chat/completions",
+                headers={
+                    "Authorization": f"Bearer {config.GROQ_API_KEY}",
+                    "Content-Type": "application/json"
+                },
+                json={
+                    "model": config.GROQ_MODEL,
+                    "messages": messages,
+                    "max_tokens": self.max_tokens,
+                    "temperature": 0.3,
+                },
+                timeout=30
+            )
+            
+            if response.status_code == 200:
+                data = response.json()
+                bot_response = data["choices"][0]["message"]["content"].strip()
+                tokens_used = data.get("usage", {}).get("total_tokens", 0)
+                return {
+                    "success": True,
+                    "response": bot_response,
+                    "tokens_used": tokens_used,
+                    "provider": "groq"
+                }
+            else:
+                error_data = response.json() if response.text else {}
+                error_msg = error_data.get("error", {}).get("message", f"Status {response.status_code}")
+                raise Exception(f"Groq error: {error_msg}")
+                
+        except requests.RequestException as e:
+            raise Exception(f"Groq connection error: {str(e)}")
+
+    def _call_gemini(
+        self,
+        user_message: str,
+        conversation_history: List[Dict[str, str]],
+    ) -> Dict[str, Any]:
+        """Call Google Gemini API."""
+        from google.genai import types
+        
+        contents = []
+        for msg in conversation_history[-10:]:
+            role = msg.get("role", "user")
             if role == "assistant":
                 role = "model"
             contents.append({
                 "role": role,
                 "parts": [{"text": msg.get("content", "")}],
             })
-
         contents.append({"role": "user", "parts": [{"text": user_message}]})
-        return contents
+
+        response = self.client.models.generate_content(
+            model=self.model,
+            contents=contents,
+            config=types.GenerateContentConfig(
+                system_instruction=self._build_system_prompt(),
+                max_output_tokens=self.max_tokens,
+                temperature=0.3,
+            ),
+        )
+
+        bot_response = response.text.strip()
+        tokens_used = (
+            response.usage_metadata.total_token_count
+            if response.usage_metadata else None
+        )
+        
+        return {
+            "success": True,
+            "response": bot_response,
+            "tokens_used": tokens_used,
+            "provider": "gemini"
+        }
 
     def check_rate_limit(self, user_id: int) -> tuple:
         """Check if the user has exceeded the rate limit."""
@@ -105,11 +200,11 @@ class RideShareChatbot:
         """
         Get a response from the AI Assistant.
 
-        SECURITY: Personal data (names, phones, emails) is NEVER sent to Gemini.
+        SECURITY: Personal data (names, phones, emails) is NEVER sent to AI.
         """
-        if not self.enabled or self.client is None:
+        if not self.enabled:
             fallback = self._get_fallback_response()
-            logging.getLogger(__name__).info('Gemini unavailable, returning fallback response')
+            logging.getLogger(__name__).info('AI unavailable, returning fallback response')
             return {
                 "success": True,
                 "response": fallback,
@@ -134,34 +229,20 @@ class RideShareChatbot:
         conversation_history = conversation_history or []
 
         try:
-            from google.genai import types
-
-            contents = self._build_contents(user_message, conversation_history)
-
-            response = self.client.models.generate_content(
-                model=self.model,
-                contents=contents,
-                config=types.GenerateContentConfig(
-                    system_instruction=self._build_system_prompt(),
-                    max_output_tokens=self.max_tokens,
-                    temperature=0.3,
-                ),
-            )
-
-            bot_response = response.text.strip()
-            tokens_used = (
-                response.usage_metadata.total_token_count
-                if response.usage_metadata else None
-            )
+            # Call the appropriate provider
+            if config.is_groq_enabled():
+                result = self._call_groq(user_message, conversation_history)
+            else:
+                result = self._call_gemini(user_message, conversation_history)
 
             log_chat_interaction(
                 user_id=user_id,
                 user_message=user_message,
-                bot_response=bot_response,
-                tokens_used=tokens_used,
+                bot_response=result["response"],
+                tokens_used=result.get("tokens_used"),
             )
 
-            return {"success": True, "response": bot_response, "tokens_used": tokens_used}
+            return result
 
         except Exception as e:
             error_message = str(e)

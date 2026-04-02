@@ -90,7 +90,59 @@ def get_ride(ride_id):
         return error_response("Ride not found", 404)
     passengers = get_ride_passengers(ride_id)
     ride["passengers"] = passengers
+    
+    # Get driver reviews
+    from backend.models.rating import get_user_ratings
+    driver_reviews = get_user_ratings(ride["driver_id"])
+    ride["reviews"] = [
+        {
+            "reviewer_name": r["rater_name"],
+            "rating": r["score"],
+            "comment": r["comment"],
+            "time_ago": _time_ago(r["created_at"]) if r.get("created_at") else ""
+        }
+        for r in driver_reviews
+    ]
+    
+    # Get driver stats
+    from backend.database.database import execute_query
+    stats = execute_query(
+        """SELECT COUNT(*) as total_trips, 
+                  COALESCE(AVG(rt.score), 0) as avg_rating
+           FROM rides r
+           LEFT JOIN bookings b ON r.id = b.ride_id AND b.status = 'confirmed'
+           LEFT JOIN ratings rt ON rt.ratee_id = r.driver_id
+           WHERE r.driver_id = %s AND r.status = 'completed'""",
+        (ride["driver_id"],)
+    )
+    if stats:
+        ride["driver_trips"] = stats[0]["total_trips"] or 0
+        ride["driver_rating"] = round(float(stats[0]["avg_rating"] or 0), 1) or None
+    
     return success_response(ride)
+
+
+def _time_ago(dt_str):
+    """Convert datetime string to relative time."""
+    from datetime import datetime
+    if not dt_str:
+        return ""
+    try:
+        dt = datetime.fromisoformat(str(dt_str).replace("Z", "+00:00")) if "T" in str(dt_str) else datetime.strptime(str(dt_str), "%Y-%m-%d %H:%M:%S")
+        diff = datetime.now() - dt
+        days = diff.days
+        if days < 1:
+            hours = diff.seconds // 3600
+            if hours < 1:
+                return "Just now"
+            return f"{hours}h ago"
+        if days < 7:
+            return f"{days}d ago"
+        if days < 30:
+            return f"{days // 7}w ago"
+        return f"{days // 30}mo ago"
+    except:
+        return ""
 
 @ride_bp.route("/<ride_id>", methods=["DELETE"])
 @jwt_required()

@@ -66,9 +66,10 @@ def login():
 @jwt_required(refresh=True)
 def refresh():
     identity = get_jwt_identity()
-    token = get_jwt()["raw_token"]
-    # Validate refresh token in DB
-    db_token = get_refresh_token(token)
+    # Get the jti (JWT ID) claim to identify this token
+    jti = get_jwt().get("jti")
+    # Validate refresh token in DB using jti
+    db_token = get_refresh_token(jti)
     if not db_token:
         return error_response("Refresh token invalid or expired", 401)
     access_token = create_access_token(identity=identity)
@@ -80,8 +81,9 @@ def refresh():
 @auth_bp.route("/logout", methods=["POST"])
 @jwt_required(refresh=True)
 def logout():
-    token = get_jwt()["raw_token"]
-    delete_refresh_token(token)
+    # Get the jti (JWT ID) claim to identify this token
+    jti = get_jwt().get("jti")
+    delete_refresh_token(jti)
     response = make_response(success_response({}, "Logged out"))
     unset_jwt_cookies(response)
     return response

@@ -8,6 +8,13 @@ class CreateRideManager {
     async init() {
         if (!(await authManager.requireAuth())) return;
 
+        // Only drivers can post rides
+        if (authManager.currentUser?.role !== 'driver') {
+            showNotification('Only drivers can post rides. Please register as a driver.', 'error');
+            setTimeout(() => window.location.href = 'home.html', 1500);
+            return;
+        }
+
         this.initWizard();
         this.initEarningsCalculator();
 

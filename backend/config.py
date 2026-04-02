@@ -66,7 +66,15 @@ class Config:
     # ── Static / Frontend ─────────────────────────────────────────
     STATIC_FOLDER = str(BASE_DIR / 'frontend')
 
-    # ── Gemini / Chatbot ──────────────────────────────────────────
+    # ── AI / Chatbot ─────────────────────────────────────────────
+    # Provider: 'groq' (free, fast) or 'gemini' (cloud API)
+    AI_PROVIDER        = _env('AI_PROVIDER', 'groq')
+    
+    # Groq settings (FREE tier - very fast!)
+    GROQ_API_KEY       = _env('GROQ_API_KEY')
+    GROQ_MODEL         = _env('GROQ_MODEL', 'llama-3.3-70b-versatile')
+    
+    # Gemini settings (cloud API - requires API key)
     GEMINI_API_KEY     = _env('GEMINI_API_KEY')
     GEMINI_MODEL       = _env('GEMINI_MODEL', 'gemini-2.0-flash')
     GEMINI_MAX_TOKENS  = _env_int('GEMINI_MAX_TOKENS', 500)
@@ -77,7 +85,13 @@ class Config:
     WS_PORT = _env_int('WS_PORT', 8765)
 
     def is_gemini_enabled(self) -> bool:
-        return bool(self.GEMINI_API_KEY)
+        return self.AI_PROVIDER == 'gemini' and bool(self.GEMINI_API_KEY)
+    
+    def is_groq_enabled(self) -> bool:
+        return self.AI_PROVIDER == 'groq' and bool(self.GROQ_API_KEY)
+    
+    def is_ai_enabled(self) -> bool:
+        return self.is_groq_enabled() or self.is_gemini_enabled()
 
 
 # Singleton used by the rest of the app

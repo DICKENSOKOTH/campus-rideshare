@@ -150,6 +150,18 @@ class AuthManager {
 // Create singleton instance
 const authManager = new AuthManager();
 
+// Apply role-based UI restrictions (hide "Post a Ride" for non-drivers)
+function applyRoleRestrictions() {
+    const user = authManager.currentUser;
+    if (!user || user.role === 'driver') return;
+    
+    // Hide all "Post a Ride" links for riders
+    const postRideLinks = document.querySelectorAll('a[href="create-ride.html"]');
+    postRideLinks.forEach(link => {
+        link.style.display = 'none';
+    });
+}
+
 // Utility function to show notifications (uses toast styles from components.css)
 // Defined globally so it's available on all pages
 function showNotification(message, type = 'info') {
@@ -198,7 +210,11 @@ const isPublicPage = publicPages.some(page => window.location.pathname.includes(
                      window.location.pathname.endsWith('/');
 if (!isPublicPage) {
     (async () => {
-        await authManager.requireAuth();
+        const ok = await authManager.requireAuth();
+        if (ok) {
+            // Apply role-based restrictions after successful auth
+            applyRoleRestrictions();
+        }
     })();
 }
 

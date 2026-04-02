@@ -19,10 +19,23 @@ class Dashboard {
         if (role) role.textContent = user.role === 'driver' ? 'Driver' : 'Rider';
     }
 
+    // Hide "Post a Ride" links for non-drivers
+    applyRoleRestrictions() {
+        const user = authManager.currentUser;
+        if (!user || user.role === 'driver') return;
+
+        // Hide Post a Ride from navbar, sidebar, and quick actions
+        const postRideLinks = document.querySelectorAll('a[href="create-ride.html"]');
+        postRideLinks.forEach(link => {
+            link.style.display = 'none';
+        });
+    }
+
     async init() {
         if (!(await authManager.requireAuth())) return;
 
         this.populateSidebar();
+        this.applyRoleRestrictions();
 
         const greeting = document.getElementById('pageGreeting');
         if (greeting && authManager.currentUser) {
@@ -34,6 +47,8 @@ class Dashboard {
         try {
             await Promise.all([this.loadUserRides(), this.loadUserBookings()]);
             this.updateStats();
+            this.renderUpcomingRides();
+            this.renderRecentActivity();
         } catch (error) {
             console.error('Dashboard load error:', error);
         }
@@ -85,6 +100,163 @@ class Dashboard {
         });
     }
 
+    // Render upcoming rides (booked rides departing in the future)
+    renderUpcomingRides() {
+        const container = document.getElementById('upcomingRides');
+        if (!container) return;
+
+        const now = new Date();
+        const isDriver = authManager.currentUser?.role === 'driver';
+
+        // Combine driver's scheduled rides and rider's confirmed bookings
+        let upcomingItems = [];
+
+        // Add driver's upcoming rides
+        if (isDriver) {
+            this.userRides
+                .filter(r => new Date(r.departure_time) > now && r.status === 'scheduled')
+                .forEach(r => upcomingItems.push({ ...r, type: 'driving' }));
+        }
+
+        // Add booked rides (as passenger)
+        this.userBookings
+            .filter(b => new Date(b.departure_time) > now && (b.status === 'confirmed' || b.status === 'pending'))
+            .forEach(b => upcomingItems.push({ ...b, type: 'booked' }));
+
+        // Sort by departure time
+        upcomingItems.sort((a, b) => new Date(a.departure_time) - new Date(b.departure_time));
+
+        // Take top 5
+        upcomingItems = upcomingItems.slice(0, 5);
+
+        if (upcomingItems.length === 0) {
+            container.innerHTML = `
+                <div class="empty-state">
+                    <div class="empty-state-icon">
+                        <svg class="icon icon-2xl"><use href="assets/icons.svg#icon-car"></use></svg>
+                    </div>
+                    <h3>No upcoming rides</h3>
+                    <p>Book a ride to see it here.</p>
+                </div>`;
+            return;
+        }
+
+        container.innerHTML = upcomingItems.map(item => {
+            const date = new Date(item.departure_time);
+            const formattedDate = date.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+            const formattedTime = date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+            const badge = item.type === 'driving' 
+                ? '<span class="badge badge-primary">Driving</span>' 
+                : `<span class="badge badge-${item.status === 'confirmed' ? 'success' : 'warning'}">${item.status === 'confirmed' ? 'Confirmed' : 'Pending'}</span>`;
+
+            return `
+                <div class="ride-item">
+                    <div class="ride-item-info">
+                        <div class="ride-item-route">
+                            <strong>${item.origin}</strong>
+                            <svg class="icon icon-sm"><use href="assets/icons.svg#icon-arrow-right"></use></svg>
+                            <strong>${item.destination}</strong>
+                        </div>
+                        <div class="ride-item-meta">
+                            <span>${formattedDate} at ${formattedTime}</span>
+                            ${badge}
+                        </div>
+                    </div>
+                    <a href="ride-details.html?id=${item.ride_id || item.id}" class="btn btn-outline btn-sm">View</a>
+                </div>`;
+        }).join('');
+    }
+
+    // Render recent activity (completed rides, new bookings, etc.)
+    renderRecentActivity() {
+        const container = document.getElementById('recentActivity');
+        if (!container) return;
+
+        const now = new Date();
+        const isDriver = authManager.currentUser?.role === 'driver';
+        let activities = [];
+
+        // Add completed/cancelled rides as driver
+        if (isDriver) {
+            this.userRides
+                .filter(r => r.status === 'completed' || r.status === 'cancelled')
+                .forEach(r => activities.push({
+                    type: r.status === 'completed' ? 'ride_completed' : 'ride_cancelled',
+                    message: `${r.status === 'completed' ? 'Completed' : 'Cancelled'} ride to ${r.destination}`,
+                    time: new Date(r.departure_time),
+                    icon: r.status === 'completed' ? 'check-circle' : 'x-circle'
+                }));
+        }
+
+        // Add past bookings
+        this.userBookings
+            .filter(b => new Date(b.departure_time) < now || b.status === 'cancelled')
+            .forEach(b => activities.push({
+                type: b.status === 'confirmed' ? 'booking_completed' : (b.status === 'cancelled' ? 'booking_cancelled' : 'booking_pending'),
+                message: b.status === 'cancelled' 
+                    ? `Cancelled booking to ${b.destination}` 
+                    : `Ride to ${b.destination}`,
+                time: new Date(b.departure_time),
+                icon: b.status === 'confirmed' ? 'check-circle' : (b.status === 'cancelled' ? 'x-circle' : 'clock')
+            }));
+
+        // Add recent confirmed bookings as activity
+        this.userBookings
+            .filter(b => b.status === 'confirmed' && new Date(b.departure_time) > now)
+            .forEach(b => activities.push({
+                type: 'booking_confirmed',
+                message: `Booked ride to ${b.destination}`,
+                time: new Date(b.booked_at || b.departure_time),
+                icon: 'check'
+            }));
+
+        // Sort by time descending
+        activities.sort((a, b) => b.time - a.time);
+
+        // Take top 5
+        activities = activities.slice(0, 5);
+
+        if (activities.length === 0) {
+            container.innerHTML = `
+                <div class="empty-state">
+                    <div class="empty-state-icon">
+                        <svg class="icon icon-2xl"><use href="assets/icons.svg#icon-activity"></use></svg>
+                    </div>
+                    <h3>No recent activity</h3>
+                    <p>Your activity will show up here.</p>
+                </div>`;
+            return;
+        }
+
+        container.innerHTML = activities.map(activity => {
+            const timeAgo = this.getTimeAgo(activity.time);
+            return `
+                <div class="activity-item">
+                    <div class="activity-icon ${activity.type.includes('cancelled') ? 'error' : (activity.type.includes('completed') || activity.type.includes('confirmed') ? 'success' : '')}">
+                        <svg class="icon icon-sm"><use href="assets/icons.svg#icon-${activity.icon}"></use></svg>
+                    </div>
+                    <div class="activity-content">
+                        <p class="activity-message">${activity.message}</p>
+                        <span class="activity-time">${timeAgo}</span>
+                    </div>
+                </div>`;
+        }).join('');
+    }
+
+    getTimeAgo(date) {
+        const now = new Date();
+        const diffMs = now - date;
+        const diffMins = Math.floor(diffMs / 60000);
+        const diffHours = Math.floor(diffMs / 3600000);
+        const diffDays = Math.floor(diffMs / 86400000);
+
+        if (diffMins < 1) return 'Just now';
+        if (diffMins < 60) return `${diffMins} min ago`;
+        if (diffHours < 24) return `${diffHours} hour${diffHours > 1 ? 's' : ''} ago`;
+        if (diffDays < 7) return `${diffDays} day${diffDays > 1 ? 's' : ''} ago`;
+        return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+    }
+
     async cancelBooking(bookingId) {
         if (!confirm('Are you sure you want to cancel this booking?')) return;
         try {
@@ -93,6 +265,8 @@ class Dashboard {
                 showNotification(SUCCESS_MESSAGES.BOOKING_CANCELLED, 'success');
                 await this.loadUserBookings();
                 this.updateStats();
+                this.renderUpcomingRides();
+                this.renderRecentActivity();
             } else {
                 showNotification(response.message || 'Failed to cancel booking', 'error');
             }

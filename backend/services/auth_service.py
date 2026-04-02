@@ -64,10 +64,11 @@ def login_user(email: str, password: str):
     access_token  = create_access_token(identity=str(user["id"]))
     refresh_token = create_refresh_token(identity=str(user["id"]))
 
-    # Store refresh token in DB
+    # Store refresh token jti in DB for validation
     decoded = decode_token(refresh_token)
+    jti = decoded["jti"]
     expires_at = datetime.datetime.fromtimestamp(decoded["exp"]).isoformat()
-    store_refresh_token(user["id"], refresh_token, expires_at)
+    store_refresh_token(user["id"], jti, expires_at)
 
     return {
         "access_token":  access_token,

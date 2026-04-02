@@ -7,6 +7,7 @@ class RideDetailsManager {
         this.isOwner = false;
         this.selectedSeat = null;
         this.wsConnection = null;
+        this.map = null;
     }
 
     async init() {
@@ -34,13 +35,7 @@ class RideDetailsManager {
                 this.isOwner = authManager.currentUser &&
                     authManager.currentUser.id === this.ride.driver_id;
                 this.populatePage();
-
-                if (window.mapManager) {
-                    window.mapManager.showRoute(
-                        { lat: this.ride.origin_lat, lng: this.ride.origin_lng },
-                        { lat: this.ride.destination_lat, lng: this.ride.destination_lng }
-                    );
-                }
+                this.initMap();
             } else {
                 this.showError('Ride not found');
             }
@@ -48,6 +43,82 @@ class RideDetailsManager {
             console.error('Failed to load ride:', error);
             this.showError(error.message || ERROR_MESSAGES.SERVER);
         }
+    }
+
+    initMap() {
+        const mapContainer = document.getElementById('detailsMap');
+        if (!mapContainer || !window.L) return;
+
+        const r = this.ride;
+        const hasCoords = r.origin_lat && r.origin_lng && r.destination_lat && r.destination_lng;
+
+        if (!hasCoords) {
+            // Keep placeholder if no coordinates
+            return;
+        }
+
+        // If map already initialized, just update the view
+        if (this.map) {
+            const bounds = L.latLngBounds([
+                [r.origin_lat, r.origin_lng],
+                [r.destination_lat, r.destination_lng]
+            ]);
+            this.map.fitBounds(bounds, { padding: [50, 50] });
+            return;
+        }
+
+        // Clear placeholder
+        mapContainer.innerHTML = '';
+
+        // Initialize Leaflet map
+        this.map = L.map(mapContainer).setView([r.origin_lat, r.origin_lng], 13);
+
+        // Add OpenStreetMap tiles (free, no API key)
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; OpenStreetMap contributors'
+        }).addTo(this.map);
+
+        // Custom markers
+        const originIcon = L.divIcon({
+            className: 'custom-marker origin-marker',
+            html: '<div class="marker-dot origin"></div>',
+            iconSize: [20, 20],
+            iconAnchor: [10, 10]
+        });
+
+        const destIcon = L.divIcon({
+            className: 'custom-marker dest-marker',
+            html: '<div class="marker-dot destination"></div>',
+            iconSize: [20, 20],
+            iconAnchor: [10, 10]
+        });
+
+        // Add markers
+        const originMarker = L.marker([r.origin_lat, r.origin_lng], { icon: originIcon })
+            .addTo(this.map)
+            .bindPopup(`<strong>Pickup:</strong> ${r.origin}`);
+
+        const destMarker = L.marker([r.destination_lat, r.destination_lng], { icon: destIcon })
+            .addTo(this.map)
+            .bindPopup(`<strong>Drop-off:</strong> ${r.destination}`);
+
+        // Draw route line
+        const routeLine = L.polyline([
+            [r.origin_lat, r.origin_lng],
+            [r.destination_lat, r.destination_lng]
+        ], {
+            color: '#D4A853',
+            weight: 4,
+            opacity: 0.8,
+            dashArray: '10, 10'
+        }).addTo(this.map);
+
+        // Fit map to show both markers
+        const bounds = L.latLngBounds([
+            [r.origin_lat, r.origin_lng],
+            [r.destination_lat, r.destination_lng]
+        ]);
+        this.map.fitBounds(bounds, { padding: [50, 50] });
     }
 
     /* ---- Populate Page ---- */
@@ -83,9 +154,21 @@ class RideDetailsManager {
         this.renderSeats(seatsLeft, seatsTotal);
         this.renderPricing(r.price_per_seat);
         this.renderReviews(r.reviews || []);
+        this.checkExistingBooking();
 
         el('bookingPrice', 'KSh ' + Number(r.price_per_seat).toLocaleString());
         el('bookingSeatsLabel', seatsLeft + ' seat' + (seatsLeft !== 1 ? 's' : '') + ' available');
+    }
+
+    checkExistingBooking() {
+        // Check if user already booked this ride
+        const currentUserId = authManager.currentUser?.id;
+        const passengers = this.ride?.passengers || [];
+        const userBooking = passengers.find(p => String(p.rider_id) === String(currentUserId));
+        
+        if (userBooking) {
+            this.showBookingConfirmation();
+        }
     }
 
     renderDriverStats(r) {
@@ -153,19 +236,27 @@ class RideDetailsManager {
     renderReviews(reviews) {
         const container = document.getElementById('reviewsContainer');
         if (!container) return;
-        if (!reviews.length) return; // keep empty state
+        
+        if (!reviews || !reviews.length) {
+            container.innerHTML = `
+                <div class="empty-state-sm">
+                    <svg class="icon icon-xl"><use href="assets/icons.svg#icon-message-circle"></use></svg>
+                    <p>No reviews yet.</p>
+                </div>`;
+            return;
+        }
 
         container.innerHTML = reviews.map(rev => `
             <div class="review-card">
-                <div class="review-meta">
+                <div class="review-header">
                     <div class="avatar avatar-sm">${this.getInitials(rev.reviewer_name || 'U')}</div>
-                    <div>
+                    <div class="review-author">
                         <strong>${this.escapeHtml(rev.reviewer_name || 'Anonymous')}</strong>
-                        <div class="stars">${this.renderStars(rev.rating || 5)}</div>
+                        <span class="review-time">${rev.time_ago || ''}</span>
                     </div>
-                    <span class="review-text">${rev.time_ago || ''}</span>
+                    <div class="review-rating">${this.renderStars(rev.rating || 5)}</div>
                 </div>
-                <p class="review-text">${this.escapeHtml(rev.comment || '')}</p>
+                ${rev.comment ? `<p class="review-text">${this.escapeHtml(rev.comment)}</p>` : ''}
             </div>`).join('');
     }
 
@@ -195,15 +286,48 @@ class RideDetailsManager {
             const response = await BookingAPI.bookRide(this.rideId, { seats_booked: 1 });
             if (response.success) {
                 showNotification(SUCCESS_MESSAGES.BOOKING_CREATED, 'success');
+                // Update UI immediately for good UX
+                this.showBookingConfirmation();
                 await this.loadRideDetails();
             } else {
                 showNotification(response.message || 'Booking failed', 'error');
+                if (btn) { btn.disabled = false; btn.textContent = 'Book This Ride'; }
             }
         } catch (error) {
             console.error('Booking failed:', error);
             showNotification(error.message || 'Booking failed', 'error');
-        } finally {
             if (btn) { btn.disabled = false; btn.textContent = 'Book This Ride'; }
+        }
+    }
+
+    showBookingConfirmation() {
+        const btn = document.getElementById('bookRideBtn');
+        const saveBtn = document.getElementById('saveRideBtn');
+        
+        if (btn) {
+            btn.classList.remove('btn-primary');
+            btn.classList.add('btn-success');
+            btn.innerHTML = '<svg class="icon icon-sm"><use href="assets/icons.svg#icon-check"></use></svg> Booked!';
+            btn.disabled = true;
+        }
+        
+        if (saveBtn) {
+            saveBtn.style.display = 'none';
+        }
+
+        // Add confirmation banner
+        const bookingCard = document.querySelector('.booking-card');
+        if (bookingCard) {
+            const banner = document.createElement('div');
+            banner.className = 'booking-confirmed-banner';
+            banner.innerHTML = `
+                <svg class="icon icon-md"><use href="assets/icons.svg#icon-check-circle"></use></svg>
+                <div>
+                    <strong>Booking Confirmed!</strong>
+                    <p>You'll receive a notification when the driver confirms.</p>
+                </div>
+            `;
+            bookingCard.insertBefore(banner, bookingCard.firstChild);
         }
     }
 
